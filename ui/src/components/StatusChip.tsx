@@ -72,16 +72,20 @@ export function StatusChip({ status, size = 'md', type = 'generic' }: StatusChip
       }
     }
 
-    // Eval status
+    // Eval status (version evalStatus or run status)
     if (type === 'eval') {
       switch (status) {
         case 'NOT_RUN':
           return 'bg-gray-500 text-white'
+        case 'PENDING':
+          return 'bg-gray-600 text-white'
         case 'RUNNING':
           return 'bg-arm-warning text-white'
         case 'PASS':
+        case 'COMPLETED':
           return 'bg-arm-success text-white'
         case 'FAIL':
+        case 'FAILED':
           return 'bg-arm-danger text-white'
         default:
           return 'bg-gray-500 text-white'

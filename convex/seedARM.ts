@@ -209,6 +209,107 @@ export default mutation({
       timestamp: Date.now(),
     });
     
+    // 8. Create evaluation suite (P2.0)
+    const suiteId = await ctx.db.insert("evaluationSuites", {
+      tenantId,
+      name: "Standard Agent Tests",
+      description: "Basic test suite for agent functionality",
+      testCases: [
+        {
+          id: "test-1",
+          name: "Basic Response Test",
+          description: "Agent should respond to simple queries",
+          input: { prompt: "Hello, how are you?" },
+          expectedOutput: { response: "Hello! I'm functioning well." },
+          scoringCriteria: {
+            type: "contains",
+            threshold: 0.8,
+          },
+        },
+        {
+          id: "test-2",
+          name: "Tool Usage Test",
+          description: "Agent should use tools when appropriate",
+          input: { prompt: "Search for recent tickets" },
+          expectedOutput: { toolUsed: "zendesk_search" },
+          scoringCriteria: {
+            type: "exact_match",
+          },
+        },
+        {
+          id: "test-3",
+          name: "Error Handling Test",
+          description: "Agent should handle errors gracefully",
+          input: { prompt: "Invalid command: @#$%" },
+          expectedOutput: { error: null, response: "I don't understand" },
+          scoringCriteria: {
+            type: "similarity",
+            threshold: 0.7,
+          },
+        },
+      ],
+      createdBy: operatorId,
+      tags: ["standard", "smoke-test"],
+    });
+    console.log("✅ Created evaluation suite:", suiteId);
+
+    await ctx.db.insert("changeRecords", {
+      tenantId,
+      type: "EVAL_SUITE_CREATED",
+      targetEntity: "evaluationSuite",
+      targetId: suiteId,
+      operatorId,
+      payload: { name: "Standard Agent Tests", testCaseCount: 3 },
+      timestamp: Date.now(),
+    });
+
+    // 9. Create sample evaluation run
+    const runId = await ctx.db.insert("evaluationRuns", {
+      tenantId,
+      suiteId,
+      versionId: version1Id,
+      status: "COMPLETED",
+      results: [
+        {
+          testCaseId: "test-1",
+          passed: true,
+          score: 0.95,
+          output: { response: "Hello! I'm functioning well." },
+          executionTime: 234,
+        },
+        {
+          testCaseId: "test-2",
+          passed: true,
+          score: 1.0,
+          output: { toolUsed: "zendesk_search" },
+          executionTime: 456,
+        },
+        {
+          testCaseId: "test-3",
+          passed: false,
+          score: 0.6,
+          output: { error: null, response: "Error processing request" },
+          executionTime: 123,
+        },
+      ],
+      overallScore: 0.85,
+      passRate: 66.7,
+      startedAt: Date.now() - 10000,
+      completedAt: Date.now() - 1000,
+      triggeredBy: operatorId,
+    });
+    console.log("✅ Created sample evaluation run:", runId);
+
+    await ctx.db.insert("changeRecords", {
+      tenantId,
+      type: "EVAL_RUN_CREATED",
+      targetEntity: "evaluationRun",
+      targetId: runId,
+      operatorId,
+      payload: { suiteId, versionId: version1Id },
+      timestamp: Date.now(),
+    });
+    
     console.log("🎉 ARM seed complete!");
     
     return {
@@ -217,6 +318,8 @@ export default mutation({
       version1Id,
       version2Id,
       instanceId,
+      suiteId,
+      runId,
       summary: {
         tenant: "ARM Dev Org",
         environments: 3,
@@ -224,6 +327,8 @@ export default mutation({
         templates: 1,
         versions: 2,
         instances: 1,
+        evaluationSuites: 1,
+        evaluationRuns: 1,
       },
     };
   },

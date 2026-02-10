@@ -168,6 +168,31 @@ export const transition = mutation({
       },
       timestamp: Date.now(),
     });
+
+    // P2.0: Auto-trigger evaluation when transitioning to TESTING
+    // Note: This creates a pending run that will be picked up by the evaluation runner
+    if (args.newState === "TESTING") {
+      // Find a default evaluation suite for this tenant
+      const defaultSuite = await ctx.db
+        .query("evaluationSuites")
+        .withIndex("by_tenant", (q) => q.eq("tenantId", version.tenantId))
+        .first();
+
+      if (defaultSuite) {
+        // Create evaluation run
+        await ctx.db.insert("evaluationRuns", {
+          tenantId: version.tenantId,
+          suiteId: defaultSuite._id,
+          versionId: args.versionId,
+          status: "PENDING",
+        });
+
+        // Update version evalStatus to RUNNING
+        await ctx.db.patch(args.versionId, {
+          evalStatus: "RUNNING",
+        });
+      }
+    }
     
     return args.versionId;
   },

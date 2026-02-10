@@ -128,4 +128,59 @@ export default defineSchema({
     requestedBy: v.id("operators"),
     decidedBy: v.optional(v.id("operators")),
   }).index("by_tenant", ["tenantId"]),
+
+  // P2.0 Schema: Evaluation Orchestration
+  evaluationSuites: defineTable({
+    tenantId: v.id("tenants"),
+    name: v.string(),
+    description: v.optional(v.string()),
+    testCases: v.array(v.object({
+      id: v.string(),
+      name: v.string(),
+      description: v.optional(v.string()),
+      input: v.any(),
+      expectedOutput: v.any(),
+      scoringCriteria: v.optional(v.object({
+        type: v.union(
+          v.literal("exact_match"),
+          v.literal("contains"),
+          v.literal("similarity"),
+          v.literal("custom")
+        ),
+        threshold: v.optional(v.number()),
+        config: v.optional(v.any()),
+      })),
+    })),
+    createdBy: v.id("operators"),
+    tags: v.optional(v.array(v.string())),
+  }).index("by_tenant", ["tenantId"])
+    .index("by_name", ["tenantId", "name"]),
+
+  evaluationRuns: defineTable({
+    tenantId: v.id("tenants"),
+    suiteId: v.id("evaluationSuites"),
+    versionId: v.id("agentVersions"),
+    status: v.union(
+      v.literal("PENDING"),
+      v.literal("RUNNING"),
+      v.literal("COMPLETED"),
+      v.literal("FAILED")
+    ),
+    results: v.optional(v.array(v.object({
+      testCaseId: v.string(),
+      passed: v.boolean(),
+      score: v.optional(v.number()),
+      output: v.any(),
+      error: v.optional(v.string()),
+      executionTime: v.optional(v.number()),
+    }))),
+    overallScore: v.optional(v.number()),
+    passRate: v.optional(v.number()),
+    startedAt: v.optional(v.number()),
+    completedAt: v.optional(v.number()),
+    triggeredBy: v.optional(v.id("operators")),
+  }).index("by_tenant", ["tenantId"])
+    .index("by_version", ["versionId"])
+    .index("by_suite", ["suiteId"])
+    .index("by_status", ["tenantId", "status"]),
 });

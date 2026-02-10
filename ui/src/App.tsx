@@ -3,6 +3,7 @@ import { Sidebar } from './components/Sidebar'
 import { DirectoryView } from './views/DirectoryView'
 import { PoliciesView } from './views/PoliciesView'
 import { ApprovalsView } from './views/ApprovalsView'
+import { EvaluationsView } from './views/EvaluationsView'
 import { PlaceholderView } from './views/PlaceholderView'
 import { ToastContainer } from './components/ToastContainer'
 
@@ -17,7 +18,7 @@ export default function App() {
             <Route path="/directory" element={<DirectoryView />} />
             <Route path="/policies" element={<PoliciesView />} />
             <Route path="/approvals" element={<ApprovalsView />} />
-            <Route path="/evaluations" element={<PlaceholderView title="Evaluations" />} />
+            <Route path="/evaluations" element={<EvaluationsView />} />
             <Route path="/incidents" element={<PlaceholderView title="Incidents" />} />
             <Route path="/cost" element={<PlaceholderView title="Cost Management" />} />
             <Route path="/audit" element={<PlaceholderView title="Audit Center" />} />

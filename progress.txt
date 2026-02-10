@@ -1,6 +1,6 @@
 ARM - Development Progress Tracker
-Last Updated: February 10, 2026 - 3:30 PM PST
-Current Phase: Phase 1 Complete ✅ (P1.1, P1.2, P1.3) + AI Tooling ✅ + Documentation ✅
+Last Updated: February 10, 2026 - 4:30 PM PST
+Current Phase: Phase 2.0 In Progress 🚀 (Evaluation Orchestration)
 
 ================================================================================
 PHASE 1.1: WALKING SKELETON ✅ COMPLETE
@@ -252,7 +252,50 @@ Documentation Coverage:
 ✅ Complete version history and roadmap
 
 Git Commits:
-[To be committed] docs: add comprehensive Phase 2 documentation suite
+7b711f2 - docs: add comprehensive Phase 2 documentation suite
+4236e8c - docs: add Phase 2 completion summary
+
+================================================================================
+PHASE 2.0: EVALUATION ORCHESTRATION 🚀 IN PROGRESS
+================================================================================
+
+Started: February 10, 2026
+
+What's Implemented:
+✅ Evaluation schema (evaluationSuites, evaluationRuns tables)
+✅ TypeScript types for evaluations
+✅ evaluationSuites CRUD (create, list, get, update, remove, getByTag, getStats)
+✅ evaluationRuns CRUD (create, list, get, updateStatus, cancel, getPending, getSummary)
+✅ Evaluation runner logic (executeTestCase, executeTestSuite, calculateMetrics)
+✅ Evaluation actions (executeRun, processPendingRuns)
+✅ EvaluationsView UI (runs table, suites table, status filters)
+✅ StatusChip support for eval run status
+✅ Auto-trigger evaluation on TESTING transition
+✅ Seed script updated with sample suite and run
+
+Features:
+✅ Test case execution with multiple scoring types (exact_match, contains, similarity, custom)
+✅ Pass rate and overall score calculation
+✅ Automatic version evalStatus update based on results
+✅ Change record tracking for all eval operations
+✅ Pending run processing for batch execution
+✅ Cancel running evaluations
+
+Scoring Types:
+- exact_match: Output must exactly match expected
+- contains: Output must contain expected substring
+- similarity: Levenshtein-based similarity above threshold
+- custom: User-defined scoring logic (stub)
+
+What's Next:
+⬜ Add create suite modal UI
+⬜ Add create run modal UI
+⬜ Add Convex cron job for automatic run processing
+⬜ Add evaluation result details view
+⬜ Add suite statistics dashboard
+
+Git Commits:
+[To be committed] feat: implement evaluation orchestration (P2.0 Step 4.1)
 
 ================================================================================
 NOTES & LEARNINGS
