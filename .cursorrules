@@ -1,0 +1,386 @@
+# ARM - Cursor Rules & AI Tooling Integration
+
+**READ THIS FIRST EVERY SESSION**
+
+This file contains rules, constraints, and AI tooling information for working on ARM.
+
+---
+
+## 🤖 AI Tooling Integration
+
+**ARM now includes production-grade AI development infrastructure from the [baseline-project](https://github.com/jaydubya818/baseline-project).**
+
+### Available Resources
+
+- **178+ AI Agents** - Specialized agents in `.claude/agents/` (orchestration, development, quality, security, review, research)
+- **65+ Claude Skills** - Reusable skill modules in `.claude/skills/`
+- **49+ Slash Commands** - Quick workflows in `.claude/commands/`
+- **Taskmaster Integration** - AI-powered task management
+- **Compound Workflows** - Knowledge compounding for faster development
+
+### Quick Start
+
+```bash
+# Install Taskmaster
+npm install -g @taskmaster-ai/cli
+
+# Initialize in ARM project
+task-master init --name="ARM" --description="Agent Resource Management Platform"
+
+# Parse PRD to generate tasks
+task-master parse-prd docs/PRD.md
+
+# View available agents
+ls .claude/agents/
+
+# Use Compound workflows (requires Claude Code IDE)
+/workflows:plan "feature name"
+/workflows:review #PR
+/workflows:compound "learning"
+```
+
+**See [AI_TOOLING_INTEGRATION.md](AI_TOOLING_INTEGRATION.md) for complete documentation.**
+
+---
+
+## 🎯 Project Identity
+
+**Name:** ARM (Agent Resource Management)  
+**Purpose:** Enterprise system of record for AI agent fleets  
+**Current Phase:** P1.1 Complete ✅, P1.2 Next  
+**Tech Stack:** Convex + React + TypeScript + Tailwind  
+**AI Tooling:** Integrated from baseline-project (178+ agents, 65+ skills, Taskmaster)
+
+---
+
+## 🚨 Critical Rules (NEVER VIOLATE)
+
+### 1. Immutable Version Genome
+❌ **FORBIDDEN:** Mutating `genome` or `genomeHash` fields in agentVersions  
+✅ **REQUIRED:** Create new version with `parentVersionId` for any genome change  
+✅ **REQUIRED:** Compute SHA-256 hash on version creation  
+
+**Why:** Version integrity depends on immutability. Tampering detection requires stable hashes.
+
+### 2. Documentation First, Code Second
+❌ **FORBIDDEN:** Writing code before updating relevant docs  
+✅ **REQUIRED:** Update PRD.md, APP_FLOW.md, or BACKEND_STRUCTURE.md first  
+✅ **REQUIRED:** Update progress.txt after completing any step  
+
+**Why:** Documentation is the source of truth. Code implements docs, not the other way around.
+
+### 3. Change Records for All Mutations
+❌ **FORBIDDEN:** Mutations without corresponding change record  
+✅ **REQUIRED:** Write ChangeRecord after every insert/update/delete  
+✅ **REQUIRED:** Use correct event type from taxonomy  
+
+**Why:** Audit trail is non-negotiable for compliance and debugging.
+
+### 4. No Forbidden Dependencies
+❌ **FORBIDDEN:** Redux, Apollo, Axios, Lodash, Moment.js, jQuery, Bootstrap, Material-UI  
+✅ **ALLOWED:** Only dependencies in TECH_STACK.md  
+✅ **REQUIRED:** Ask before adding new dependencies  
+
+**Why:** Keep bundle small, avoid conflicts with Convex patterns.
+
+### 5. Semantic Tailwind Tokens Only
+❌ **FORBIDDEN:** `bg-gray-900`, `text-white`, `border-gray-700`  
+✅ **REQUIRED:** `bg-arm-surface`, `text-arm-text`, `border-arm-border`  
+
+**Why:** Consistent theming, easy to change colors globally.
+
+---
+
+## 🔄 AI-Assisted Development Workflow
+
+### Recommended Pattern
+
+```
+1. Plan (Taskmaster + Compound)
+   ├── task-master add-task --prompt="description"
+   ├── /workflows:plan "feature name"
+   └── task-master expand --id=<task-id>
+
+2. Implement (AI Agents + ARM Patterns)
+   ├── Select appropriate agent from .claude/agents/
+   ├── Follow CLAUDE.md rules (immutability, docs first, change records)
+   ├── Update documentation before coding
+   └── Write change records for all mutations
+
+3. Review (Multi-Agent + Browser Testing)
+   ├── /workflows:review #PR
+   ├── /test-browser #PR
+   └── Security audit with security agents
+
+4. Document (Compound)
+   ├── /workflows:compound "learning description"
+   ├── Update progress.txt
+   └── Update IMPLEMENTATION_PLAN.md
+
+5. Complete (Taskmaster)
+   └── task-master set-status --id=<task-id> --status=done
+```
+
+### Taskmaster Commands
+
+```bash
+# Project-level task management
+task-master list                    # List all tasks
+task-master next                    # Get next task to work on
+task-master show <id>               # View task details
+task-master expand --id=<id>        # Break down into subtasks
+task-master set-status --id=<id> --status=done  # Mark complete
+task-master update-task --id=<id> --prompt="update"  # Update task
+```
+
+### Compound Workflows (Claude Code IDE)
+
+```bash
+# Implementation-level workflows
+/workflows:plan "feature"           # Create detailed plan
+/workflows:work                     # Execute with git worktrees
+/workflows:review #PR               # Multi-agent code review
+/workflows:compound "learning"      # Document knowledge
+/test-browser #PR                   # Browser testing
+```
+
+---
+
+## 🏗️ Tech Stack (Locked)
+
+### Frontend
+- React 18.2.0
+- React Router DOM 6.22.0
+- Convex 1.9.0
+- Tailwind CSS 3.4.1
+- Vite 5.1.0
+- TypeScript 5.3.3
+
+### Backend
+- Convex (latest)
+- Web Crypto API (SHA-256)
+
+### Package Manager
+- pnpm 10.15.0+
+
+**Never add dependencies not listed in TECH_STACK.md without approval.**
+
+---
+
+## 📁 File Organization
+
+### Naming Conventions
+```
+Components: PascalCase (VersionDrawer.tsx)
+Views: PascalCase + View suffix (DirectoryView.tsx)
+Utilities: camelCase (genomeHash.ts)
+Types: PascalCase (version.ts exports AgentVersion)
+```
+
+### Import Order
+```typescript
+// 1. React
+import { useState } from 'react'
+
+// 2. External libraries
+import { useQuery } from 'convex/react'
+
+// 3. Convex generated
+import { api } from '../../convex/_generated/api'
+
+// 4. Local components
+import { Sidebar } from './components/Sidebar'
+
+// 5. Types
+import { AgentVersion } from '@arm/shared'
+```
+
+---
+
+## 🔧 Convex Patterns
+
+### Query Pattern
+```typescript
+export const functionName = query({
+  args: { tenantId: v.id("tenants") },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("tableName")
+      .withIndex("by_tenant", (q) => q.eq("tenantId", args.tenantId))
+      .collect();
+  },
+});
+```
+
+### Mutation Pattern (REQUIRED: Write ChangeRecord)
+```typescript
+export const functionName = mutation({
+  args: { /* ... */ },
+  handler: async (ctx, args) => {
+    // 1. Validate
+    // 2. Insert/update
+    const id = await ctx.db.insert("tableName", data);
+    
+    // 3. Write change record (REQUIRED)
+    await ctx.db.insert("changeRecords", {
+      tenantId: args.tenantId,
+      type: "EVENT_TYPE",
+      targetEntity: "entityName",
+      targetId: id,
+      payload: {},
+      timestamp: Date.now(),
+    });
+    
+    return id;
+  },
+});
+```
+
+---
+
+## 🎨 UI Patterns
+
+### Page Layout
+```tsx
+<div className="p-6">
+  {/* Header */}
+  <div className="mb-6">
+    <h1 className="text-2xl font-bold text-arm-text mb-2">Title</h1>
+    <p className="text-arm-textMuted">Description</p>
+  </div>
+
+  {/* Content */}
+  <div className="bg-arm-surfaceLight rounded-lg border border-arm-border">
+    {/* Content */}
+  </div>
+</div>
+```
+
+### Semantic Tailwind Tokens (REQUIRED)
+```tsx
+// ✅ CORRECT - Use semantic tokens
+<div className="bg-arm-surface text-arm-text border-arm-border">
+
+// ❌ WRONG - Don't use raw colors
+<div className="bg-gray-900 text-white border-gray-700">
+```
+
+---
+
+## 📖 Documentation
+
+### Always Read First
+- **[CLAUDE.md](CLAUDE.md)** - Complete AI operating manual
+- **[AI_TOOLING_INTEGRATION.md](AI_TOOLING_INTEGRATION.md)** - AI development environment guide
+- **[progress.txt](progress.txt)** - Current status, next steps, blockers
+
+### Canonical Docs (Update Before Coding)
+- **[PRD.md](docs/PRD.md)** - Product requirements, scope, user stories
+- **[APP_FLOW.md](docs/APP_FLOW.md)** - Screen inventory, user flows, navigation
+- **[TECH_STACK.md](docs/TECH_STACK.md)** - Exact versions, dependencies, file structure
+- **[FRONTEND_GUIDELINES.md](docs/FRONTEND_GUIDELINES.md)** - Design system, UI patterns
+- **[BACKEND_STRUCTURE.md](docs/BACKEND_STRUCTURE.md)** - Database schema, API contracts
+- **[IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md)** - Phase breakdown, build sequence
+
+---
+
+## ⚡ Quick Reference
+
+### Starting a Session
+1. Read `progress.txt` to see current status
+2. Read relevant docs (PRD, APP_FLOW, etc.)
+3. Check git status and recent commits
+4. Identify next step from IMPLEMENTATION_PLAN.md or Taskmaster
+5. Start coding (documentation first!)
+
+### During Session
+1. Follow patterns in CLAUDE.md
+2. Use AI agents for specialized tasks
+3. Write small, atomic commits
+4. Test after each step
+5. Update Taskmaster task status
+
+### Ending Session
+1. Commit all work
+2. Update `progress.txt` with status
+3. Update IMPLEMENTATION_PLAN.md if timeline changed
+4. Update Taskmaster tasks
+5. Note any blockers or questions
+
+### Common Commands
+```bash
+# Development
+pnpm dev                            # Start UI dev server
+npx convex dev                      # Start Convex dev server
+pnpm typecheck                      # Run TypeScript check
+
+# Taskmaster
+task-master list                    # List all tasks
+task-master next                    # Get next task
+task-master show <id>               # View task details
+
+# Git
+git status                          # Check status
+git add .                           # Stage changes
+git commit -m "feat: description"   # Commit with message
+```
+
+---
+
+## ❌ Common Mistakes to Avoid
+
+```typescript
+// ❌ DON'T: Mutate genome
+await ctx.db.patch(versionId, { genome: newGenome })
+
+// ✅ DO: Create new version
+await ctx.db.insert("agentVersions", {
+  ...oldVersion,
+  genome: newGenome,
+  parentVersionId: oldVersionId
+})
+
+// ❌ DON'T: Use raw colors
+<div className="bg-gray-900">
+
+// ✅ DO: Use semantic tokens
+<div className="bg-arm-surface">
+
+// ❌ DON'T: Skip change records
+await ctx.db.insert("agentTemplates", data)
+
+// ✅ DO: Always write change records
+await ctx.db.insert("agentTemplates", data)
+await ctx.db.insert("changeRecords", { /* ... */ })
+```
+
+---
+
+## 🎯 Questions to Ask Before Coding
+
+1. **Is this in scope?** Check PRD.md
+2. **What's the user flow?** Check APP_FLOW.md
+3. **What's the schema?** Check BACKEND_STRUCTURE.md
+4. **What are the UI patterns?** Check FRONTEND_GUIDELINES.md
+5. **Is this the right phase?** Check IMPLEMENTATION_PLAN.md
+6. **What's the current status?** Check progress.txt
+7. **Is there a Taskmaster task?** Check `task-master list`
+8. **Which AI agent should I use?** Check `.claude/agents/`
+
+**If any answer is unclear, update the relevant doc first, then code.**
+
+---
+
+## 🔗 External Resources
+
+- [Convex Docs](https://docs.convex.dev)
+- [React Docs](https://react.dev)
+- [Tailwind Docs](https://tailwindcss.com)
+- [Baseline Project](https://github.com/jaydubya818/baseline-project) - AI tooling source
+- [Taskmaster Docs](https://github.com/taskmaster-ai/taskmaster) - Task management
+
+---
+
+**Last Updated:** February 10, 2026  
+**AI Tooling:** Integrated ✅  
+**Read This:** At the start of EVERY session
