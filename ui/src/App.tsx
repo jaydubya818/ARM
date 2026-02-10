@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Sidebar } from './components/Sidebar'
 import { DirectoryView } from './views/DirectoryView'
+import { PoliciesView } from './views/PoliciesView'
+import { ApprovalsView } from './views/ApprovalsView'
 import { PlaceholderView } from './views/PlaceholderView'
 
 export default function App() {
@@ -12,7 +14,8 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Navigate to="/directory" replace />} />
             <Route path="/directory" element={<DirectoryView />} />
-            <Route path="/policies" element={<PlaceholderView title="Policies" />} />
+            <Route path="/policies" element={<PoliciesView />} />
+            <Route path="/approvals" element={<ApprovalsView />} />
             <Route path="/evaluations" element={<PlaceholderView title="Evaluations" />} />
             <Route path="/incidents" element={<PlaceholderView title="Incidents" />} />
             <Route path="/cost" element={<PlaceholderView title="Cost Management" />} />

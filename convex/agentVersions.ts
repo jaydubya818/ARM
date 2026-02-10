@@ -129,12 +129,27 @@ export const transition = mutation({
       v.literal("DEPRECATED"),
       v.literal("RETIRED")
     ),
+    approvalId: v.optional(v.id("approvalRecords")),
   },
   handler: async (ctx, args) => {
     const version = await ctx.db.get(args.versionId);
     if (!version) throw new Error("Version not found");
     
-    // TODO: Add state machine validation here
+    // State machine validation (imported from lib/approvalEngine)
+    const { validateVersionTransition } = await import("./lib/approvalEngine");
+    const validation = validateVersionTransition(
+      version.lifecycleState,
+      args.newState,
+      version.evalStatus
+    );
+    
+    if (!validation.valid) {
+      throw new Error(validation.error);
+    }
+    
+    // Check if approval required (P1.2 - basic check, full integration later)
+    // For now, we'll allow transitions without approval enforcement
+    // Full approval enforcement will be added when instance policies are attached
     
     await ctx.db.patch(args.versionId, {
       lifecycleState: args.newState,
@@ -149,6 +164,7 @@ export const transition = mutation({
       payload: {
         from: version.lifecycleState,
         to: args.newState,
+        approvalId: args.approvalId,
       },
       timestamp: Date.now(),
     });

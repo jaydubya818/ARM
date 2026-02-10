@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom'
 const navItems = [
   { path: '/directory', label: 'Directory', icon: '📁' },
   { path: '/policies', label: 'Policies', icon: '🛡️' },
+  { path: '/approvals', label: 'Approvals', icon: '✅' },
   { path: '/evaluations', label: 'Evaluations', icon: '✓' },
   { path: '/incidents', label: 'Incidents', icon: '⚠️' },
   { path: '/cost', label: 'Cost', icon: '💰' },
