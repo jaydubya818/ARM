@@ -178,8 +178,24 @@ const versions = await ctx.db.query("agentVersions").collect()
 
 ## 📖 Documentation
 
-- [ARM Build Plan](ARM_BUILD_PLAN.md) - Architecture and decisions
-- [Implementation Steps](ARM_IMPLEMENTATION_STEPS.md) - Detailed guide
+### 🎓 Start Here
+- **[SDD System Guide](docs/SDD_SYSTEM.md)** - How the documentation-first system works
+
+### 📚 Canonical Docs (Knowledge Base)
+- **[PRD.md](docs/PRD.md)** - Product requirements, scope, user stories
+- **[APP_FLOW.md](docs/APP_FLOW.md)** - Screen inventory, user flows, navigation
+- **[TECH_STACK.md](docs/TECH_STACK.md)** - Exact versions, dependencies, file structure
+- **[FRONTEND_GUIDELINES.md](docs/FRONTEND_GUIDELINES.md)** - Design system, UI patterns
+- **[BACKEND_STRUCTURE.md](docs/BACKEND_STRUCTURE.md)** - Database schema, API contracts
+- **[IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md)** - Phase breakdown, build sequence
+
+### 🔄 Session Files (Persistence Layer)
+- **[CLAUDE.md](CLAUDE.md)** - AI operating manual (rules, patterns)
+- **[progress.txt](progress.txt)** - Current status, next steps, blockers
+
+### 📋 Legacy Reference
+- [ARM Build Plan](ARM_BUILD_PLAN.md) - Original architecture document
+- [Implementation Steps](ARM_IMPLEMENTATION_STEPS.md) - Original guide
 - [Original AR PRD](_quarantine/docs/original-prd.md) - Reference
 
 ## 🏢 Original AR Platform
