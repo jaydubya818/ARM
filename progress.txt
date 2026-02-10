@@ -290,12 +290,21 @@ Scoring Types:
 What's Next:
 ⬜ Add create suite modal UI
 ⬜ Add create run modal UI
-⬜ Add Convex cron job for automatic run processing
 ⬜ Add evaluation result details view
 ⬜ Add suite statistics dashboard
 
+Cron Jobs (P2.0 Step 4.2):
+✅ Convex cron configuration (crons.ts)
+✅ processPendingEvaluations: Runs every 5 minutes
+✅ Batch processing: Up to 5 runs per tenant
+✅ Health check function for monitoring
+✅ Cleanup function for archiving old runs (stub)
+✅ Documentation: CRON_JOBS.md
+
 Git Commits:
-[To be committed] feat: implement evaluation orchestration (P2.0 Step 4.1)
+f88a2ff - feat: implement evaluation orchestration (P2.0 Step 4.1)
+8045848 - docs: add P2.0 Step 4.1 completion summary
+[To be committed] feat: add Convex cron for automatic evaluation processing (P2.0 Step 4.2)
 
 ================================================================================
 NOTES & LEARNINGS
