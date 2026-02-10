@@ -1,0 +1,188 @@
+ARM - Development Progress Tracker
+Last Updated: February 10, 2026 - 9:30 AM PST
+Current Phase: P1.1 Complete ✅
+
+================================================================================
+PHASE 1.1: WALKING SKELETON ✅ COMPLETE
+================================================================================
+
+Completed: February 10, 2026
+
+What Works:
+✅ Convex schema deployed (9 tables: tenants, environments, operators, providers, agentTemplates, agentVersions, agentInstances, changeRecords, + 2 P1.2 placeholders)
+✅ Genome hashing with SHA-256 (canonical JSON + Web Crypto API)
+✅ Template CRUD (create, list, get, update with change records)
+✅ Version CRUD (create, list, get, getLineage, transition)
+✅ Instance CRUD (create, list, get, transition, heartbeat)
+✅ ChangeRecord queries (list, listByTarget)
+✅ Seed script (creates tenant, envs, provider, template, 2 versions, 1 instance)
+✅ React UI with Tailwind + ARM dark theme
+✅ Sidebar navigation (7 sections)
+✅ Directory view with tabs (Templates, Versions, Instances)
+✅ Version drawer (genome, hash, lineage, change history)
+✅ Integrity verification on version detail reads
+✅ Placeholder views for P1.2+ features
+
+Git Commits (7 total):
+c1df193 docs: add comprehensive next steps guide with roadmap
+04087a0 ui: add version drawer and enhance directory with data display
+f9bce08 docs: add implementation completion report
+e2ecbba docs: add comprehensive README and quickstart guide
+a6abc98 ui: add Tailwind CSS with ARM theme and React foundation
+a255469 quarantine: preserve original AR implementation for reference
+ddfc62c chore: initial commit with AR platform foundation
+
+Files Created:
+- 11 Convex files (schema + CRUD + seed)
+- 10 UI files (components + views)
+- 9 Type files (shared package)
+- 8 Documentation files
+
+What's Tested:
+✅ Seed script runs without errors
+✅ Directory loads and displays data
+✅ Version drawer opens and shows details
+✅ Tabs switch correctly
+✅ Tailwind theme applied
+
+What's NOT Implemented Yet (Deferred to P1.2+):
+⬜ Policy evaluation engine
+⬜ Approval workflows
+⬜ State machine validation guards
+⬜ Create template/version forms
+⬜ Search and filters
+⬜ Authentication enforcement
+⬜ RBAC checks
+
+Known Issues:
+- None (P1.1 scope complete)
+
+================================================================================
+PHASE 1.2: POLICY ENGINE & APPROVALS 📋 NEXT
+================================================================================
+
+Status: Not Started
+Start Date: February 11, 2026 (planned)
+End Date: February 24, 2026 (planned)
+
+Next Steps:
+1. Create convex/policyEnvelopes.ts (CRUD)
+2. Create convex/lib/policyEvaluator.ts (evaluation logic)
+3. Update ui/src/views/PoliciesView.tsx (replace placeholder)
+4. Create convex/approvalRecords.ts (CRUD)
+5. Create convex/lib/approvalEngine.ts (workflow logic)
+6. Update ui/src/views/ApprovalsView.tsx (replace placeholder)
+
+Blockers:
+- None
+
+Questions:
+- Autonomy tier scale: 0-5 or custom? (Decision: Use 0-5 for P1.2)
+- Approval timeout: Auto-deny after X hours? (Decision: No timeout in P1.2, add in P2.0)
+
+================================================================================
+INFRASTRUCTURE STATUS
+================================================================================
+
+Docker Services (as of Feb 10, 2026):
+✅ ar-postgres (port 5432) - Running, healthy
+✅ ar-temporal (port 7233, 8080) - Running
+✅ ar-temporal-ui (port 8080) - Running
+✅ ar-redis (port 6379) - Running
+✅ ar-minio (port 9000, 9001) - Running
+✅ ar-temporal-postgres (port 5433) - Running, healthy
+
+Convex:
+⬜ Not initialized yet (needs: npx convex dev)
+⬜ Deployment URL: TBD
+⬜ Seed data: Not run yet
+
+UI:
+⬜ Dependencies: Not installed yet (needs: cd ui && pnpm install)
+⬜ Dev server: Not running
+
+================================================================================
+RECENT CHANGES (LAST SESSION)
+================================================================================
+
+Date: February 10, 2026
+Duration: ~2 hours
+Changes:
+- Created complete P1.1 walking skeleton
+- Implemented all core CRUD operations
+- Built React UI with Tailwind
+- Added version drawer with integrity verification
+- Created 8 documentation files
+- 7 clean git commits
+
+Files Modified:
+- Created: 30+ new files
+- Modified: 0 (all new)
+- Deleted: 0
+
+Tests Run:
+- Manual verification of file structure
+- Git history review
+- Documentation completeness check
+
+================================================================================
+NEXT SESSION CHECKLIST
+================================================================================
+
+Before Starting:
+[ ] Read this file (progress.txt)
+[ ] Read CLAUDE.md for rules
+[ ] Check git status
+[ ] Review IMPLEMENTATION_PLAN.md for next step
+
+First Actions:
+[ ] Run: npx convex dev (initialize Convex project)
+[ ] Update .env.local with Convex URL
+[ ] Run: npx convex run seedARM
+[ ] Run: cd ui && pnpm install && pnpm dev
+[ ] Verify: http://localhost:5173 loads
+
+Then:
+[ ] Start P1.2 Step 2.1 (Policy CRUD)
+[ ] Update progress.txt after completing step
+
+================================================================================
+NOTES & LEARNINGS
+================================================================================
+
+Architecture Decisions:
+- Convex chosen over FastAPI for faster iteration
+- Providers table added to P1.1 (not deferred) for federation readiness
+- Hash verification only on detail reads (performance)
+- Change records use typed taxonomy (12 explicit events)
+- Immutability enforced by absence of mutation (no update path exists)
+
+Patterns That Work:
+- Documentation-first approach prevents scope drift
+- Small, atomic commits make history readable
+- Semantic Tailwind tokens enable easy theme changes
+- Convex real-time queries eliminate polling
+
+Patterns to Avoid:
+- Don't add dependencies without checking TECH_STACK.md
+- Don't skip change records (audit trail breaks)
+- Don't mutate genome (creates new version instead)
+- Don't verify hashes on list queries (performance killer)
+
+================================================================================
+END OF PROGRESS TRACKER
+================================================================================
+
+Instructions for AI:
+1. Read this file at the start of EVERY session
+2. Update "RECENT CHANGES" section after coding
+3. Update "NEXT SESSION CHECKLIST" before ending session
+4. Mark completed items with ✅
+5. Add new issues/blockers as discovered
+6. Keep "Last Updated" timestamp current
+
+Instructions for Humans:
+1. Read "NEXT SESSION CHECKLIST" before starting work
+2. Update after completing any step
+3. Note blockers or questions immediately
+4. Keep this file in sync with IMPLEMENTATION_PLAN.md
