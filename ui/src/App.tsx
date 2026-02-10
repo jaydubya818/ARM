@@ -4,6 +4,7 @@ import { DirectoryView } from './views/DirectoryView'
 import { PoliciesView } from './views/PoliciesView'
 import { ApprovalsView } from './views/ApprovalsView'
 import { PlaceholderView } from './views/PlaceholderView'
+import { ToastContainer } from './components/ToastContainer'
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
             <Route path="/federation" element={<PlaceholderView title="Federation" />} />
           </Routes>
         </main>
+        <ToastContainer />
       </div>
     </BrowserRouter>
   )

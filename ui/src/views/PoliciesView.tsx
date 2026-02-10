@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '../../convex/_generated/api'
 import { Id } from '../../convex/_generated/dataModel'
+import { toast } from '../lib/toast'
 
 export function PoliciesView() {
   const [isCreating, setIsCreating] = useState(false)
@@ -46,10 +47,11 @@ export function PoliciesView() {
           monthlyCost: monthlyCost ? parseFloat(monthlyCost) : undefined,
         },
       })
+      toast.success('Policy created successfully')
       setIsCreating(false)
       e.currentTarget.reset()
     } catch (error) {
-      alert('Error creating policy: ' + (error as Error).message)
+      toast.error('Error creating policy: ' + (error as Error).message)
     }
   }
 
@@ -58,8 +60,9 @@ export function PoliciesView() {
 
     try {
       await deletePolicy({ policyId })
+      toast.success('Policy deleted successfully')
     } catch (error) {
-      alert('Error deleting policy: ' + (error as Error).message)
+      toast.error('Error deleting policy: ' + (error as Error).message)
     }
   }
 

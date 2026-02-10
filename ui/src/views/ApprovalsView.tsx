@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '../../convex/_generated/api'
 import { Id } from '../../convex/_generated/dataModel'
+import { toast } from '../lib/toast'
 
 type ApprovalStatus = 'PENDING' | 'APPROVED' | 'DENIED' | 'CANCELLED'
 
@@ -43,7 +44,7 @@ export function ApprovalsView() {
     decision: 'APPROVED' | 'DENIED'
   ) => {
     if (!operatorId) {
-      alert('No operator found')
+      toast.error('No operator found')
       return
     }
 
@@ -59,15 +60,16 @@ export function ApprovalsView() {
         decidedBy: operatorId,
         reason: reason || undefined,
       })
+      toast.success(`Request ${decision.toLowerCase()} successfully`)
       setSelectedApproval(null)
     } catch (error) {
-      alert('Error: ' + (error as Error).message)
+      toast.error('Error: ' + (error as Error).message)
     }
   }
 
   const handleCancel = async (approvalId: Id<'approvalRecords'>) => {
     if (!operatorId) {
-      alert('No operator found')
+      toast.error('No operator found')
       return
     }
 
@@ -80,9 +82,10 @@ export function ApprovalsView() {
         cancelledBy: operatorId,
         reason: reason || undefined,
       })
+      toast.success('Request cancelled successfully')
       setSelectedApproval(null)
     } catch (error) {
-      alert('Error: ' + (error as Error).message)
+      toast.error('Error: ' + (error as Error).message)
     }
   }
 

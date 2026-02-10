@@ -1,14 +1,21 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useQuery } from 'convex/react'
 import { api } from '../../convex/_generated/api'
 import { Id } from '../../convex/_generated/dataModel'
 import { VersionDrawer } from '../components/VersionDrawer'
+import { CreateTemplateModal } from '../components/CreateTemplateModal'
+import { CreateVersionModal } from '../components/CreateVersionModal'
+import { StatusChip } from '../components/StatusChip'
 
 type Tab = 'templates' | 'versions' | 'instances'
 
 export function DirectoryView() {
   const [activeTab, setActiveTab] = useState<Tab>('templates')
   const [selectedVersionId, setSelectedVersionId] = useState<Id<'agentVersions'> | null>(null)
+  const [isCreatingTemplate, setIsCreatingTemplate] = useState(false)
+  const [isCreatingVersion, setIsCreatingVersion] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('ALL')
   
   // Get first tenant (for demo)
   const tenants = useQuery(api.tenants.list)
@@ -29,13 +36,126 @@ export function DirectoryView() {
     tenantId ? { tenantId } : 'skip'
   )
 
+  // Filter and search logic
+  const filteredTemplates = useMemo(() => {
+    if (!templates) return []
+    return templates.filter((t) =>
+      t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  }, [templates, searchQuery])
+
+  const filteredVersions = useMemo(() => {
+    if (!versions) return []
+    let filtered = versions
+    
+    // Status filter
+    if (statusFilter !== 'ALL') {
+      filtered = filtered.filter((v) => v.lifecycleState === statusFilter)
+    }
+    
+    // Search filter
+    if (searchQuery) {
+      filtered = filtered.filter((v) =>
+        v.versionLabel.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        v.genomeHash.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    }
+    
+    return filtered
+  }, [versions, searchQuery, statusFilter])
+
+  const filteredInstances = useMemo(() => {
+    if (!instances) return []
+    let filtered = instances
+    
+    // Status filter
+    if (statusFilter !== 'ALL') {
+      filtered = filtered.filter((i) => i.state === statusFilter)
+    }
+    
+    // Search filter
+    if (searchQuery) {
+      filtered = filtered.filter((i) =>
+        i._id.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    }
+    
+    return filtered
+  }, [instances, searchQuery, statusFilter])
+
   return (
     <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-arm-text mb-2">Agent Directory</h1>
-        <p className="text-arm-textMuted">
-          Manage agent templates, versions, and runtime instances
-        </p>
+      {/* Header */}
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-arm-text mb-2">Agent Directory</h1>
+          <p className="text-arm-textMuted">
+            Manage agent templates, versions, and runtime instances
+          </p>
+        </div>
+        <div className="flex gap-2">
+          {activeTab === 'templates' && (
+            <button
+              onClick={() => setIsCreatingTemplate(true)}
+              className="px-4 py-2 bg-arm-accent text-white rounded hover:bg-arm-blue transition-colors"
+            >
+              Create Template
+            </button>
+          )}
+          {activeTab === 'versions' && (
+            <button
+              onClick={() => setIsCreatingVersion(true)}
+              className="px-4 py-2 bg-arm-accent text-white rounded hover:bg-arm-blue transition-colors"
+            >
+              Create Version
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Search and Filters */}
+      <div className="mb-4 flex gap-4">
+        {/* Search */}
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder={`Search ${activeTab}...`}
+          className="flex-1 px-4 py-2 bg-arm-surfaceLight border border-arm-border rounded text-arm-text focus:border-arm-accent focus:outline-none"
+        />
+
+        {/* Status Filter (for versions and instances) */}
+        {(activeTab === 'versions' || activeTab === 'instances') && (
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-4 py-2 bg-arm-surfaceLight border border-arm-border rounded text-arm-text focus:border-arm-accent focus:outline-none"
+          >
+            <option value="ALL">All Status</option>
+            {activeTab === 'versions' && (
+              <>
+                <option value="DRAFT">DRAFT</option>
+                <option value="TESTING">TESTING</option>
+                <option value="CANDIDATE">CANDIDATE</option>
+                <option value="APPROVED">APPROVED</option>
+                <option value="DEPRECATED">DEPRECATED</option>
+                <option value="RETIRED">RETIRED</option>
+              </>
+            )}
+            {activeTab === 'instances' && (
+              <>
+                <option value="PROVISIONING">PROVISIONING</option>
+                <option value="ACTIVE">ACTIVE</option>
+                <option value="PAUSED">PAUSED</option>
+                <option value="READONLY">READONLY</option>
+                <option value="DRAINING">DRAINING</option>
+                <option value="QUARANTINED">QUARANTINED</option>
+                <option value="RETIRED">RETIRED</option>
+              </>
+            )}
+          </select>
+        )}
       </div>
 
       {/* Tabs */}
@@ -59,7 +179,7 @@ export function DirectoryView() {
       <div className="bg-arm-surfaceLight rounded-lg border border-arm-border overflow-hidden">
         {activeTab === 'templates' && (
           <div>
-            {templates && templates.length > 0 ? (
+            {filteredTemplates.length > 0 ? (
               <table className="w-full">
                 <thead className="bg-arm-surface border-b border-arm-border">
                   <tr>
@@ -70,7 +190,7 @@ export function DirectoryView() {
                   </tr>
                 </thead>
                 <tbody>
-                  {templates.map((template) => (
+                  {filteredTemplates.map((template) => (
                     <tr key={template._id} className="border-b border-arm-border hover:bg-arm-surface">
                       <td className="p-4 text-arm-text font-medium">{template.name}</td>
                       <td className="p-4 text-arm-textMuted text-sm">{template.description || '—'}</td>
@@ -102,7 +222,7 @@ export function DirectoryView() {
 
         {activeTab === 'versions' && (
           <div>
-            {versions && versions.length > 0 ? (
+            {filteredVersions.length > 0 ? (
               <table className="w-full">
                 <thead className="bg-arm-surface border-b border-arm-border">
                   <tr>
@@ -114,18 +234,14 @@ export function DirectoryView() {
                   </tr>
                 </thead>
                 <tbody>
-                  {versions.map((version) => (
+                  {filteredVersions.map((version) => (
                     <tr key={version._id} className="border-b border-arm-border hover:bg-arm-surface">
                       <td className="p-4 text-arm-text font-medium">{version.versionLabel}</td>
                       <td className="p-4">
-                        <span className="px-2 py-1 bg-arm-accent text-white rounded text-xs">
-                          {version.lifecycleState}
-                        </span>
+                        <StatusChip status={version.lifecycleState} type="version" />
                       </td>
                       <td className="p-4">
-                        <span className="px-2 py-1 bg-arm-blue text-white rounded text-xs">
-                          {version.evalStatus}
-                        </span>
+                        <StatusChip status={version.evalStatus} type="eval" />
                       </td>
                       <td className="p-4 text-arm-textMuted text-xs font-mono">
                         {version.genomeHash.substring(0, 16)}...
@@ -156,7 +272,7 @@ export function DirectoryView() {
 
         {activeTab === 'instances' && (
           <div>
-            {instances && instances.length > 0 ? (
+            {filteredInstances.length > 0 ? (
               <table className="w-full">
                 <thead className="bg-arm-surface border-b border-arm-border">
                   <tr>
@@ -167,19 +283,13 @@ export function DirectoryView() {
                   </tr>
                 </thead>
                 <tbody>
-                  {instances.map((instance) => (
+                  {filteredInstances.map((instance) => (
                     <tr key={instance._id} className="border-b border-arm-border hover:bg-arm-surface">
                       <td className="p-4 text-arm-text font-mono text-xs">
                         {instance._id.substring(0, 12)}...
                       </td>
                       <td className="p-4">
-                        <span className={`px-2 py-1 rounded text-xs text-white ${
-                          instance.state === 'ACTIVE' ? 'bg-arm-success' :
-                          instance.state === 'QUARANTINED' ? 'bg-arm-danger' :
-                          'bg-arm-warning'
-                        }`}>
-                          {instance.state}
-                        </span>
+                        <StatusChip status={instance.state} type="instance" />
                       </td>
                       <td className="p-4 text-arm-textMuted text-sm">{instance.environmentId}</td>
                       <td className="p-4 text-arm-textMuted text-sm">
@@ -209,6 +319,22 @@ export function DirectoryView() {
         versionId={selectedVersionId}
         onClose={() => setSelectedVersionId(null)}
       />
+
+      {/* Create Template Modal */}
+      {isCreatingTemplate && tenantId && (
+        <CreateTemplateModal
+          tenantId={tenantId}
+          onClose={() => setIsCreatingTemplate(false)}
+        />
+      )}
+
+      {/* Create Version Modal */}
+      {isCreatingVersion && tenantId && (
+        <CreateVersionModal
+          tenantId={tenantId}
+          onClose={() => setIsCreatingVersion(false)}
+        />
+      )}
     </div>
   )
 }
