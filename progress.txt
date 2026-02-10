@@ -287,24 +287,30 @@ Scoring Types:
 - similarity: Levenshtein-based similarity above threshold
 - custom: User-defined scoring logic (stub)
 
-What's Next:
-⬜ Add create suite modal UI
-⬜ Add create run modal UI
-⬜ Add evaluation result details view
-⬜ Add suite statistics dashboard
+Enhanced UI (P2.0 Step 4.3):
+✅ CreateSuiteModal: Full form with test cases, scoring types
+✅ CreateRunModal: Suite and version selection
+✅ RunDetailsModal: Detailed results with scoring breakdown
+✅ SuiteStatistics: Dashboard with metrics and trends
+✅ Enhanced EvaluationsView: Three-tab layout (Runs/Suites/Statistics)
+✅ Status filtering, refresh button, improved styling
 
-Cron Jobs (P2.0 Step 4.2):
-✅ Convex cron configuration (crons.ts)
-✅ processPendingEvaluations: Runs every 5 minutes
-✅ Batch processing: Up to 5 runs per tenant
-✅ Health check function for monitoring
-✅ Cleanup function for archiving old runs (stub)
-✅ Documentation: CRON_JOBS.md
+Features:
+- Dynamic test case management (add/remove)
+- Four scoring types: exact_match, contains, similarity, custom
+- Similarity threshold configuration
+- Tag management for suites
+- Real-time suite/version selection
+- Detailed result visualization
+- Aggregate statistics and performance metrics
+- Recent activity tracking
 
 Git Commits:
 f88a2ff - feat: implement evaluation orchestration (P2.0 Step 4.1)
 8045848 - docs: add P2.0 Step 4.1 completion summary
-[To be committed] feat: add Convex cron for automatic evaluation processing (P2.0 Step 4.2)
+ccccc70 - feat: add Convex cron for automatic evaluation processing (P2.0 Step 4.2)
+f7e1cd8 - docs: add P2.0 Step 4.2 completion summary
+[To be committed] feat: add enhanced evaluation UI (P2.0 Step 4.3)
 
 ================================================================================
 NOTES & LEARNINGS
