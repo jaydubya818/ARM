@@ -168,18 +168,76 @@ const versions = await ctx.db.query("agentVersions").collect()
 ✅ Directory view with tabs  
 ✅ Seed script with test data  
 
-## 🔜 Coming in P1.2+
+## ✅ P1.2 Policy Engine & Approvals (Complete)
 
-- Policy evaluation engine
-- Approval workflows
+✅ Policy CRUD (autonomy tiers 0-5)  
+✅ Policy evaluation engine (ALLOW/DENY/NEEDS_APPROVAL)  
+✅ Risk classification (low/medium/high/critical)  
+✅ Cost limit enforcement (daily tokens, monthly cost)  
+✅ Tool whitelist validation  
+✅ Approval workflows (create, decide, cancel)  
+✅ State machine validation with guards  
+✅ Full UI for policies and approvals  
+
+## ✅ P1.3 Enhanced UI (Complete)
+
+✅ StatusChip component (unified status display)  
+✅ CopyButton component (clipboard utility)  
+✅ Toast notification system (4 types)  
+✅ ErrorBoundary (global error handling)  
+✅ CreateTemplateModal (with validation)  
+✅ CreateVersionModal (with tool builder)  
+✅ Enhanced DirectoryView (search + filters)  
+✅ All UI patterns standardized  
+
+## 🔜 Coming in P2.0+
+
 - Evaluation orchestration
-- Cost tracking
+- Test suite execution
+- Cost tracking & analytics
 - Federation implementation
+- Advanced monitoring
+
+## 🤖 AI Development Environment
+
+**NEW:** ARM now includes production-grade AI tooling from the [baseline-project](https://github.com/jaydubya818/baseline-project):
+
+- **178+ specialized AI agents** for development, testing, security, and more
+- **65+ Claude Code skills** covering architecture, debugging, optimization
+- **49+ slash commands** for common workflows
+- **Taskmaster integration** for AI-powered task management
+- **Compound Engineering workflows** for knowledge compounding
+
+### Quick Start with AI Tooling
+
+```bash
+# Install Taskmaster
+npm install -g @taskmaster-ai/cli
+
+# Initialize in ARM project
+task-master init --name="ARM" --description="Agent Resource Management Platform"
+
+# Parse PRD to generate tasks
+task-master parse-prd docs/PRD.md
+
+# View available agents
+ls .claude/agents/
+
+# Use Compound workflows (requires Claude Code IDE)
+/workflows:plan "feature name"
+/workflows:review #PR
+/workflows:compound "learning"
+```
+
+**See [AI_TOOLING_INTEGRATION.md](AI_TOOLING_INTEGRATION.md) for complete documentation.**
+
+---
 
 ## 📖 Documentation
 
 ### 🎓 Start Here
 - **[SDD System Guide](docs/SDD_SYSTEM.md)** - How the documentation-first system works
+- **[AI Tooling Integration](AI_TOOLING_INTEGRATION.md)** - AI development environment guide
 
 ### 📚 Canonical Docs (Knowledge Base)
 - **[PRD.md](docs/PRD.md)** - Product requirements, scope, user stories
@@ -190,7 +248,7 @@ const versions = await ctx.db.query("agentVersions").collect()
 - **[IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md)** - Phase breakdown, build sequence
 
 ### 🔄 Session Files (Persistence Layer)
-- **[CLAUDE.md](CLAUDE.md)** - AI operating manual (rules, patterns)
+- **[CLAUDE.md](CLAUDE.md)** - AI operating manual (rules, patterns, AI tooling)
 - **[progress.txt](progress.txt)** - Current status, next steps, blockers
 
 ### 📋 Legacy Reference

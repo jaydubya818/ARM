@@ -12,6 +12,7 @@ This file contains rules, constraints, and patterns that AI must follow when wor
 **Purpose:** Enterprise system of record for AI agent fleets  
 **Current Phase:** P1.1 Complete ✅, P1.2 Next  
 **Tech Stack:** Convex + React + TypeScript + Tailwind  
+**AI Tooling:** Integrated from [baseline-project](https://github.com/jaydubya818/baseline-project) (178+ agents, 65+ skills, Taskmaster)  
 
 ---
 
@@ -472,9 +473,71 @@ export function Component() {}
 
 ---
 
+## AI Development Environment
+
+**NEW:** ARM now includes production-grade AI tooling from the baseline-project.
+
+### Available Resources
+
+- **178+ AI Agents** - Specialized agents for development, testing, security, review
+- **65+ Claude Skills** - Reusable skill modules for specialized tasks
+- **49+ Slash Commands** - Quick access to common workflows
+- **Taskmaster Integration** - AI-powered task management
+- **Compound Workflows** - Knowledge compounding for faster development
+
+### Quick Commands
+
+```bash
+# Taskmaster (Project-level task management)
+task-master list                    # List all tasks
+task-master next                    # Get next task
+task-master show <id>               # View task details
+task-master expand --id=<id>        # Break down into subtasks
+task-master set-status --id=<id> --status=done  # Mark complete
+
+# Compound Workflows (Implementation-level, requires Claude Code IDE)
+/workflows:plan "feature"           # Create detailed plan
+/workflows:review #PR               # Multi-agent review
+/workflows:compound "learning"      # Document knowledge
+/test-browser #PR                   # Browser testing
+```
+
+### AI-Assisted Development Pattern
+
+```
+1. Plan (Taskmaster + Compound)
+   ├── task-master add-task
+   ├── /workflows:plan
+   └── task-master expand
+
+2. Implement (AI Agents + ARM Patterns)
+   ├── Select appropriate agent
+   ├── Follow CLAUDE.md rules
+   ├── Update documentation first
+   └── Write change records
+
+3. Review (Multi-Agent + Browser Testing)
+   ├── /workflows:review
+   ├── /test-browser
+   └── Security audit
+
+4. Document (Compound)
+   ├── /workflows:compound
+   ├── Update progress.txt
+   └── Update IMPLEMENTATION_PLAN.md
+
+5. Complete (Taskmaster)
+   └── task-master set-status --status=done
+```
+
+**See [AI_TOOLING_INTEGRATION.md](AI_TOOLING_INTEGRATION.md) for complete documentation.**
+
+---
+
 ## Contact & Resources
 
 ### Documentation
+- [AI_TOOLING_INTEGRATION.md](AI_TOOLING_INTEGRATION.md) - AI development environment guide
 - [PRD.md](docs/PRD.md) - What we're building
 - [APP_FLOW.md](docs/APP_FLOW.md) - User flows
 - [TECH_STACK.md](docs/TECH_STACK.md) - Dependencies
@@ -486,6 +549,7 @@ export function Component() {}
 - [Convex Docs](https://docs.convex.dev)
 - [React Docs](https://react.dev)
 - [Tailwind Docs](https://tailwindcss.com)
+- [Baseline Project](https://github.com/jaydubya818/baseline-project) - AI tooling source
 
 ---
 
