@@ -1,124 +1,195 @@
-# Agent Resources (AR) Platform
+# ARM - Agent Resource Management
 
-Enterprise system of record and mission control for AI agent fleets.
+Enterprise system of record for AI agent fleets with immutable version lineage and policy-driven governance.
 
-## Quick Start
+## 🎯 What is ARM?
+
+ARM (Agent Resource Management) is a version-centric agent registry that provides:
+
+- **Immutable Version Lineage** - SHA-256 genome hashing with write-once enforcement
+- **Lifecycle State Machines** - Formal transitions for versions and instances
+- **Multi-Tenant Isolation** - Single-tenant runtime with Convex
+- **Audit Trail** - Append-only ChangeRecords for all mutations
+- **Provider Registry** - Federation-ready infrastructure
+
+## 🏗️ Architecture
+
+```
+ARM/
+├── convex/                 # Backend (Convex)
+│   ├── schema.ts          # Multi-tenant schema
+│   ├── lib/genomeHash.ts  # SHA-256 hashing
+│   ├── agentTemplates.ts  # Template CRUD
+│   ├── agentVersions.ts   # Version CRUD + integrity
+│   ├── agentInstances.ts  # Instance CRUD
+│   └── seedARM.ts         # Bootstrap script
+├── ui/                     # Frontend (React + Tailwind)
+│   └── src/
+│       ├── views/         # Directory, Policies, etc.
+│       └── components/    # Sidebar, StatusChip, etc.
+├── packages/
+│   └── shared/            # TypeScript types
+└── _quarantine/           # Original AR FastAPI (reference)
+```
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js 18+
+- pnpm 8+
+- Docker (for infrastructure)
+
+### 1. Install Dependencies
 
 ```bash
-# 1. Start infrastructure (Postgres, Temporal, Kafka, Redis, MinIO)
+pnpm install
+```
+
+### 2. Start Infrastructure
+
+```bash
 cd infra/docker
 docker-compose up -d
-
-# Wait for services to be ready (30 seconds)
-sleep 30
-
-# 2. Run database migrations
-docker exec -i ar-postgres psql -U ar -d ar_dev < ../../services/control-plane/migrations/001_init_schema.sql
-docker exec -i ar-postgres psql -U ar -d ar_dev < ../../services/control-plane/migrations/002_seed_data.sql
-
-# 3. Start Control Plane API
-cd ../../services/control-plane
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-python api/main.py
 ```
 
-API will be available at http://localhost:8000
+### 3. Initialize Convex
 
-## Architecture
-
-```
-agent-resources-platform/
-├── services/
-│   ├── control-plane/       # FastAPI - Agent registry, policies, versioning
-│   ├── policy-engine/        # Policy evaluation service
-│   ├── eval-orchestrator/    # Temporal workers for evaluations
-│   └── telemetry-ingest/     # Telemetry & cost collection
-├── ui/                       # React frontend (Mission Control UI)
-├── infra/
-│   └── docker/              # Docker Compose infrastructure
-└── shared/                   # Shared types and schemas
-```
-
-## Core Concepts
-
-- **Agent Template**: Blueprint for a category of agents
-- **Agent Version**: Immutable build (draft → candidate → approved)
-- **Agent Instance**: Runtime deployment bound to a version
-- **Policy Envelope**: Autonomy tier, allowed tools, cost caps
-- **Evaluation Suite**: Tests that gate version promotion
-- **RLS**: Row-Level Security ensures multi-tenant isolation
-
-## API Examples
-
-### Create a template
 ```bash
-curl -X POST http://localhost:8000/v1/templates \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0ZW5hbnRfaWQiOiIxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTEifQ.signature" \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Code Review Agent", "description": "Reviews pull requests"}'
+# Create new Convex project
+npx convex dev
+
+# This will:
+# - Prompt you to create a new project (choose "arm-dev")
+# - Generate deployment URL
+# - Create convex/_generated/ folder
 ```
 
-### Create a version
+### 4. Configure Environment
+
+Update `.env.local` with your Convex deployment URL:
+
 ```bash
-curl -X POST http://localhost:8000/v1/templates/{template_id}/versions \
-  -H "Authorization: Bearer ..." \
-  -H "Content-Type: application/json" \
-  -d '{
-    "version_label": "v1.0.0",
-    "artifact_hash": "abc123",
-    "model_bundle": {"provider": "anthropic", "model": "claude-3-sonnet"},
-    "prompt_bundle": {"system_prompt": "You are a code reviewer"},
-    "tool_manifest": {"tools": []}
-  }'
+CONVEX_DEPLOYMENT=https://your-deployment.convex.cloud
+VITE_CONVEX_URL=https://your-deployment.convex.cloud
 ```
 
-### Deploy an instance
+### 5. Seed Test Data
+
 ```bash
-curl -X POST http://localhost:8000/v1/instances \
-  -H "Authorization: Bearer ..." \
-  -H "Content-Type: application/json" \
-  -d '{
-    "version_id": "{version_id}",
-    "environment": "prod",
-    "policy_envelope_id": "22222222-2222-2222-2222-222222222222"
-  }'
+npx convex run seedARM
 ```
 
-## Infrastructure Services
+This creates:
+- Tenant "ARM Dev Org"
+- 3 environments (dev, staging, prod)
+- 1 provider ("local")
+- 1 template ("Customer Support Agent")
+- 2 versions (v1.0.0, v2.0.0 with lineage)
+- 1 active instance in prod
 
-- **Postgres**: Multi-tenant database with RLS (port 5432)
-- **Temporal**: Workflow orchestration (UI: http://localhost:8080)
-- **Kafka**: Event streaming (port 9092)
-- **Redis**: Caching (port 6379)
-- **MinIO**: Object storage (UI: http://localhost:9001)
+### 6. Start UI
 
-## Development
-
-### Run tests
 ```bash
-pytest tests/
+cd ui
+pnpm dev
 ```
 
-### Check infrastructure
+Open http://localhost:5173
+
+## 📋 Core Concepts
+
+### Immutable Version Rule
+
+**CRITICAL:** Version genome + hash are **write-once only**.
+
+- `genome` contains: `modelConfig`, `promptBundleHash`, `toolManifest`, `provenance`
+- `genomeHash` is SHA-256 of canonicalized genome
+- No mutation exists for genome fields
+- Any change requires creating a new version with `parentVersionId`
+
+### Integrity Verification
+
+- **Detail reads**: Recompute hash and verify
+- **List queries**: Skip verification for performance
+- **On mismatch**: Write `INTEGRITY_FAILED` ChangeRecord
+
+### State Machines
+
+**Version Lifecycle:**
+```
+DRAFT → TESTING → CANDIDATE → APPROVED → DEPRECATED → RETIRED
+```
+
+**Instance States:**
+```
+PROVISIONING → ACTIVE → PAUSED/READONLY/DRAINING/QUARANTINED → RETIRED
+```
+
+### ChangeRecords (Audit Trail)
+
+All mutations write typed events:
+- `TEMPLATE_CREATED`, `TEMPLATE_UPDATED`
+- `VERSION_CREATED`, `VERSION_TRANSITIONED`
+- `VERSION_INTEGRITY_VERIFIED`, `VERSION_INTEGRITY_FAILED`
+- `INSTANCE_CREATED`, `INSTANCE_TRANSITIONED`
+
+## 🧪 Development
+
+### Run Type Check
+
 ```bash
-cd infra/docker
-docker-compose ps
+pnpm typecheck
 ```
 
-### View logs
+### View Convex Dashboard
+
 ```bash
-docker-compose logs -f postgres
-docker-compose logs -f temporal
+npx convex dashboard
 ```
 
-## Next Steps
+### Query Data
 
-1. ✅ **Phase 0-1 Complete**: Registry, policies, versioning
-2. 🚧 **Phase 2**: Temporal evaluation orchestrator
-3. 📋 **Phase 3**: Policy engine service
-4. 📋 **Phase 4**: React UI (port Mission Control components)
-5. 📋 **Phase 5**: Telemetry & cost tracking
+```typescript
+// In Convex dashboard or UI
+const templates = await ctx.db.query("agentTemplates").collect()
+const versions = await ctx.db.query("agentVersions").collect()
+```
 
-See [Implementation Plan](docs/implementation-plan.md) for details.
+## 📊 What's Implemented (P1.1)
+
+✅ Multi-tenant schema with RLS patterns  
+✅ Immutable genome with SHA-256 hashing  
+✅ Template → Version → Instance hierarchy  
+✅ Provider registry for federation  
+✅ State machines with guards  
+✅ ChangeRecord audit trail  
+✅ React UI with Tailwind + ARM theme  
+✅ Directory view with tabs  
+✅ Seed script with test data  
+
+## 🔜 Coming in P1.2+
+
+- Policy evaluation engine
+- Approval workflows
+- Evaluation orchestration
+- Cost tracking
+- Federation implementation
+
+## 📖 Documentation
+
+- [ARM Build Plan](ARM_BUILD_PLAN.md) - Architecture and decisions
+- [Implementation Steps](ARM_IMPLEMENTATION_STEPS.md) - Detailed guide
+- [Original AR PRD](_quarantine/docs/original-prd.md) - Reference
+
+## 🏢 Original AR Platform
+
+The original Agent Resources platform (FastAPI + PostgreSQL) is preserved in `_quarantine/fastapi/` for reference. ARM is a parallel implementation using Convex for the backend.
+
+## 📝 License
+
+MIT
+
+---
+
+**Status:** P1.1 Walking Skeleton Complete ✅
