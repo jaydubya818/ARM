@@ -53,7 +53,11 @@ export function EvaluationsView() {
   const handleExecute = async (runId: Id<'evaluationRuns'>) => {
     try {
       toast.info('Starting evaluation...')
-      await executeRun({ runId })
+      const result = await executeRun({ runId })
+      if (result?.status === 'CANCELLED') {
+        toast.warning('Evaluation was cancelled before completion')
+        return
+      }
       toast.success('Evaluation completed successfully')
     } catch (error) {
       toast.error('Error: ' + (error as Error).message)

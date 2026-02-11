@@ -13,6 +13,7 @@ const navItems = [
   { path: '/incidents', label: 'Incidents', icon: '⚠️', section: 'Monitoring' },
   { path: '/cost', label: 'Cost', icon: '💰', section: 'Monitoring' },
   { path: '/federation', label: 'Federation', icon: '🌐', section: 'Advanced' },
+  { path: '/api-docs.html', label: 'API Docs', icon: '📄', section: 'Admin', external: true },
 ]
 
 export function Sidebar() {
@@ -34,22 +35,35 @@ export function Sidebar() {
               <h3 className="px-4 py-2 text-xs font-semibold text-arm-textMuted uppercase tracking-wider">
                 {section}
               </h3>
-              {sectionItems.map((item) => (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  className={({ isActive }) =>
-                    `flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
-                      isActive
-                        ? 'bg-arm-accent text-white'
-                        : 'text-arm-textMuted hover:bg-arm-surface hover:text-arm-text'
-                    }`
-                  }
-                >
-                  <span>{item.icon}</span>
-                  <span className="text-sm">{item.label}</span>
-                </NavLink>
-              ))}
+              {sectionItems.map((item) =>
+                (item as { path: string; label: string; icon: string; external?: boolean }).external ? (
+                  <a
+                    key={item.path}
+                    href={item.path}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 px-4 py-2 rounded-lg text-arm-textMuted hover:bg-arm-surface hover:text-arm-text transition-colors"
+                  >
+                    <span>{item.icon}</span>
+                    <span className="text-sm">{item.label}</span>
+                  </a>
+                ) : (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                        isActive
+                          ? 'bg-arm-accent text-white'
+                          : 'text-arm-textMuted hover:bg-arm-surface hover:text-arm-text'
+                      }`
+                    }
+                  >
+                    <span>{item.icon}</span>
+                    <span className="text-sm">{item.label}</span>
+                  </NavLink>
+                )
+              )}
             </div>
           )
         })}

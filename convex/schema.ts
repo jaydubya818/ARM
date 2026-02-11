@@ -168,6 +168,12 @@ export default defineSchema({
     tenantId: v.id("tenants"),
     suiteId: v.id("evaluationSuites"),
     versionId: v.id("agentVersions"),
+    previousEvalStatus: v.optional(v.union(
+      v.literal("NOT_RUN"),
+      v.literal("RUNNING"),
+      v.literal("PASS"),
+      v.literal("FAIL")
+    )),
     status: v.union(
       v.literal("PENDING"),
       v.literal("RUNNING"),
@@ -342,4 +348,71 @@ export default defineSchema({
     frequency: v.string(),
   }).index("by_operator", ["operatorId"])
     .index("by_event", ["operatorId", "eventType"]),
+
+  // P5.0 Schema: Feature Flags & A/B Testing
+  featureFlags: defineTable({
+    tenantId: v.id("tenants"),
+    key: v.string(),
+    name: v.string(),
+    description: v.optional(v.string()),
+    enabled: v.boolean(),
+    rolloutPercentage: v.number(), // 0-100
+    targetOperators: v.optional(v.array(v.id("operators"))),
+    targetEnvironments: v.optional(v.array(v.string())),
+    metadata: v.optional(v.any()),
+    createdBy: v.id("operators"),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_tenant", ["tenantId"])
+    .index("by_key", ["tenantId", "key"])
+    .index("by_enabled", ["tenantId", "enabled"]),
+
+  experiments: defineTable({
+    tenantId: v.id("tenants"),
+    key: v.string(),
+    name: v.string(),
+    description: v.optional(v.string()),
+    status: v.union(
+      v.literal("DRAFT"),
+      v.literal("RUNNING"),
+      v.literal("PAUSED"),
+      v.literal("COMPLETED")
+    ),
+    variants: v.array(v.object({
+      id: v.string(),
+      name: v.string(),
+      weight: v.number(), // 0-100, sum = 100
+      config: v.optional(v.any()),
+    })),
+    startDate: v.optional(v.number()),
+    endDate: v.optional(v.number()),
+    metrics: v.optional(v.array(v.object({
+      name: v.string(),
+      type: v.union(v.literal("conversion"), v.literal("engagement"), v.literal("custom")),
+    }))),
+    createdBy: v.id("operators"),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_tenant", ["tenantId"])
+    .index("by_key", ["tenantId", "key"])
+    .index("by_status", ["tenantId", "status"]),
+
+  experimentAssignments: defineTable({
+    experimentId: v.id("experiments"),
+    operatorId: v.id("operators"),
+    variantId: v.string(),
+    assignedAt: v.number(),
+  }).index("by_experiment", ["experimentId"])
+    .index("by_operator", ["operatorId"])
+    .index("by_experiment_operator", ["experimentId", "operatorId"]),
+
+  experimentEvents: defineTable({
+    experimentId: v.id("experiments"),
+    operatorId: v.id("operators"),
+    variantId: v.string(),
+    eventType: v.string(),
+    payload: v.optional(v.any()),
+    timestamp: v.number(),
+  }).index("by_experiment", ["experimentId"])
+    .index("by_timestamp", ["experimentId", "timestamp"]),
 });

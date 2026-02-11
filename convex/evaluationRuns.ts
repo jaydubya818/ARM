@@ -119,12 +119,8 @@ export const create = mutation({
       suiteId: args.suiteId,
       versionId: args.versionId,
       status: "PENDING",
+      previousEvalStatus: version.evalStatus,
       triggeredBy: args.triggeredBy,
-    });
-
-    // Update version evalStatus to RUNNING
-    await ctx.db.patch(args.versionId, {
-      evalStatus: "RUNNING",
     });
 
     // Write change record
@@ -144,6 +140,54 @@ export const create = mutation({
     });
 
     return runId;
+  },
+});
+
+/**
+ * Claim a pending evaluation run for execution
+ */
+export const claimPending = mutation({
+  args: {
+    runId: v.id("evaluationRuns"),
+  },
+  handler: async (ctx, args) => {
+    const run = await ctx.db.get(args.runId);
+    if (!run) {
+      throw new Error("Evaluation run not found");
+    }
+
+    if (run.status !== "PENDING") {
+      return { claimed: false, status: run.status };
+    }
+
+    const updates: any = {
+      status: "RUNNING",
+    };
+
+    if (!run.startedAt) {
+      updates.startedAt = Date.now();
+    }
+
+    await ctx.db.patch(args.runId, updates);
+
+    // Update version evalStatus to RUNNING when execution starts
+    await ctx.db.patch(run.versionId, {
+      evalStatus: "RUNNING",
+    });
+
+    // Write change record for run status update
+    await ctx.db.insert("changeRecords", {
+      tenantId: run.tenantId,
+      type: "EVAL_RUN_UPDATED",
+      targetEntity: "evaluationRun",
+      targetId: args.runId,
+      payload: {
+        status: "RUNNING",
+      },
+      timestamp: Date.now(),
+    });
+
+    return { claimed: true, status: "RUNNING" };
   },
 });
 
@@ -234,8 +278,9 @@ export const updateStatus = mutation({
         evalStatus: "FAIL",
       });
     } else if (args.status === "CANCELLED") {
+      const previousEvalStatus = run.previousEvalStatus || "NOT_RUN";
       await ctx.db.patch(run.versionId, {
-        evalStatus: "NOT_RUN",
+        evalStatus: previousEvalStatus,
       });
     }
 
@@ -281,9 +326,10 @@ export const cancel = mutation({
       completedAt: Date.now(),
     });
 
-    // Reset version evalStatus
+    // Restore version evalStatus
+    const previousEvalStatus = run.previousEvalStatus || "NOT_RUN";
     await ctx.db.patch(run.versionId, {
-      evalStatus: "NOT_RUN",
+      evalStatus: previousEvalStatus,
     });
 
     // Write change record

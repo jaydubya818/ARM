@@ -1,0 +1,169 @@
+openapi: 3.1.0
+info:
+  title: ARM (Agent Resource Management) API
+  description: |
+    Convex-backed API for managing AI agent fleets. ARM uses Convex's real-time
+    queries and mutations rather than REST. This document describes the API structure
+    for reference. Use the Convex client (`api.tenants.list`, etc.) to call these.
+  version: 1.0.0
+  contact:
+    name: ARM Platform
+
+servers:
+  - url: https://{deployment}.convex.cloud
+    variables:
+      deployment:
+        default: your-deployment
+
+paths:
+  /api/tenants/list:
+    get:
+      summary: List all tenants
+      operationId: tenants.list
+      tags: [Tenants]
+      responses:
+        "200":
+          description: Array of tenants
+  /api/tenants/create:
+    post:
+      summary: Create tenant
+      operationId: tenants.create
+      tags: [Tenants]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTenant"
+      responses:
+        "200":
+          description: Created tenant ID
+
+  /api/agentTemplates/list:
+    get:
+      summary: List templates by tenant
+      operationId: agentTemplates.list
+      tags: [Templates]
+      parameters:
+        - name: tenantId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Array of agent templates
+  /api/agentTemplates/create:
+    post:
+      summary: Create template
+      operationId: agentTemplates.create
+      tags: [Templates]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTemplate"
+      responses:
+        "200":
+          description: Created template ID
+
+  /api/agentVersions/list:
+    get:
+      summary: List versions by tenant
+      operationId: agentVersions.list
+      tags: [Versions]
+      parameters:
+        - name: tenantId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Array of agent versions
+  /api/agentVersions/create:
+    post:
+      summary: Create version
+      operationId: agentVersions.create
+      tags: [Versions]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateVersion"
+      responses:
+        "200":
+          description: Created version ID
+
+  /api/featureFlags/isEnabled:
+    get:
+      summary: Check if feature flag is enabled
+      operationId: featureFlags.isEnabled
+      tags: [Feature Flags]
+      parameters:
+        - name: tenantId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: flagKey
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: operatorId
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: boolean - is enabled
+
+  /api/monitoring/healthCheck:
+    get:
+      summary: Health check
+      operationId: monitoring.healthCheck.healthCheck
+      tags: [Monitoring]
+      responses:
+        "200":
+          description: Health status
+
+components:
+  schemas:
+    CreateTenant:
+      type: object
+      required: [name, slug]
+      properties:
+        name: { type: string }
+        slug: { type: string }
+        settings: { type: object }
+
+    CreateTemplate:
+      type: object
+      required: [tenantId, name, owners, tags]
+      properties:
+        tenantId: { type: string }
+        name: { type: string }
+        description: { type: string }
+        owners: { type: array; items: { type: string } }
+        tags: { type: array; items: { type: string } }
+
+    CreateVersion:
+      type: object
+      required: [templateId, tenantId, versionLabel, genome, genomeHash, lifecycleState, evalStatus]
+      properties:
+        templateId: { type: string }
+        tenantId: { type: string }
+        versionLabel: { type: string }
+        genome: { type: object }
+        genomeHash: { type: string }
+        lifecycleState:
+          enum: [DRAFT, TESTING, CANDIDATE, APPROVED, DEPRECATED, RETIRED]
+        evalStatus:
+          enum: [NOT_RUN, RUNNING, PASS, FAIL]
+
+tags:
+  - name: Tenants
+  - name: Templates
+  - name: Versions
+  - name: Feature Flags
+  - name: Monitoring

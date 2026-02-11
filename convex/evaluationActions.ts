@@ -7,8 +7,128 @@
 
 import { v } from "convex/values";
 import { action } from "./_generated/server";
+import type { ActionCtx } from "./_generated/server";
 import { api } from "./_generated/api";
 import { executeTestSuite, calculateMetrics } from "./lib/evaluationRunner";
+import type { Doc, Id } from "./_generated/dataModel";
+
+type RunData = {
+  run: Doc<"evaluationRuns">;
+  suite: Doc<"evaluationSuites">;
+  version: Doc<"agentVersions">;
+};
+
+async function executeRunCore(
+  ctx: ActionCtx,
+  runId: Doc<"evaluationRuns">["_id"],
+  runData: RunData
+): Promise<{
+  runId: Id<"evaluationRuns">;
+  status: "COMPLETED" | "CANCELLED";
+  metrics?: ReturnType<typeof calculateMetrics>;
+}> {
+  const { run, suite, version } = runData;
+
+  try {
+    // Execute test suite
+    const results = await executeTestSuite(suite.testCases, version._id);
+
+    // Calculate metrics
+    const metrics = calculateMetrics(results);
+
+    const current = await ctx.runQuery(api.evaluationRuns.get, { runId });
+    if (current.run?.status === "CANCELLED") {
+      return {
+        runId,
+        status: "CANCELLED",
+      };
+    }
+
+    if (current.run?.status !== "RUNNING") {
+      throw new Error(`Run is ${current.run?.status || "unknown"}`);
+    }
+
+    // Update run with results
+    await ctx.runMutation(api.evaluationRuns.updateStatus, {
+      runId,
+      status: "COMPLETED",
+      results,
+      overallScore: metrics.overallScore,
+      passRate: metrics.passRate,
+    });
+
+    // Record metrics for analytics (P3.0)
+    await ctx.runMutation(api.analytics.recordEvaluationMetrics, {
+      tenantId: run.tenantId,
+      versionId: run.versionId,
+      suiteId: run.suiteId,
+      runId,
+      metrics: {
+        overallScore: metrics.overallScore,
+        passRate: metrics.passRate,
+        avgExecutionTime: metrics.avgExecutionTime,
+        testCaseCount: metrics.totalTests,
+        passedCount: metrics.passed,
+        failedCount: metrics.failed,
+      },
+    });
+
+    // Create notification event (P3.0)
+    await ctx.runMutation(api.notifications.createEvent, {
+      tenantId: run.tenantId,
+      type: "EVAL_COMPLETED",
+      resourceType: "evaluationRun",
+      resourceId: runId,
+      payload: {
+        suiteName: suite.name,
+        versionLabel: version.versionLabel,
+        passRate: metrics.passRate,
+        overallScore: metrics.overallScore,
+      },
+    });
+
+    return {
+      runId,
+      status: "COMPLETED",
+      metrics,
+    };
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    // Get run details for notification
+    let failedRunData: { run: typeof runData.run; suite: typeof runData.suite | null } | null = null;
+    try {
+      const data = await ctx.runQuery(api.evaluationRuns.get, {
+        runId,
+      });
+      failedRunData = { run: data.run, suite: data.suite };
+    } catch {
+      // Ignore errors fetching run data during failure handling
+    }
+
+    // Mark run as failed
+    await ctx.runMutation(api.evaluationRuns.updateStatus, {
+      runId,
+      status: "FAILED",
+    });
+
+    // Create notification event (P3.0)
+    if (failedRunData?.run && failedRunData?.suite) {
+      await ctx.runMutation(api.notifications.createEvent, {
+        tenantId: failedRunData.run.tenantId,
+        type: "EVAL_FAILED",
+        resourceType: "evaluationRun",
+        resourceId: runId,
+        payload: {
+          suiteName: failedRunData.suite.name,
+          error: errorMessage,
+        },
+      });
+    }
+
+    throw error;
+  }
+}
 
 /**
  * Execute an evaluation run
@@ -23,114 +143,37 @@ export const executeRun = action({
   args: {
     runId: v.id("evaluationRuns"),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<{
+    runId: Id<"evaluationRuns">;
+    status: "COMPLETED" | "CANCELLED";
+    metrics?: ReturnType<typeof calculateMetrics>;
+  }> => {
+    const claim = await ctx.runMutation(api.evaluationRuns.claimPending, {
+      runId: args.runId,
+    });
+
+    if (!claim.claimed) {
+      throw new Error(`Run is already ${claim.status}`);
+    }
+
     // Get run details
     const runData = await ctx.runQuery(api.evaluationRuns.get, {
       runId: args.runId,
-    });
+    }) as {
+      run: Doc<"evaluationRuns">;
+      suite: Doc<"evaluationSuites"> | null;
+      version: Doc<"agentVersions"> | null;
+    };
 
     if (!runData.run || !runData.suite || !runData.version) {
       throw new Error("Run, suite, or version not found");
     }
 
-    const { run, suite, version } = runData;
-
-    // Update status to RUNNING
-    await ctx.runMutation(api.evaluationRuns.updateStatus, {
-      runId: args.runId,
-      status: "RUNNING",
+    return await executeRunCore(ctx, args.runId, {
+      run: runData.run,
+      suite: runData.suite,
+      version: runData.version,
     });
-
-    try {
-      // Execute test suite
-      const results = await executeTestSuite(
-        suite.testCases,
-        version._id
-      );
-
-      // Calculate metrics
-      const metrics = calculateMetrics(results);
-
-      // Update run with results
-      await ctx.runMutation(api.evaluationRuns.updateStatus, {
-        runId: args.runId,
-        status: "COMPLETED",
-        results,
-        overallScore: metrics.overallScore,
-        passRate: metrics.passRate,
-      });
-
-      // Record metrics for analytics (P3.0)
-      await ctx.runMutation(api.analytics.recordEvaluationMetrics, {
-        tenantId: run.tenantId,
-        versionId: run.versionId,
-        suiteId: run.suiteId,
-        runId: args.runId,
-        metrics: {
-          overallScore: metrics.overallScore,
-          passRate: metrics.passRate,
-          avgExecutionTime: metrics.avgExecutionTime,
-          testCaseCount: metrics.totalTests,
-          passedCount: metrics.passed,
-          failedCount: metrics.failed,
-        },
-      });
-
-      // Create notification event (P3.0)
-      await ctx.runMutation(api.notifications.createEvent, {
-        tenantId: run.tenantId,
-        type: "EVAL_COMPLETED",
-        resourceType: "evaluationRun",
-        resourceId: args.runId,
-        payload: {
-          suiteName: suite.name,
-          versionLabel: version.versionLabel,
-          passRate: metrics.passRate,
-          overallScore: metrics.overallScore,
-        },
-      });
-
-      return {
-        runId: args.runId,
-        status: "COMPLETED",
-        metrics,
-      };
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-
-      // Get run details for notification
-      let failedRunData: { run: typeof runData.run; suite: typeof runData.suite | null } | null = null;
-      try {
-        const data = await ctx.runQuery(api.evaluationRuns.get, {
-          runId: args.runId,
-        });
-        failedRunData = { run: data.run, suite: data.suite };
-      } catch {
-        // Ignore errors fetching run data during failure handling
-      }
-
-      // Mark run as failed
-      await ctx.runMutation(api.evaluationRuns.updateStatus, {
-        runId: args.runId,
-        status: "FAILED",
-      });
-
-      // Create notification event (P3.0)
-      if (failedRunData?.run && failedRunData?.suite) {
-        await ctx.runMutation(api.notifications.createEvent, {
-          tenantId: failedRunData.run.tenantId,
-          type: "EVAL_FAILED",
-          resourceType: "evaluationRun",
-          resourceId: args.runId,
-          payload: {
-            suiteName: failedRunData.suite.name,
-            error: errorMessage,
-          },
-        });
-      }
-
-      throw error;
-    }
   },
 });
 
@@ -164,8 +207,26 @@ export const processPendingRuns = action({
     // Execute each pending run
     for (const run of pendingRuns) {
       try {
-        const result = await ctx.runAction(api.evaluationActions.executeRun, {
+        const claim = await ctx.runMutation(api.evaluationRuns.claimPending, {
           runId: run._id,
+        });
+
+        if (!claim.claimed) {
+          continue;
+        }
+
+        const runData = await ctx.runQuery(api.evaluationRuns.get, {
+          runId: run._id,
+        });
+
+        if (!runData.run || !runData.suite || !runData.version) {
+          throw new Error("Run, suite, or version not found");
+        }
+
+        const result = await executeRunCore(ctx, run._id, {
+          run: runData.run,
+          suite: runData.suite,
+          version: runData.version,
         });
         results.push(result as RunResult);
       } catch (error: unknown) {

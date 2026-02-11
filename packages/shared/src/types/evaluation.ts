@@ -81,9 +81,10 @@ export interface EvaluationRun {
   suiteId: Id<"evaluationSuites">;
   versionId: Id<"agentVersions">;
   status: EvaluationRunStatus;
+  previousEvalStatus?: "NOT_RUN" | "RUNNING" | "PASS" | "FAIL";
   results?: TestCaseResult[];
   overallScore?: number;       // Average score across all test cases
-  passRate?: number;           // Percentage of tests passed (0-100)
+  passRate?: number;           // Fraction of tests passed (0-1)
   startedAt?: number;
   completedAt?: number;
   triggeredBy?: Id<"operators">;
@@ -98,7 +99,7 @@ export interface EvaluationSummary {
   suiteName: string;
   versionLabel: string;
   status: EvaluationRunStatus;
-  passRate: number;
+  passRate: number;            // Fraction of tests passed (0-1)
   overallScore?: number;
   totalTests: number;
   passedTests: number;
