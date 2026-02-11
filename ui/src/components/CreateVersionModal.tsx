@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '../convex/_generated/api'
-import { Id } from '../convex/_generated/dataModel'
+import { Id, type Doc } from '../convex/_generated/dataModel'
 import { toast } from '../lib/toast'
 
 interface CreateVersionModalProps {
@@ -22,8 +22,12 @@ export function CreateVersionModal({ tenantId, onClose }: CreateVersionModalProp
     { id: '1', toolId: '', schemaVersion: '1.0', requiredPermissions: '' },
   ])
 
-  const templates = useQuery(api.agentTemplates.list, { tenantId })
-  const versions = useQuery(api.agentVersions.list, { tenantId })
+  const templates = useQuery(api.agentTemplates.list, { tenantId }) as
+    | Doc<'agentTemplates'>[]
+    | undefined
+  const versions = useQuery(api.agentVersions.list, { tenantId }) as
+    | Doc<'agentVersions'>[]
+    | undefined
   const createVersion = useMutation(api.agentVersions.create)
 
   const addTool = () => {

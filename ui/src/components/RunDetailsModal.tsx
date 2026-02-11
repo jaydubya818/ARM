@@ -6,7 +6,7 @@
 
 import { useQuery } from 'convex/react'
 import { api } from '../convex/_generated/api'
-import { Id } from '../convex/_generated/dataModel'
+import { Id, type Doc } from '../convex/_generated/dataModel'
 import type { TestCaseResult } from '../../../packages/shared/src/types/evaluation'
 
 interface RunDetailsModalProps {
@@ -15,9 +15,17 @@ interface RunDetailsModalProps {
 }
 
 export function RunDetailsModal({ runId, onClose }: RunDetailsModalProps) {
-  const run = useQuery(api.evaluationRuns.get, { runId })
-  const suite = run?.suiteId ? useQuery(api.evaluationSuites.get, { suiteId: run.suiteId }) : undefined
-  const version = run?.versionId ? useQuery(api.agentVersions.get, { versionId: run.versionId }) : undefined
+  const runData = useQuery(api.evaluationRuns.get, { runId }) as
+    | {
+        run: Doc<'evaluationRuns'>
+        suite: Doc<'evaluationSuites'> | null
+        version: Doc<'agentVersions'> | null
+      }
+    | undefined
+
+  const run = runData?.run
+  const suite = runData?.suite
+  const version = runData?.version
 
   if (!run) {
     return (
@@ -59,7 +67,7 @@ export function RunDetailsModal({ runId, onClose }: RunDetailsModalProps) {
             <div>
               <h2 className="text-xl font-semibold text-arm-text-primary">Evaluation Run Details</h2>
               <p className="text-sm text-arm-text-secondary mt-1">
-                {suite?.name} • {version?.name}
+                {suite?.name} • {version?.versionLabel}
               </p>
             </div>
             <button
@@ -148,8 +156,9 @@ export function RunDetailsModal({ runId, onClose }: RunDetailsModalProps) {
 
           {run.status === 'COMPLETED' && run.results && (
             <div className="space-y-4">
-              {run.results.map((result: TestCaseResult, index: number) => {
-                const testCase = suite?.testCases.find(tc => tc.id === result.testCaseId)
+              {(run.results as TestCaseResult[]).map((result: TestCaseResult, index: number) => {
+                const testCase = suite?.testCases.find((tc) => tc.id === result.testCaseId)
+                const score = result.score ?? (result.passed ? 1 : 0)
 
                 return (
                   <div
@@ -173,13 +182,13 @@ export function RunDetailsModal({ runId, onClose }: RunDetailsModalProps) {
                         )}
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className={`text-sm font-semibold ${getScoreColor(result.score)}`}>
-                          {(result.score * 100).toFixed(1)}%
+                        <span className={`text-sm font-semibold ${getScoreColor(score)}`}>
+                          {(score * 100).toFixed(1)}%
                         </span>
                         <div className="w-24 h-2 bg-arm-bg-secondary rounded-full overflow-hidden">
                           <div
-                            className={`h-full ${getScoreBarColor(result.score)} transition-all duration-300`}
-                            style={{ width: `${result.score * 100}%` }}
+                            className={`h-full ${getScoreBarColor(score)} transition-all duration-300`}
+                            style={{ width: `${score * 100}%` }}
                           />
                         </div>
                       </div>
@@ -204,16 +213,17 @@ export function RunDetailsModal({ runId, onClose }: RunDetailsModalProps) {
                         <div>
                           <div className="text-xs font-medium text-arm-text-tertiary mb-1">Actual Output</div>
                           <div className="px-3 py-2 bg-arm-bg-secondary rounded text-sm text-arm-text-primary font-mono">
-                            {result.actualOutput || 'N/A'}
+                            {result.output || 'N/A'}
                           </div>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-4 text-xs text-arm-text-tertiary">
                         <span>
-                          📊 Scoring: {testCase?.scoringCriteria.type || 'N/A'}
+                          📊 Scoring: {testCase?.scoringCriteria?.type || 'N/A'}
                         </span>
-                        {testCase?.scoringCriteria.type === 'similarity' && testCase.scoringCriteria.threshold && (
+                        {testCase?.scoringCriteria?.type === 'similarity' &&
+                          testCase.scoringCriteria.threshold !== undefined && (
                           <span>
                             🎯 Threshold: {(testCase.scoringCriteria.threshold * 100).toFixed(0)}%
                           </span>

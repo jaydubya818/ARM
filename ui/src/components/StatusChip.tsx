@@ -87,6 +87,8 @@ export function StatusChip({ status, size = 'md', type = 'generic' }: StatusChip
         case 'FAIL':
         case 'FAILED':
           return 'bg-arm-danger text-white'
+        case 'CANCELLED':
+          return 'bg-gray-500 text-white'
         default:
           return 'bg-gray-500 text-white'
       }

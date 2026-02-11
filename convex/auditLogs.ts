@@ -2,10 +2,16 @@
  * Audit Logs
  * 
  * Query and export audit trail.
+ * 
+ * GDPR/CCPA Compliance:
+ * - IP addresses and user agents are anonymized before storage
+ * - Configurable retention policy (default: 90 days)
+ * - Legal basis: Legitimate interest for security and compliance
  */
 
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import { anonymizeIpAddress, anonymizeUserAgent } from "./utils/pii";
 
 /**
  * List audit logs for a tenant
@@ -219,7 +225,56 @@ export const getStatistics = query({
 });
 
 /**
+ * Clean up old audit logs based on retention policy
+ * 
+ * GDPR/CCPA Compliance:
+ * - Implements data retention limits
+ * - Default retention: 90 days
+ * - Can be configured per tenant
+ */
+export const cleanupOldLogs = mutation({
+  args: {
+    tenantId: v.id("tenants"),
+    retentionDays: v.optional(v.number()), // Default: 90 days
+  },
+  handler: async (ctx, args) => {
+    const retentionDays = args.retentionDays || 90;
+    const cutoffTimestamp = Date.now() - (retentionDays * 24 * 60 * 60 * 1000);
+    
+    // Query old logs
+    const oldLogs = await ctx.db
+      .query("auditLogs")
+      .withIndex("by_tenant", (q) => q.eq("tenantId", args.tenantId))
+      .filter((q) => q.lt(q.field("timestamp"), cutoffTimestamp))
+      .collect();
+    
+    // Delete old logs
+    let deletedCount = 0;
+    for (const log of oldLogs) {
+      await ctx.db.delete(log._id);
+      deletedCount++;
+    }
+    
+    return {
+      deletedCount,
+      cutoffTimestamp,
+      retentionDays,
+    };
+  },
+});
+
+/**
  * Write an audit log entry
+ * 
+ * GDPR/CCPA Compliance:
+ * - IP addresses are anonymized (last octet zeroed for IPv4, last 80 bits for IPv6)
+ * - User agents are anonymized (version numbers and specific identifiers removed)
+ * - Retention: Audit logs are subject to configurable TTL (default 90 days)
+ * - Legal basis: Legitimate interest for security monitoring and compliance
+ * 
+ * IMPORTANT: ipAddress and userAgent fields are treated as sensitive PII
+ * and are automatically anonymized before persistence. Do not use these
+ * fields for user identification or tracking purposes.
  */
 export const write = mutation({
   args: {
@@ -230,6 +285,7 @@ export const write = mutation({
     details: v.object({
       permission: v.optional(v.string()),
       reason: v.optional(v.string()),
+      // SENSITIVE: These fields will be anonymized before storage
       ipAddress: v.optional(v.string()),
       userAgent: v.optional(v.string()),
     }),
@@ -240,9 +296,35 @@ export const write = mutation({
     ),
   },
   handler: async (ctx, args) => {
+    // Anonymize PII fields before persistence
+    const anonymizedDetails = {
+      permission: args.details.permission,
+      reason: args.details.reason,
+      // Anonymize IP address (e.g., 192.168.1.100 -> 192.168.1.0)
+      ipAddress: args.details.ipAddress 
+        ? anonymizeIpAddress(args.details.ipAddress)
+        : undefined,
+      // Anonymize user agent (remove version numbers and identifiers)
+      userAgent: args.details.userAgent
+        ? anonymizeUserAgent(args.details.userAgent)
+        : undefined,
+    };
+    
+    const timestamp = Date.now();
+    
+    // Note: Retention policy enforcement
+    // Audit logs older than the configured retention period (default: 90 days)
+    // should be purged by a scheduled cleanup job (see evaluationCron.ts or similar)
+    // Retention period can be configured per tenant in tenant settings
+    
     return await ctx.db.insert("auditLogs", {
-      ...args,
-      timestamp: Date.now(),
+      tenantId: args.tenantId,
+      operatorId: args.operatorId,
+      action: args.action,
+      resource: args.resource,
+      details: anonymizedDetails,
+      severity: args.severity,
+      timestamp,
     });
   },
 });

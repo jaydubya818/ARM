@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useQuery } from 'convex/react'
 import { api } from '../convex/_generated/api'
-import { Id } from '../convex/_generated/dataModel'
+import { Id, type Doc } from '../convex/_generated/dataModel'
 import { VersionDrawer } from '../components/VersionDrawer'
 import { CreateTemplateModal } from '../components/CreateTemplateModal'
 import { CreateVersionModal } from '../components/CreateVersionModal'
@@ -24,17 +24,17 @@ export function DirectoryView() {
   const templates = useQuery(
     api.agentTemplates.list,
     tenantId ? { tenantId } : 'skip'
-  )
+  ) as Doc<'agentTemplates'>[] | undefined
   
   const versions = useQuery(
     api.agentVersions.list,
     tenantId ? { tenantId } : 'skip'
-  )
+  ) as Doc<'agentVersions'>[] | undefined
   
   const instances = useQuery(
     api.agentInstances.list,
     tenantId ? { tenantId } : 'skip'
-  )
+  ) as Doc<'agentInstances'>[] | undefined
 
   // Filter and search logic
   const filteredTemplates = useMemo(() => {

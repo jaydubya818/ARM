@@ -19,9 +19,13 @@ export default defineSchema({
   operators: defineTable({
     tenantId: v.id("tenants"),
     authIdentity: v.string(),
-    email: v.string(),
+    email: v.string(), // Stored securely, access controlled, masked in responses
     name: v.string(),
     role: v.string(),
+    // GDPR/CCPA compliance fields (optional for backward compatibility)
+    consentGiven: v.optional(v.boolean()),
+    consentTimestamp: v.optional(v.number()),
+    dataRetentionDays: v.optional(v.number()), // Custom retention period
   }).index("by_tenant", ["tenantId"])
     .index("by_auth", ["authIdentity"]),
 
@@ -164,7 +168,8 @@ export default defineSchema({
       v.literal("PENDING"),
       v.literal("RUNNING"),
       v.literal("COMPLETED"),
-      v.literal("FAILED")
+      v.literal("FAILED"),
+      v.literal("CANCELLED")
     ),
     results: v.optional(v.array(v.object({
       testCaseId: v.string(),

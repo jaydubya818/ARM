@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useAction } from 'convex/react'
 import { api } from '../convex/_generated/api'
-import { Id } from '../convex/_generated/dataModel'
+import { Id, type Doc } from '../convex/_generated/dataModel'
 import { StatusChip } from '../components/StatusChip'
 import { CopyButton } from '../components/CopyButton'
 import { CreateSuiteModal } from '../components/CreateSuiteModal'
@@ -10,7 +10,7 @@ import { RunDetailsModal } from '../components/RunDetailsModal'
 import { SuiteStatistics } from '../components/SuiteStatistics'
 import { toast } from '../lib/toast'
 
-type EvalRunStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED'
+type EvalRunStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED'
 type ViewMode = 'runs' | 'suites' | 'statistics'
 
 export function EvaluationsView() {
@@ -39,13 +39,13 @@ export function EvaluationsView() {
           status: selectedStatus === 'ALL' ? undefined : selectedStatus,
         }
       : 'skip'
-  )
+  ) as Doc<'evaluationRuns'>[] | undefined
 
   // Fetch evaluation suites
   const suites = useQuery(
     api.evaluationSuites.list,
     tenantId ? { tenantId } : 'skip'
-  )
+  ) as Doc<'evaluationSuites'>[] | undefined
 
   const executeRun = useAction(api.evaluationActions.executeRun)
   const cancelRun = useMutation(api.evaluationRuns.cancel)
@@ -207,6 +207,26 @@ export function EvaluationsView() {
               onClick={() => setSelectedStatus('COMPLETED')}
             >
               Completed ({runs?.filter(r => r.status === 'COMPLETED').length || 0})
+            </button>
+            <button
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                selectedStatus === 'FAILED'
+                  ? 'bg-arm-accent text-white'
+                  : 'bg-arm-bg-secondary text-arm-text-secondary hover:bg-arm-bg-primary'
+              }`}
+              onClick={() => setSelectedStatus('FAILED')}
+            >
+              Failed ({runs?.filter(r => r.status === 'FAILED').length || 0})
+            </button>
+            <button
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                selectedStatus === 'CANCELLED'
+                  ? 'bg-arm-accent text-white'
+                  : 'bg-arm-bg-secondary text-arm-text-secondary hover:bg-arm-bg-primary'
+              }`}
+              onClick={() => setSelectedStatus('CANCELLED')}
+            >
+              Cancelled ({runs?.filter(r => r.status === 'CANCELLED').length || 0})
             </button>
           </div>
 

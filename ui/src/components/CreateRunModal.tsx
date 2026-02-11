@@ -7,7 +7,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery } from 'convex/react'
 import { api } from '../convex/_generated/api'
-import { Id } from '../convex/_generated/dataModel'
+import { Id, type Doc } from '../convex/_generated/dataModel'
 import { toast } from '../lib/toast'
 
 interface CreateRunModalProps {
@@ -18,8 +18,12 @@ interface CreateRunModalProps {
 
 export function CreateRunModal({ tenantId, onClose, onSuccess }: CreateRunModalProps) {
   const createRun = useMutation(api.evaluationRuns.create)
-  const suites = useQuery(api.evaluationSuites.list, { tenantId })
-  const versions = useQuery(api.agentVersions.list, { tenantId })
+  const suites = useQuery(api.evaluationSuites.list, { tenantId }) as
+    | Doc<'evaluationSuites'>[]
+    | undefined
+  const versions = useQuery(api.agentVersions.list, { tenantId }) as
+    | Doc<'agentVersions'>[]
+    | undefined
 
   const [suiteId, setSuiteId] = useState<Id<'evaluationSuites'> | ''>('')
   const [versionId, setVersionId] = useState<Id<'agentVersions'> | ''>('')
@@ -51,7 +55,7 @@ export function CreateRunModal({ tenantId, onClose, onSuccess }: CreateRunModalP
       const suite = suites?.find(s => s._id === suiteId)
       const version = versions?.find(v => v._id === versionId)
 
-      toast.success(`Evaluation run created for "${version?.name}" with suite "${suite?.name}"`)
+      toast.success(`Evaluation run created for "${version?.versionLabel}" with suite "${suite?.name}"`)
       onSuccess?.()
       onClose()
     } catch (error) {
@@ -131,7 +135,7 @@ export function CreateRunModal({ tenantId, onClose, onSuccess }: CreateRunModalP
                 <option value="">Select a version...</option>
                 {versions?.map(version => (
                   <option key={version._id} value={version._id}>
-                    {version.name} - {version.lifecycleState}
+                    {version.versionLabel} - {version.lifecycleState}
                   </option>
                 ))}
               </select>
@@ -139,16 +143,14 @@ export function CreateRunModal({ tenantId, onClose, onSuccess }: CreateRunModalP
               {selectedVersion && (
                 <div className="mt-2 p-3 bg-arm-bg-primary border border-arm-border rounded-lg">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-arm-text-primary">{selectedVersion.name}</span>
+                    <span className="text-sm font-medium text-arm-text-primary">
+                      {selectedVersion.versionLabel}
+                    </span>
                     <span className="px-2 py-1 bg-arm-accent/20 text-arm-accent rounded text-xs">
                       {selectedVersion.lifecycleState}
                     </span>
                   </div>
-                  <p className="text-xs text-arm-text-secondary">
-                    {selectedVersion.description || 'No description'}
-                  </p>
                   <div className="mt-2 flex items-center gap-4 text-xs text-arm-text-tertiary">
-                    <span>🔢 Version {selectedVersion.version}</span>
                     <span>🔐 Hash: {selectedVersion.genomeHash.slice(0, 8)}...</span>
                     {selectedVersion.evalStatus && (
                       <span>

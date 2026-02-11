@@ -6,15 +6,19 @@
 
 import { useQuery } from 'convex/react'
 import { api } from '../convex/_generated/api'
-import { Id } from '../convex/_generated/dataModel'
+import { Id, type Doc } from '../convex/_generated/dataModel'
 
 interface SuiteStatisticsProps {
   tenantId: Id<'tenants'>
 }
 
 export function SuiteStatistics({ tenantId }: SuiteStatisticsProps) {
-  const suites = useQuery(api.evaluationSuites.list, { tenantId })
-  const runs = useQuery(api.evaluationRuns.list, { tenantId })
+  const suites = useQuery(api.evaluationSuites.list, { tenantId }) as
+    | Doc<'evaluationSuites'>[]
+    | undefined
+  const runs = useQuery(api.evaluationRuns.list, { tenantId }) as
+    | Doc<'evaluationRuns'>[]
+    | undefined
 
   if (!suites || !runs) {
     return (
@@ -31,16 +35,12 @@ export function SuiteStatistics({ tenantId }: SuiteStatisticsProps) {
   const pendingRuns = runs.filter(r => r.status === 'PENDING').length
   const runningRuns = runs.filter(r => r.status === 'RUNNING').length
   const failedRuns = runs.filter(r => r.status === 'FAILED').length
+  const cancelledRuns = runs.filter(r => r.status === 'CANCELLED').length
 
   const completedRunsData = runs.filter(r => r.status === 'COMPLETED' && r.overallScore !== undefined)
   const avgScore =
     completedRunsData.length > 0
       ? completedRunsData.reduce((sum, r) => sum + (r.overallScore || 0), 0) / completedRunsData.length
-      : 0
-
-  const avgPassRate =
-    completedRunsData.length > 0
-      ? completedRunsData.reduce((sum, r) => sum + (r.passRate || 0), 0) / completedRunsData.length
       : 0
 
   const passedRuns = completedRunsData.filter(r => (r.passRate || 0) >= 0.8).length
@@ -101,12 +101,20 @@ export function SuiteStatistics({ tenantId }: SuiteStatisticsProps) {
             </svg>
           </div>
           <div className="text-2xl font-bold text-arm-text-primary">{totalRuns}</div>
-          <div className="mt-2 flex items-center gap-2 text-xs text-arm-text-tertiary">
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-arm-text-tertiary">
             <span className="text-arm-success">{completedRuns} completed</span>
             <span>•</span>
             <span className="text-arm-warning">{runningRuns} running</span>
             <span>•</span>
             <span className="text-gray-500">{pendingRuns} pending</span>
+            <span>•</span>
+            <span className="text-arm-danger">{failedRuns} failed</span>
+            {cancelledRuns > 0 && (
+              <>
+                <span>•</span>
+                <span className="text-gray-500">{cancelledRuns} cancelled</span>
+              </>
+            )}
           </div>
         </div>
 
@@ -225,6 +233,8 @@ export function SuiteStatistics({ tenantId }: SuiteStatisticsProps) {
                     ? 'text-arm-warning'
                     : run.status === 'FAILED'
                     ? 'text-arm-danger'
+                    : run.status === 'CANCELLED'
+                    ? 'text-gray-500'
                     : 'text-arm-text-tertiary'
 
                 return (

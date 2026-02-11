@@ -9,7 +9,7 @@ import { useMutation } from 'convex/react'
 import { api } from '../convex/_generated/api'
 import { Id } from '../convex/_generated/dataModel'
 import { toast } from '../lib/toast'
-import type { TestCase, ScoringCriteriaType } from '../../../packages/shared/src/types/evaluation'
+import type { TestCase, ScoringCriteria, ScoringCriteriaType } from '../../../packages/shared/src/types/evaluation'
 
 interface CreateSuiteModalProps {
   tenantId: Id<'tenants'>
@@ -21,35 +21,27 @@ interface CreateSuiteModalProps {
 export function CreateSuiteModal({ tenantId, operatorId, onClose, onSuccess }: CreateSuiteModalProps) {
   const createSuite = useMutation(api.evaluationSuites.create)
 
+  type TestCaseForm = Omit<TestCase, 'scoringCriteria'> & { scoringCriteria: ScoringCriteria }
+  const buildTestCase = (id: string): TestCaseForm => ({
+    id,
+    name: `Test Case ${id}`,
+    input: '',
+    expectedOutput: '',
+    scoringCriteria: {
+      type: 'exact_match',
+    },
+  })
+
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState('')
-  const [testCases, setTestCases] = useState<TestCase[]>([
-    {
-      id: '1',
-      input: '',
-      expectedOutput: '',
-      scoringCriteria: {
-        type: 'exact_match' as ScoringCriteriaType,
-      },
-    },
-  ])
+  const [testCases, setTestCases] = useState<TestCaseForm[]>([buildTestCase('1')])
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const addTestCase = () => {
     const newId = (Math.max(...testCases.map(tc => parseInt(tc.id)), 0) + 1).toString()
-    setTestCases([
-      ...testCases,
-      {
-        id: newId,
-        input: '',
-        expectedOutput: '',
-        scoringCriteria: {
-          type: 'exact_match' as ScoringCriteriaType,
-        },
-      },
-    ])
+    setTestCases([...testCases, buildTestCase(newId)])
   }
 
   const removeTestCase = (id: string) => {
@@ -60,7 +52,7 @@ export function CreateSuiteModal({ tenantId, operatorId, onClose, onSuccess }: C
     setTestCases(testCases.filter(tc => tc.id !== id))
   }
 
-  const updateTestCase = (id: string, updates: Partial<TestCase>) => {
+  const updateTestCase = (id: string, updates: Partial<TestCaseForm>) => {
     setTestCases(testCases.map(tc => (tc.id === id ? { ...tc, ...updates } : tc)))
   }
 

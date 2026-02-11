@@ -1,12 +1,11 @@
 import { useState } from 'react'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '../convex/_generated/api'
-import { Id } from '../convex/_generated/dataModel'
+import { Id, type Doc } from '../convex/_generated/dataModel'
 import { toast } from '../lib/toast'
 
 export function PoliciesView() {
   const [isCreating, setIsCreating] = useState(false)
-  const [editingId, setEditingId] = useState<Id<'policyEnvelopes'> | null>(null)
 
   // Get first tenant (for demo)
   const tenants = useQuery(api.tenants.list)
@@ -16,10 +15,9 @@ export function PoliciesView() {
   const policies = useQuery(
     api.policyEnvelopes.list,
     tenantId ? { tenantId } : 'skip'
-  )
+  ) as Doc<'policyEnvelopes'>[] | undefined
 
   const createPolicy = useMutation(api.policyEnvelopes.create)
-  const updatePolicy = useMutation(api.policyEnvelopes.update)
   const deletePolicy = useMutation(api.policyEnvelopes.remove)
 
   const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {

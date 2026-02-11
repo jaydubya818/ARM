@@ -7,12 +7,26 @@
 import { useState } from "react";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../convex/_generated/api";
-import { Id } from "../convex/_generated/dataModel";
+import { Id, type Doc } from "../convex/_generated/dataModel";
 
 interface CustomFunctionEditorProps {
   tenantId: Id<"tenants">;
   currentOperatorId: Id<"operators">;
 }
+
+type FunctionParam = {
+  name: string;
+  type: string;
+  required: boolean;
+  default?: unknown;
+};
+
+type FunctionExample = {
+  input: unknown;
+  expectedOutput: unknown;
+  actualOutput: unknown;
+  score: number;
+};
 
 export function CustomFunctionEditor({
   tenantId,
@@ -41,11 +55,10 @@ export function CustomFunctionEditor({
   const functions = useQuery(api.customScoringFunctions.list, {
     tenantId,
     activeOnly: false,
-  });
+  }) as Doc<"customScoringFunctions">[] | undefined;
 
   // Mutations
   const createFunction = useMutation(api.customScoringFunctions.create);
-  const updateFunction = useMutation(api.customScoringFunctions.update);
   const deleteFunction = useMutation(api.customScoringFunctions.remove);
 
   // Actions
@@ -259,7 +272,7 @@ export function CustomFunctionEditor({
               <div className="mb-6">
                 <h4 className="text-sm font-semibold text-gray-900 mb-3">Parameters</h4>
                 <div className="space-y-2">
-                  {selectedFunctionData.metadata.parameters.map((param) => (
+                  {selectedFunctionData.metadata.parameters.map((param: FunctionParam) => (
                     <div
                       key={param.name}
                       className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
@@ -285,7 +298,7 @@ export function CustomFunctionEditor({
                     Examples ({selectedFunctionData.metadata.examples.length})
                   </h4>
                   <div className="space-y-3">
-                    {selectedFunctionData.metadata.examples.map((example, index) => (
+                    {selectedFunctionData.metadata.examples.map((example: FunctionExample, index: number) => (
                       <div
                         key={index}
                         className="p-4 bg-gray-50 rounded-lg border border-gray-200"

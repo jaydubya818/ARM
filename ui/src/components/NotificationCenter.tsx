@@ -4,10 +4,10 @@
  * Displays notifications with bell icon, unread count, and dropdown list.
  */
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
-import { Id } from "../convex/_generated/dataModel";
+import { Id, type Doc } from "../convex/_generated/dataModel";
 
 interface NotificationCenterProps {
   operatorId: Id<"operators">;
@@ -22,7 +22,7 @@ export function NotificationCenter({ operatorId }: NotificationCenterProps) {
     operatorId,
     unreadOnly: filter === "unread",
     limit: 50,
-  });
+  }) as Doc<"notifications">[] | undefined;
 
   const unreadCount = useQuery(api.notifications.getUnreadCount, {
     operatorId,

@@ -4,7 +4,7 @@
  * Types for evaluation suites, test cases, and evaluation runs.
  */
 
-import { Id } from "convex/_generated/dataModel";
+import { Id } from "./common";
 
 /**
  * Scoring criteria types for test cases
@@ -69,7 +69,8 @@ export type EvaluationRunStatus =
   | "PENDING"      // Queued for execution
   | "RUNNING"      // Currently executing
   | "COMPLETED"    // Finished successfully
-  | "FAILED";      // Execution failed
+  | "FAILED"       // Execution failed
+  | "CANCELLED";   // Cancelled by user
 
 /**
  * Evaluation run - execution of a suite against a version

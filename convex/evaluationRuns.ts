@@ -157,7 +157,8 @@ export const updateStatus = mutation({
       v.literal("PENDING"),
       v.literal("RUNNING"),
       v.literal("COMPLETED"),
-      v.literal("FAILED")
+      v.literal("FAILED"),
+      v.literal("CANCELLED")
     ),
     results: v.optional(v.array(v.object({
       testCaseId: v.string(),
@@ -185,7 +186,7 @@ export const updateStatus = mutation({
       updates.startedAt = Date.now();
     }
 
-    if (args.status === "COMPLETED" || args.status === "FAILED") {
+    if (args.status === "COMPLETED" || args.status === "FAILED" || args.status === "CANCELLED") {
       updates.completedAt = Date.now();
     }
 
@@ -232,6 +233,10 @@ export const updateStatus = mutation({
       await ctx.db.patch(run.versionId, {
         evalStatus: "FAIL",
       });
+    } else if (args.status === "CANCELLED") {
+      await ctx.db.patch(run.versionId, {
+        evalStatus: "NOT_RUN",
+      });
     }
 
     // Write change record for run status update
@@ -272,7 +277,7 @@ export const cancel = mutation({
 
     // Update run status
     await ctx.db.patch(args.runId, {
-      status: "FAILED",
+      status: "CANCELLED",
       completedAt: Date.now(),
     });
 
@@ -333,6 +338,7 @@ export const getSummary = query({
 
     const completed = runs.filter(r => r.status === "COMPLETED");
     const failed = runs.filter(r => r.status === "FAILED");
+    const cancelled = runs.filter(r => r.status === "CANCELLED");
     const running = runs.filter(r => r.status === "RUNNING");
     const pending = runs.filter(r => r.status === "PENDING");
 
@@ -349,6 +355,7 @@ export const getSummary = query({
       totalRuns: runs.length,
       completed: completed.length,
       failed: failed.length,
+      cancelled: cancelled.length,
       running: running.length,
       pending: pending.length,
       avgPassRate,

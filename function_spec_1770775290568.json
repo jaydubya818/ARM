@@ -1,5 +1,5 @@
 {
-  "url": "https://hidden-civet-872.convex.cloud",
+  "url": "${CONVEX_URL}",
   "functions": [
     {
       "args": {

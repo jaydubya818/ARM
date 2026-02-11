@@ -7,11 +7,42 @@
 import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
-import { Id } from "../convex/_generated/dataModel";
+import { Id, type Doc } from "../convex/_generated/dataModel";
 
 interface AnalyticsDashboardProps {
   tenantId: Id<"tenants">;
 }
+
+type MetricAverages = {
+  overallScore: number;
+  passRate: number;
+  avgExecutionTime: number;
+  testCaseCount?: number;
+  passedCount?: number;
+  failedCount?: number;
+};
+
+type TrendPoint = {
+  period: string;
+  metrics: MetricAverages;
+  sampleSize: number;
+};
+
+type ComparisonData = {
+  version1: { id: Id<"agentVersions">; metrics: MetricAverages; sampleSize: number };
+  version2: { id: Id<"agentVersions">; metrics: MetricAverages; sampleSize: number };
+  deltas: { overallScore: number; passRate: number; avgExecutionTime: number };
+  improvement: { score: boolean; passRate: boolean; speed: boolean };
+};
+
+type TenantStats = {
+  totalRuns: number;
+  uniqueVersions: number;
+  uniqueSuites: number;
+  averages: MetricAverages;
+  topVersions: { versionId: string; avgScore: number; runCount: number }[];
+  timeRange?: { start?: number; end?: number };
+};
 
 export function AnalyticsDashboard({ tenantId }: AnalyticsDashboardProps) {
   const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d">("30d");
@@ -32,33 +63,32 @@ export function AnalyticsDashboard({ tenantId }: AnalyticsDashboardProps) {
     tenantId,
     startTime,
     endTime: now,
-  });
+  }) as TenantStats | undefined;
 
-  const versions = useQuery(api.agentVersions.list, { tenantId });
+  const versions = useQuery(api.agentVersions.list, { tenantId }) as
+    | Doc<"agentVersions">[]
+    | undefined;
 
-  const versionMetrics = selectedVersion
-    ? useQuery(api.analytics.getVersionMetrics, {
-        versionId: selectedVersion,
-        period: "daily",
-        limit: 30,
-      })
-    : null;
+  const versionTrend = useQuery(
+    api.analytics.getTrend,
+    selectedVersion
+      ? {
+          versionId: selectedVersion,
+          period: "daily",
+          limit: 30,
+        }
+      : "skip"
+  ) as TrendPoint[] | undefined;
 
-  const versionTrend = selectedVersion
-    ? useQuery(api.analytics.getTrend, {
-        versionId: selectedVersion,
-        period: "daily",
-        limit: 30,
-      })
-    : null;
-
-  const comparison =
+  const comparison = useQuery(
+    api.analytics.compareVersions,
     selectedVersion && compareVersion
-      ? useQuery(api.analytics.compareVersions, {
+      ? {
           version1Id: selectedVersion,
           version2Id: compareVersion,
-        })
-      : null;
+        }
+      : "skip"
+  ) as ComparisonData | undefined;
 
   const formatScore = (score: number) => (score * 100).toFixed(1);
   const formatTime = (ms: number) => `${ms.toFixed(0)}ms`;
@@ -211,15 +241,16 @@ export function AnalyticsDashboard({ tenantId }: AnalyticsDashboardProps) {
             </label>
             <select
               value={selectedVersion || ""}
-              onChange={(e) =>
-                setSelectedVersion(e.target.value as Id<"agentVersions"> | null)
-              }
+              onChange={(e) => {
+                const value = e.target.value as Id<"agentVersions">;
+                setSelectedVersion(value || null);
+              }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">Select a version...</option>
               {versions?.map((version) => (
                 <option key={version._id} value={version._id}>
-                  {version.versionLabel} - {version.status}
+                  {version.versionLabel} - {version.lifecycleState}
                 </option>
               ))}
             </select>
@@ -231,9 +262,10 @@ export function AnalyticsDashboard({ tenantId }: AnalyticsDashboardProps) {
             </label>
             <select
               value={compareVersion || ""}
-              onChange={(e) =>
-                setCompareVersion(e.target.value as Id<"agentVersions"> | null)
-              }
+              onChange={(e) => {
+                const value = e.target.value as Id<"agentVersions">;
+                setCompareVersion(value || null);
+              }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={!selectedVersion}
             >
@@ -242,7 +274,7 @@ export function AnalyticsDashboard({ tenantId }: AnalyticsDashboardProps) {
                 ?.filter((v) => v._id !== selectedVersion)
                 .map((version) => (
                   <option key={version._id} value={version._id}>
-                    {version.versionLabel} - {version.status}
+                    {version.versionLabel} - {version.lifecycleState}
                   </option>
                 ))}
             </select>
@@ -396,7 +428,7 @@ export function AnalyticsDashboard({ tenantId }: AnalyticsDashboardProps) {
             Performance Trend
           </h3>
           <div className="space-y-4">
-            {versionTrend.slice(0, 10).map((point, index) => (
+            {versionTrend.slice(0, 10).map((point) => (
               <div key={point.period} className="flex items-center gap-4">
                 <div className="w-24 text-sm text-gray-600">{point.period}</div>
                 <div className="flex-1">

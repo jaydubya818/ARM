@@ -7,7 +7,7 @@
 import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
-import { Id } from "../convex/_generated/dataModel";
+import { Id, type Doc } from "../convex/_generated/dataModel";
 
 interface AuditLogViewerProps {
   tenantId: Id<"tenants">;
@@ -23,13 +23,13 @@ export function AuditLogViewer({ tenantId }: AuditLogViewerProps) {
     tenantId,
     limit,
     severity,
-  });
+  }) as Doc<"auditLogs">[] | undefined;
 
   const stats = useQuery(api.auditLogs.getStatistics, {
     tenantId,
   });
 
-  const operators = useQuery(api.operators.list, { tenantId });
+  const operators = useQuery(api.operators.list, { tenantId }) as Doc<"operators">[] | undefined;
 
   // Filter logs by search term
   const filteredLogs = logs?.filter((log) => {

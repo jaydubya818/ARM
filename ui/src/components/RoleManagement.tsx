@@ -7,7 +7,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
-import { Id } from "../convex/_generated/dataModel";
+import { Id, type Doc } from "../convex/_generated/dataModel";
 
 interface RoleManagementProps {
   tenantId: Id<"tenants">;
@@ -21,26 +21,25 @@ export function RoleManagement({ tenantId, currentOperatorId }: RoleManagementPr
   const [showAssignModal, setShowAssignModal] = useState(false);
 
   // Queries
-  const roles = useQuery(api.roles.list, { tenantId });
-  const permissions = useQuery(api.permissions.list);
-  const operators = useQuery(api.operators.list, { tenantId });
-  const assignments = useQuery(api.roleAssignments.list, { tenantId });
+  const roles = useQuery(api.roles.list, { tenantId }) as Doc<"roles">[] | undefined;
+  const permissions = useQuery(api.permissions.list) as Doc<"permissions">[] | undefined;
+  const operators = useQuery(api.operators.list, { tenantId }) as Doc<"operators">[] | undefined;
+  const assignments = useQuery(api.roleAssignments.list, { tenantId }) as
+    | Doc<"roleAssignments">[]
+    | undefined;
 
   // Mutations
-  const createRole = useMutation(api.roles.create);
-  const updateRole = useMutation(api.roles.update);
   const deleteRole = useMutation(api.roles.remove);
-  const assignRole = useMutation(api.roleAssignments.assign);
   const revokeRole = useMutation(api.roleAssignments.revoke);
 
   // Group permissions by category
-  const permissionsByCategory = permissions?.reduce((acc, perm) => {
+  const permissionsByCategory = (permissions ?? []).reduce<Record<string, Doc<"permissions">[]>>((acc, perm) => {
     if (!acc[perm.category]) {
       acc[perm.category] = [];
     }
     acc[perm.category].push(perm);
     return acc;
-  }, {} as Record<string, typeof permissions>);
+  }, {});
 
   return (
     <div className="space-y-6">
@@ -184,8 +183,8 @@ export function RoleManagement({ tenantId, currentOperatorId }: RoleManagementPr
                         Permissions ({role.permissions.length})
                       </h4>
 
-                      {permissionsByCategory &&
-                        Object.entries(permissionsByCategory).map(([category, perms]) => {
+                      {Object.entries(permissionsByCategory as Record<string, Doc<"permissions">[]>).map(
+                        ([category, perms]) => {
                           const rolePerms = role.permissions;
                           const categoryPerms = perms.filter((p) =>
                             rolePerms.includes(`${p.action}:${p.resource}`)
@@ -228,7 +227,8 @@ export function RoleManagement({ tenantId, currentOperatorId }: RoleManagementPr
                               </div>
                             </div>
                           );
-                        })}
+                        }
+                      )}
                     </div>
 
                     {role.isSystem && (
