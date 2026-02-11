@@ -7,6 +7,73 @@
 import { v } from "convex/values";
 import { query, mutation, action } from "./_generated/server";
 import { api } from "./_generated/api";
+import { Doc, Id } from "./_generated/dataModel";
+
+type ExecutionArgs = {
+  input: unknown;
+  expectedOutput: unknown;
+  actualOutput: unknown;
+};
+
+type ExecutionResult = {
+  success: boolean;
+  score?: number;
+  error?: string;
+  executionTime: number;
+};
+
+type FunctionExample = Doc<"customScoringFunctions">["metadata"]["examples"][number];
+
+async function runCustomFunction(
+  func: Doc<"customScoringFunctions">,
+  args: ExecutionArgs
+): Promise<ExecutionResult> {
+  try {
+    // Create sandboxed function
+    // Note: In production, this should use a proper sandbox like vm2 or isolated-vm
+    const sandboxedFunction = new Function(
+      "input",
+      "expectedOutput",
+      "actualOutput",
+      `
+        "use strict";
+        ${func.code}
+        `
+    );
+
+    // Execute with timeout
+    const timeoutMs = 5000; // 5 second timeout
+    const result = await Promise.race([
+      Promise.resolve(
+        sandboxedFunction(args.input, args.expectedOutput, args.actualOutput)
+      ),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Function execution timeout")), timeoutMs)
+      ),
+    ]);
+
+    // Validate result
+    if (typeof result !== "number") {
+      throw new Error("Function must return a number");
+    }
+
+    if (result < 0 || result > 1) {
+      throw new Error("Function must return a score between 0 and 1");
+    }
+
+    return {
+      success: true,
+      score: result as number,
+      executionTime: Date.now(),
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: (error as Error).message,
+      executionTime: Date.now(),
+    };
+  }
+}
 
 /**
  * List all custom scoring functions for a tenant
@@ -276,11 +343,11 @@ export const execute = action({
     expectedOutput: v.any(),
     actualOutput: v.any(),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<ExecutionResult> => {
     // Get function via proper query reference
     const func = await ctx.runQuery(api.customScoringFunctions.get, {
       functionId: args.functionId,
-    });
+    }) as Doc<"customScoringFunctions"> | null;
 
     if (!func) {
       throw new Error("Function not found");
@@ -290,51 +357,11 @@ export const execute = action({
       throw new Error("Function is not active");
     }
 
-    try {
-      // Create sandboxed function
-      // Note: In production, this should use a proper sandbox like vm2 or isolated-vm
-      const sandboxedFunction = new Function(
-        "input",
-        "expectedOutput",
-        "actualOutput",
-        `
-        "use strict";
-        ${func.code}
-        `
-      );
-
-      // Execute with timeout
-      const timeoutMs = 5000; // 5 second timeout
-      const result = await Promise.race([
-        Promise.resolve(
-          sandboxedFunction(args.input, args.expectedOutput, args.actualOutput)
-        ),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Function execution timeout")), timeoutMs)
-        ),
-      ]);
-
-      // Validate result
-      if (typeof result !== "number") {
-        throw new Error("Function must return a number");
-      }
-
-      if (result < 0 || result > 1) {
-        throw new Error("Function must return a score between 0 and 1");
-      }
-
-      return {
-        success: true,
-        score: result as number,
-        executionTime: Date.now(),
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: (error as Error).message,
-        executionTime: Date.now(),
-      };
-    }
+    return await runCustomFunction(func, {
+      input: args.input,
+      expectedOutput: args.expectedOutput,
+      actualOutput: args.actualOutput,
+    });
   },
 });
 
@@ -345,26 +372,37 @@ export const test = action({
   args: {
     functionId: v.id("customScoringFunctions"),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<{
+    functionId: Id<"customScoringFunctions">;
+    functionName: string;
+    totalTests: number;
+    passed: number;
+    failed: number;
+    allPassed: boolean;
+    results: Array<{
+      example: FunctionExample;
+      result: ExecutionResult;
+      passed: boolean;
+    }>;
+  }> => {
     // Get function via proper query reference
     const func = await ctx.runQuery(api.customScoringFunctions.get, {
       functionId: args.functionId,
-    });
+    }) as Doc<"customScoringFunctions"> | null;
 
     if (!func) {
       throw new Error("Function not found");
     }
 
     const results: Array<{
-      example: (typeof func.metadata.examples)[number];
-      result: { success: boolean; score?: number; error?: string; executionTime: number };
+      example: FunctionExample;
+      result: ExecutionResult;
       passed: boolean;
     }> = [];
 
     // Run all examples
     for (const example of func.metadata.examples) {
-      const result = await ctx.runAction(api.customScoringFunctions.execute, {
-        functionId: args.functionId,
+      const result = await runCustomFunction(func, {
         input: example.input,
         expectedOutput: example.expectedOutput,
         actualOutput: example.actualOutput,

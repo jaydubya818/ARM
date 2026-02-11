@@ -175,12 +175,14 @@ function generateNotificationContent(
   payload: any
 ): { title: string; message: string; severity: "INFO" | "SUCCESS" | "WARNING" | "ERROR" } {
   switch (type) {
-    case "EVAL_COMPLETED":
+    case "EVAL_COMPLETED": {
+      const passRatePercent = Math.round((payload.passRate || 0) * 1000) / 10;
       return {
         title: "Evaluation Complete",
-        message: `Evaluation run for suite "${payload.suiteName}" completed with ${payload.passRate}% pass rate.`,
-        severity: payload.passRate >= 80 ? "SUCCESS" : "WARNING",
+        message: `Evaluation run for suite "${payload.suiteName}" completed with ${passRatePercent}% pass rate.`,
+        severity: (payload.passRate || 0) >= 0.8 ? "SUCCESS" : "WARNING",
       };
+    }
 
     case "EVAL_FAILED":
       return {

@@ -1,6 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { Id } from "./_generated/dataModel";
+import { Id, Doc } from "./_generated/dataModel";
 import { computeGenomeHash, verifyGenomeIntegrity } from "./lib/genomeHash";
 
 export const create = mutation({
@@ -86,11 +86,11 @@ export const listByTemplate = query({
 export const getLineage = query({
   args: { versionId: v.id("agentVersions") },
   handler: async (ctx, args) => {
-    const lineage = [];
+    const lineage: Doc<"agentVersions">[] = [];
     let currentId: Id<"agentVersions"> | undefined = args.versionId;
 
     while (currentId) {
-      const version = await ctx.db.get(currentId);
+      const version = await ctx.db.get(currentId) as Doc<"agentVersions"> | null;
       if (!version) break;
       lineage.push(version);
       currentId = version.parentVersionId;

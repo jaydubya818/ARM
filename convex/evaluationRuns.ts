@@ -208,7 +208,7 @@ export const updateStatus = mutation({
 
     // Update version evalStatus based on run status
     if (args.status === "COMPLETED") {
-      const passThreshold = 80; // 80% pass rate required
+      const passThreshold = 0.8; // 80% pass rate required (0-1)
       const evalStatus = (args.passRate || 0) >= passThreshold ? "PASS" : "FAIL";
       
       await ctx.db.patch(run.versionId, {

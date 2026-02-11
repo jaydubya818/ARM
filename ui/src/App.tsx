@@ -8,6 +8,7 @@ import { AnalyticsView } from './views/AnalyticsView'
 import { RolesView } from './views/RolesView'
 import { AuditView } from './views/AuditView'
 import { CustomFunctionsView } from './views/CustomFunctionsView'
+import { MonitoringView } from './views/MonitoringView'
 import { PlaceholderView } from './views/PlaceholderView'
 import { ToastContainer } from './components/ToastContainer'
 import { NotificationCenter } from './components/NotificationCenter'
@@ -73,6 +74,9 @@ export default function App() {
                 )
               } 
             />
+            
+            {/* P4.0 Routes */}
+            <Route path="/monitoring" element={<MonitoringView />} />
             
             <Route path="/incidents" element={<PlaceholderView title="Incidents" />} />
             <Route path="/cost" element={<PlaceholderView title="Cost Management" />} />

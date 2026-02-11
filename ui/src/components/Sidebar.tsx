@@ -9,6 +9,7 @@ const navItems = [
   { path: '/custom-functions', label: 'Custom Functions', icon: '⚡', section: 'Advanced' },
   { path: '/roles', label: 'Roles & Permissions', icon: '🔐', section: 'Admin' },
   { path: '/audit', label: 'Audit Logs', icon: '📋', section: 'Admin' },
+  { path: '/monitoring', label: 'System Monitoring', icon: '📈', section: 'Monitoring' },
   { path: '/incidents', label: 'Incidents', icon: '⚠️', section: 'Monitoring' },
   { path: '/cost', label: 'Cost', icon: '💰', section: 'Monitoring' },
   { path: '/federation', label: 'Federation', icon: '🌐', section: 'Advanced' },
@@ -55,7 +56,7 @@ export function Sidebar() {
       </nav>
       
       <div className="p-4 border-t border-arm-border text-xs text-arm-textMuted">
-        <p>v0.3.0 • Phase 3.0 Complete</p>
+        <p>v0.4.0 • Phase 4.0 Complete</p>
       </div>
     </aside>
   )

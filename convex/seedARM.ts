@@ -459,7 +459,7 @@ export default mutation({
         },
       ],
       overallScore: 0.85,
-      passRate: 66.7,
+      passRate: 0.667,
       startedAt: Date.now() - 10000,
       completedAt: Date.now() - 1000,
       triggeredBy: operatorId,

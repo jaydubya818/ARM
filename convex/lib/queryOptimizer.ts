@@ -26,7 +26,7 @@ export async function batchLoad<T extends { _id: any }>(
 
   entities.forEach((entity, index) => {
     if (entity) {
-      results.set(uniqueIds[index], entity as T);
+      results.set(uniqueIds[index], entity as unknown as T);
     }
   });
 

@@ -159,16 +159,17 @@ export const update = mutation({
       throw new Error("Evaluation suite not found");
     }
 
+    const name = args.name;
     // Validate name if changing
-    if (args.name && args.name !== suite.name) {
-      if (!args.name.trim()) {
+    if (name && name !== suite.name) {
+      if (!name.trim()) {
         throw new Error("Suite name is required");
       }
 
       const existing = await ctx.db
         .query("evaluationSuites")
         .withIndex("by_name", (q) =>
-          q.eq("tenantId", suite.tenantId).eq("name", args.name)
+          q.eq("tenantId", suite.tenantId).eq("name", name)
         )
         .first();
 
