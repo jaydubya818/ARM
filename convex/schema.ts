@@ -113,7 +113,9 @@ export default defineSchema({
     timestamp: v.number(),
   }).index("by_tenant", ["tenantId"])
     .index("by_target", ["targetEntity", "targetId"])
-    .index("by_type", ["tenantId", "type"]),
+    .index("by_type", ["tenantId", "type"])
+    .index("by_timestamp", ["tenantId", "timestamp"]) // Performance: time-range queries
+    .index("by_operator_time", ["operatorId", "timestamp"]), // Performance: operator audit trail
 
   // P1.2 Schema (placeholders)
   policyEnvelopes: defineTable({
@@ -131,7 +133,9 @@ export default defineSchema({
     status: v.string(),
     requestedBy: v.id("operators"),
     decidedBy: v.optional(v.id("operators")),
-  }).index("by_tenant", ["tenantId"]),
+  }).index("by_tenant", ["tenantId"])
+    .index("by_status", ["tenantId", "status"]) // Performance: filter by status
+    .index("by_requester", ["requestedBy"]), // Performance: user's approval requests
 
   // P2.0 Schema: Evaluation Orchestration
   evaluationSuites: defineTable({
@@ -306,7 +310,9 @@ export default defineSchema({
     processed: v.boolean(),
   }).index("by_tenant", ["tenantId"])
     .index("by_type", ["type"])
-    .index("by_processed", ["processed"]),
+    .index("by_processed", ["processed"])
+    .index("by_tenant_processed", ["tenantId", "processed"]) // Performance: unprocessed events
+    .index("by_timestamp", ["timestamp"]), // Performance: time-based cleanup
 
   notifications: defineTable({
     tenantId: v.id("tenants"),
