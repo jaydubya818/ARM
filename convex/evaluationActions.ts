@@ -60,17 +60,69 @@ export const executeRun = action({
         passRate: metrics.passRate,
       });
 
+      // Record metrics for analytics (P3.0)
+      await ctx.runMutation(api.analytics.recordEvaluationMetrics, {
+        tenantId: run.tenantId,
+        versionId: run.versionId,
+        suiteId: run.suiteId,
+        runId: args.runId,
+        metrics: {
+          overallScore: metrics.overallScore,
+          passRate: metrics.passRate,
+          avgExecutionTime: metrics.avgExecutionTime,
+          testCaseCount: metrics.totalTests,
+          passedCount: metrics.passed,
+          failedCount: metrics.failed,
+        },
+      });
+
+      // Create notification event (P3.0)
+      await ctx.runMutation(api.notifications.createEvent, {
+        tenantId: run.tenantId,
+        type: "EVAL_COMPLETED",
+        resourceType: "evaluationRun",
+        resourceId: args.runId,
+        payload: {
+          suiteName: suite.name,
+          versionLabel: version.versionLabel,
+          passRate: metrics.passRate,
+          overallScore: metrics.overallScore,
+        },
+      });
+
       return {
         runId: args.runId,
         status: "COMPLETED",
         metrics,
       };
     } catch (error: any) {
+      // Get run details for notification
+      const run = await ctx.runQuery(api.evaluationRuns.get, {
+        runId: args.runId,
+      });
+      const suite = run ? await ctx.runQuery(api.evaluationSuites.get, {
+        suiteId: run.suiteId,
+      }) : null;
+
       // Mark run as failed
       await ctx.runMutation(api.evaluationRuns.updateStatus, {
         runId: args.runId,
         status: "FAILED",
       });
+
+      // Create notification event (P3.0)
+      if (run && suite) {
+        await ctx.runMutation(api.notifications.createEvent, {
+          tenantId: run.tenantId,
+          type: "EVAL_FAILED",
+          resourceType: "evaluationRun",
+          resourceId: args.runId,
+          payload: {
+            suiteName: suite.name,
+            error: error.message,
+          },
+        });
+      }
 
       throw error;
     }

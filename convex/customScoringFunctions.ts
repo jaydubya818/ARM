@@ -6,7 +6,7 @@
 
 import { v } from "convex/values";
 import { query, mutation, action } from "./_generated/server";
-import { Id } from "./_generated/dataModel";
+import { api } from "./_generated/api";
 
 /**
  * List all custom scoring functions for a tenant
@@ -277,10 +277,10 @@ export const execute = action({
     actualOutput: v.any(),
   },
   handler: async (ctx, args) => {
-    // Get function
-    const func = await ctx.runQuery(
-      async (ctx) => await ctx.db.get(args.functionId)
-    );
+    // Get function via proper query reference
+    const func = await ctx.runQuery(api.customScoringFunctions.get, {
+      functionId: args.functionId,
+    });
 
     if (!func) {
       throw new Error("Function not found");
@@ -325,7 +325,7 @@ export const execute = action({
 
       return {
         success: true,
-        score: result,
+        score: result as number,
         executionTime: Date.now(),
       };
     } catch (error) {
@@ -346,33 +346,34 @@ export const test = action({
     functionId: v.id("customScoringFunctions"),
   },
   handler: async (ctx, args) => {
-    // Get function
-    const func = await ctx.runQuery(
-      async (ctx) => await ctx.db.get(args.functionId)
-    );
+    // Get function via proper query reference
+    const func = await ctx.runQuery(api.customScoringFunctions.get, {
+      functionId: args.functionId,
+    });
 
     if (!func) {
       throw new Error("Function not found");
     }
 
-    const results = [];
+    const results: Array<{
+      example: (typeof func.metadata.examples)[number];
+      result: { success: boolean; score?: number; error?: string; executionTime: number };
+      passed: boolean;
+    }> = [];
 
     // Run all examples
     for (const example of func.metadata.examples) {
-      const result = await ctx.runAction(
-        async (ctx: any) =>
-          await ctx.runAction("customScoringFunctions:execute", {
-            functionId: args.functionId,
-            input: example.input,
-            expectedOutput: example.expectedOutput,
-            actualOutput: example.actualOutput,
-          })
-      );
+      const result = await ctx.runAction(api.customScoringFunctions.execute, {
+        functionId: args.functionId,
+        input: example.input,
+        expectedOutput: example.expectedOutput,
+        actualOutput: example.actualOutput,
+      });
 
       results.push({
         example,
         result,
-        passed: result.success && Math.abs(result.score - example.score) < 0.01,
+        passed: result.success && result.score !== undefined && Math.abs(result.score - example.score) < 0.01,
       });
     }
 

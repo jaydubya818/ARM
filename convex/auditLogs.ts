@@ -6,7 +6,6 @@
 
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
-import { Id } from "./_generated/dataModel";
 
 /**
  * List audit logs for a tenant
@@ -140,7 +139,8 @@ export const search = query({
     }
 
     if (args.resource) {
-      logs = logs.filter((log) => log.resource.includes(args.resource));
+      const resourceFilter = args.resource;
+      logs = logs.filter((log) => log.resource.includes(resourceFilter));
     }
 
     if (args.operatorId) {

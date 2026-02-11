@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { Id } from "./_generated/dataModel";
 import { computeGenomeHash, verifyGenomeIntegrity } from "./lib/genomeHash";
 
 export const create = mutation({
@@ -51,28 +52,9 @@ export const get = query({
       version.genomeHash
     );
     
-    if (!isValid) {
-      // Write integrity failure record
-      await ctx.db.insert("changeRecords", {
-        tenantId: version.tenantId,
-        type: "VERSION_INTEGRITY_FAILED",
-        targetEntity: "agentVersion",
-        targetId: args.versionId,
-        payload: { genomeHash: version.genomeHash },
-        timestamp: Date.now(),
-      });
-    } else {
-      // Write verification success
-      await ctx.db.insert("changeRecords", {
-        tenantId: version.tenantId,
-        type: "VERSION_INTEGRITY_VERIFIED",
-        targetEntity: "agentVersion",
-        targetId: args.versionId,
-        payload: { genomeHash: version.genomeHash },
-        timestamp: Date.now(),
-      });
-    }
-    
+    // Note: Queries cannot write to the database, so integrity verification
+    // results are returned but not logged. Use a mutation to log integrity events.
+
     return {
       ...version,
       integrityStatus: isValid ? "VERIFIED" : "TAMPERED",
@@ -105,10 +87,10 @@ export const getLineage = query({
   args: { versionId: v.id("agentVersions") },
   handler: async (ctx, args) => {
     const lineage = [];
-    let currentId: string | undefined = args.versionId;
-    
+    let currentId: Id<"agentVersions"> | undefined = args.versionId;
+
     while (currentId) {
-      const version = await ctx.db.get(currentId as any);
+      const version = await ctx.db.get(currentId);
       if (!version) break;
       lineage.push(version);
       currentId = version.parentVersionId;

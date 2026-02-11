@@ -5,9 +5,7 @@
  */
 
 import { v } from "convex/values";
-import { query, mutation, action } from "./_generated/server";
-import { Id } from "./_generated/dataModel";
-import { internal } from "./_generated/api";
+import { query, mutation } from "./_generated/server";
 
 /**
  * Record evaluation metrics (called after evaluation run completes)
@@ -221,12 +219,14 @@ export const getTrend = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const metrics = await ctx.db
+    const allMetrics = await ctx.db
       .query("evaluationMetrics")
       .withIndex("by_version", (q) => q.eq("versionId", args.versionId))
-      .filter((q) => q.eq(q.field("period").startsWith(args.period), true))
       .order("desc")
       .collect();
+
+    // Post-filter: startsWith is not available on Convex filter expressions
+    const metrics = allMetrics.filter((m) => m.period.startsWith(args.period));
 
     const limited = args.limit ? metrics.slice(0, args.limit) : metrics;
 
