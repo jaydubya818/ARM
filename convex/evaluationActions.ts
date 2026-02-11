@@ -1,30 +1,30 @@
 /**
  * Evaluation Actions
- * 
+ *
  * Convex actions for executing evaluation runs.
  * Actions can call external APIs and run longer than mutations.
  */
 
-import { v } from "convex/values";
-import { action } from "./_generated/server";
-import type { ActionCtx } from "./_generated/server";
-import { api } from "./_generated/api";
-import { executeTestSuite, calculateMetrics } from "./lib/evaluationRunner";
-import type { Doc, Id } from "./_generated/dataModel";
+import { v } from 'convex/values';
+import { action } from './_generated/server';
+import type { ActionCtx } from './_generated/server';
+import { api } from './_generated/api';
+import { executeTestSuite, calculateMetrics } from './lib/evaluationRunner';
+import type { Doc, Id } from './_generated/dataModel';
 
 type RunData = {
-  run: Doc<"evaluationRuns">;
-  suite: Doc<"evaluationSuites">;
-  version: Doc<"agentVersions">;
+  run: Doc<'evaluationRuns'>;
+  suite: Doc<'evaluationSuites'>;
+  version: Doc<'agentVersions'>;
 };
 
 async function executeRunCore(
   ctx: ActionCtx,
-  runId: Doc<"evaluationRuns">["_id"],
-  runData: RunData
+  runId: Doc<'evaluationRuns'>['_id'],
+  runData: RunData,
 ): Promise<{
-  runId: Id<"evaluationRuns">;
-  status: "COMPLETED" | "CANCELLED";
+  runId: Id<'evaluationRuns'>;
+  status: 'COMPLETED' | 'CANCELLED';
   metrics?: ReturnType<typeof calculateMetrics>;
 }> {
   const { run, suite, version } = runData;
@@ -37,21 +37,21 @@ async function executeRunCore(
     const metrics = calculateMetrics(results);
 
     const current = await ctx.runQuery(api.evaluationRuns.get, { runId });
-    if (current.run?.status === "CANCELLED") {
+    if (current.run?.status === 'CANCELLED') {
       return {
         runId,
-        status: "CANCELLED",
+        status: 'CANCELLED',
       };
     }
 
-    if (current.run?.status !== "RUNNING") {
-      throw new Error(`Run is ${current.run?.status || "unknown"}`);
+    if (current.run?.status !== 'RUNNING') {
+      throw new Error(`Run is ${current.run?.status || 'unknown'}`);
     }
 
     // Update run with results
     await ctx.runMutation(api.evaluationRuns.updateStatus, {
       runId,
-      status: "COMPLETED",
+      status: 'COMPLETED',
       results,
       overallScore: metrics.overallScore,
       passRate: metrics.passRate,
@@ -65,7 +65,7 @@ async function executeRunCore(
       versionId: run.versionId,
       tokensUsed: estTokens,
       estimatedCost: estCost,
-      source: "evaluation",
+      source: 'evaluation',
       metadata: { runId, suiteId: run.suiteId },
     });
 
@@ -88,8 +88,8 @@ async function executeRunCore(
     // Create notification event (P3.0)
     await ctx.runMutation(api.notifications.createEvent, {
       tenantId: run.tenantId,
-      type: "EVAL_COMPLETED",
-      resourceType: "evaluationRun",
+      type: 'EVAL_COMPLETED',
+      resourceType: 'evaluationRun',
       resourceId: runId,
       payload: {
         suiteName: suite.name,
@@ -101,7 +101,7 @@ async function executeRunCore(
 
     return {
       runId,
-      status: "COMPLETED",
+      status: 'COMPLETED',
       metrics,
     };
   } catch (error: unknown) {
@@ -121,15 +121,15 @@ async function executeRunCore(
     // Mark run as failed
     await ctx.runMutation(api.evaluationRuns.updateStatus, {
       runId,
-      status: "FAILED",
+      status: 'FAILED',
     });
 
     // Create notification event (P3.0)
     if (failedRunData?.run && failedRunData?.suite) {
       await ctx.runMutation(api.notifications.createEvent, {
         tenantId: failedRunData.run.tenantId,
-        type: "EVAL_FAILED",
-        resourceType: "evaluationRun",
+        type: 'EVAL_FAILED',
+        resourceType: 'evaluationRun',
         resourceId: runId,
         payload: {
           suiteName: failedRunData.suite.name,
@@ -144,7 +144,7 @@ async function executeRunCore(
 
 /**
  * Execute an evaluation run
- * 
+ *
  * This action:
  * 1. Fetches the run, suite, and version
  * 2. Executes all test cases
@@ -153,11 +153,11 @@ async function executeRunCore(
  */
 export const executeRun = action({
   args: {
-    runId: v.id("evaluationRuns"),
+    runId: v.id('evaluationRuns'),
   },
   handler: async (ctx, args): Promise<{
-    runId: Id<"evaluationRuns">;
-    status: "COMPLETED" | "CANCELLED";
+    runId: Id<'evaluationRuns'>;
+    status: 'COMPLETED' | 'CANCELLED';
     metrics?: ReturnType<typeof calculateMetrics>;
   }> => {
     const claim = await ctx.runMutation(api.evaluationRuns.claimPending, {
@@ -172,13 +172,13 @@ export const executeRun = action({
     const runData = await ctx.runQuery(api.evaluationRuns.get, {
       runId: args.runId,
     }) as {
-      run: Doc<"evaluationRuns">;
-      suite: Doc<"evaluationSuites"> | null;
-      version: Doc<"agentVersions"> | null;
+      run: Doc<'evaluationRuns'>;
+      suite: Doc<'evaluationSuites'> | null;
+      version: Doc<'agentVersions'> | null;
     };
 
     if (!runData.run || !runData.suite || !runData.version) {
-      throw new Error("Run, suite, or version not found");
+      throw new Error('Run, suite, or version not found');
     }
 
     return await executeRunCore(ctx, args.runId, {
@@ -191,7 +191,7 @@ export const executeRun = action({
 
 /**
  * Process pending evaluation runs
- * 
+ *
  * This action is designed to be called by a cron job.
  * It picks up pending runs and executes them.
  */
@@ -204,7 +204,7 @@ interface RunResult {
 
 export const processPendingRuns = action({
   args: {
-    tenantId: v.id("tenants"),
+    tenantId: v.id('tenants'),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args): Promise<{ processed: number; results: RunResult[] }> => {
@@ -232,7 +232,7 @@ export const processPendingRuns = action({
         });
 
         if (!runData.run || !runData.suite || !runData.version) {
-          throw new Error("Run, suite, or version not found");
+          throw new Error('Run, suite, or version not found');
         }
 
         const result = await executeRunCore(ctx, run._id, {
@@ -246,7 +246,7 @@ export const processPendingRuns = action({
         console.error(`Failed to execute run ${run._id}:`, error);
         results.push({
           runId: run._id as string,
-          status: "FAILED",
+          status: 'FAILED',
           error: errorMessage,
         });
       }

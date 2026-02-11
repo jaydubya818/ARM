@@ -4,23 +4,21 @@
  * Experiment management and variant assignment.
  */
 
-import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
+import { v } from 'convex/values';
+import { mutation, query } from './_generated/server';
 
 /**
  * Get assigned variant for operator (or assign if not yet assigned)
  */
 export const getVariant = query({
   args: {
-    experimentId: v.id("experiments"),
-    operatorId: v.id("operators"),
+    experimentId: v.id('experiments'),
+    operatorId: v.id('operators'),
   },
   handler: async (ctx, args) => {
     const assignment = await ctx.db
-      .query("experimentAssignments")
-      .withIndex("by_experiment_operator", (q) =>
-        q.eq("experimentId", args.experimentId).eq("operatorId", args.operatorId)
-      )
+      .query('experimentAssignments')
+      .withIndex('by_experiment_operator', (q) => q.eq('experimentId', args.experimentId).eq('operatorId', args.operatorId))
       .first();
 
     return assignment?.variantId ?? null;
@@ -32,26 +30,24 @@ export const getVariant = query({
  */
 export const assignVariant = mutation({
   args: {
-    experimentId: v.id("experiments"),
-    operatorId: v.id("operators"),
+    experimentId: v.id('experiments'),
+    operatorId: v.id('operators'),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
-      .query("experimentAssignments")
-      .withIndex("by_experiment_operator", (q) =>
-        q.eq("experimentId", args.experimentId).eq("operatorId", args.operatorId)
-      )
+      .query('experimentAssignments')
+      .withIndex('by_experiment_operator', (q) => q.eq('experimentId', args.experimentId).eq('operatorId', args.operatorId))
       .first();
 
     if (existing) return existing.variantId;
 
     const experiment = await ctx.db.get(args.experimentId);
-    if (!experiment || experiment.status !== "RUNNING") return null;
+    if (!experiment || experiment.status !== 'RUNNING') return null;
 
     const variant = selectVariant(experiment.variants, args.operatorId);
     if (!variant) return null;
 
-    await ctx.db.insert("experimentAssignments", {
+    await ctx.db.insert('experimentAssignments', {
       experimentId: args.experimentId,
       operatorId: args.operatorId,
       variantId: variant.id,
@@ -67,14 +63,14 @@ export const assignVariant = mutation({
  */
 export const trackEvent = mutation({
   args: {
-    experimentId: v.id("experiments"),
-    operatorId: v.id("operators"),
+    experimentId: v.id('experiments'),
+    operatorId: v.id('operators'),
     variantId: v.string(),
     eventType: v.string(),
     payload: v.optional(v.any()),
   },
   handler: async (ctx, args) => {
-    await ctx.db.insert("experimentEvents", {
+    await ctx.db.insert('experimentEvents', {
       experimentId: args.experimentId,
       operatorId: args.operatorId,
       variantId: args.variantId,
@@ -89,20 +85,18 @@ export const trackEvent = mutation({
  * List experiments
  */
 export const list = query({
-  args: { tenantId: v.id("tenants") },
-  handler: async (ctx, args) => {
-    return await ctx.db
-      .query("experiments")
-      .withIndex("by_tenant", (q) => q.eq("tenantId", args.tenantId))
-      .collect();
-  },
+  args: { tenantId: v.id('tenants') },
+  handler: async (ctx, args) => await ctx.db
+    .query('experiments')
+    .withIndex('by_tenant', (q) => q.eq('tenantId', args.tenantId))
+    .collect(),
 });
 
 /**
  * Get experiment
  */
 export const get = query({
-  args: { experimentId: v.id("experiments") },
+  args: { experimentId: v.id('experiments') },
   handler: async (ctx, args) => ctx.db.get(args.experimentId),
 });
 
@@ -111,7 +105,7 @@ export const get = query({
  */
 export const create = mutation({
   args: {
-    tenantId: v.id("tenants"),
+    tenantId: v.id('tenants'),
     key: v.string(),
     name: v.string(),
     description: v.optional(v.string()),
@@ -121,34 +115,34 @@ export const create = mutation({
         name: v.string(),
         weight: v.number(),
         config: v.optional(v.any()),
-      })
+      }),
     ),
     metrics: v.optional(
       v.array(
         v.object({
           name: v.string(),
           type: v.union(
-            v.literal("conversion"),
-            v.literal("engagement"),
-            v.literal("custom")
+            v.literal('conversion'),
+            v.literal('engagement'),
+            v.literal('custom'),
           ),
-        })
-      )
+        }),
+      ),
     ),
-    createdBy: v.id("operators"),
+    createdBy: v.id('operators'),
   },
   handler: async (ctx, args) => {
     const totalWeight = args.variants.reduce((s, v) => s + v.weight, 0);
     if (totalWeight !== 100) {
-      throw new Error("Variant weights must sum to 100");
+      throw new Error('Variant weights must sum to 100');
     }
 
-    return await ctx.db.insert("experiments", {
+    return await ctx.db.insert('experiments', {
       tenantId: args.tenantId,
       key: args.key,
       name: args.name,
       description: args.description,
-      status: "DRAFT",
+      status: 'DRAFT',
       variants: args.variants,
       metrics: args.metrics,
       createdBy: args.createdBy,
@@ -162,15 +156,14 @@ export const create = mutation({
  * Start experiment
  */
 export const start = mutation({
-  args: { experimentId: v.id("experiments") },
+  args: { experimentId: v.id('experiments') },
   handler: async (ctx, args) => {
     const experiment = await ctx.db.get(args.experimentId);
-    if (!experiment) throw new Error("Experiment not found");
-    if (experiment.status !== "DRAFT")
-      throw new Error("Only draft experiments can be started");
+    if (!experiment) throw new Error('Experiment not found');
+    if (experiment.status !== 'DRAFT') throw new Error('Only draft experiments can be started');
 
     await ctx.db.patch(args.experimentId, {
-      status: "RUNNING",
+      status: 'RUNNING',
       startDate: Date.now(),
       updatedAt: Date.now(),
     });
@@ -181,13 +174,11 @@ export const start = mutation({
  * Get experiment results
  */
 export const getResults = query({
-  args: { experimentId: v.id("experiments") },
+  args: { experimentId: v.id('experiments') },
   handler: async (ctx, args) => {
     const events = await ctx.db
-      .query("experimentEvents")
-      .withIndex("by_experiment", (q) =>
-        q.eq("experimentId", args.experimentId)
-      )
+      .query('experimentEvents')
+      .withIndex('by_experiment', (q) => q.eq('experimentId', args.experimentId))
       .collect();
 
     const byVariant: Record<
@@ -205,7 +196,7 @@ export const getResults = query({
       }
       byVariant[e.variantId].events++;
       byVariant[e.variantId].uniqueOperators.add(e.operatorId);
-      if (e.eventType === "conversion") {
+      if (e.eventType === 'conversion') {
         byVariant[e.variantId].conversions++;
       }
     }
@@ -224,7 +215,7 @@ export const getResults = query({
  */
 function selectVariant(
   variants: Array<{ id: string; weight: number }>,
-  operatorId: string
+  operatorId: string,
 ): (typeof variants)[0] | null {
   const hash = hashString(operatorId);
   const bucket = hash % 100;
@@ -241,7 +232,7 @@ function hashString(str: string): number {
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
     hash = (hash << 5) - hash + char;
-    hash = hash & hash;
+    hash &= hash;
   }
   return Math.abs(hash);
 }

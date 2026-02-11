@@ -1,4 +1,4 @@
-import { MonitoringDashboard } from "../components/MonitoringDashboard";
+import { MonitoringDashboard } from '../components/MonitoringDashboard';
 
 export function MonitoringView() {
   return (

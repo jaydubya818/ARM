@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { useMutation } from "convex/react";
-import { api } from "../convex/_generated/api";
-import type { Id } from "../convex/_generated/dataModel";
-import { toast } from "../lib/toast";
+import { useState } from 'react';
+import { useMutation } from 'convex/react';
+import { api } from 'agent-resources-platform/convex/_generated/api';
+import type { Id } from 'agent-resources-platform/convex/_generated/dataModel';
+import { toast } from '../lib/toast';
 
 interface CreateProviderModalProps {
-  tenantId: Id<"tenants">;
+  tenantId: Id<'tenants'>;
   onClose: () => void;
 }
 
@@ -17,17 +17,17 @@ export function CreateProviderModal({ tenantId, onClose }: CreateProviderModalPr
     e.preventDefault();
     setIsSubmitting(true);
     const form = e.currentTarget;
-    const name = (form.elements.namedItem("name") as HTMLInputElement).value.trim();
-    const type = (form.elements.namedItem("type") as HTMLSelectElement).value as "local" | "federated";
-    const healthEndpoint = (form.elements.namedItem("healthEndpoint") as HTMLInputElement).value.trim() || undefined;
-    const configStr = (form.elements.namedItem("federationConfig") as HTMLTextAreaElement).value.trim();
+    const name = (form.elements.namedItem('name') as HTMLInputElement).value.trim();
+    const type = (form.elements.namedItem('type') as HTMLSelectElement).value as 'local' | 'federated';
+    const healthEndpoint = (form.elements.namedItem('healthEndpoint') as HTMLInputElement).value.trim() || undefined;
+    const configStr = (form.elements.namedItem('federationConfig') as HTMLTextAreaElement).value.trim();
 
     let federationConfig: Record<string, unknown> | undefined;
     if (configStr) {
       try {
         federationConfig = JSON.parse(configStr) as Record<string, unknown>;
       } catch {
-        toast.error("Invalid JSON in Federation Config");
+        toast.error('Invalid JSON in Federation Config');
         setIsSubmitting(false);
         return;
       }
@@ -41,10 +41,10 @@ export function CreateProviderModal({ tenantId, onClose }: CreateProviderModalPr
         healthEndpoint,
         federationConfig,
       });
-      toast.success("Provider created");
+      toast.success('Provider created');
       onClose();
     } catch (err) {
-      toast.error("Error: " + (err as Error).message);
+      toast.error(`Error: ${(err as Error).message}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -97,7 +97,7 @@ export function CreateProviderModal({ tenantId, onClose }: CreateProviderModalPr
               disabled={isSubmitting}
               className="px-4 py-2 bg-arm-accent text-white rounded hover:opacity-90 disabled:opacity-50"
             >
-              {isSubmitting ? "Creating..." : "Create"}
+              {isSubmitting ? 'Creating...' : 'Create'}
             </button>
           </div>
         </form>

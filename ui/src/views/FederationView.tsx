@@ -1,14 +1,16 @@
-import { useState, useEffect } from "react";
-import { useQuery, useMutation, useAction } from "convex/react";
-import { api } from "../convex/_generated/api";
-import { Id } from "../convex/_generated/dataModel";
-import { Globe, Server, Activity, Plus, Trash2, CheckCircle, XCircle } from "lucide-react";
-import type { Doc } from "../convex/_generated/dataModel";
-import { CreateProviderModal } from "../components/CreateProviderModal";
-import { toast } from "../lib/toast";
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useAction } from 'convex/react';
+import {
+  Globe, Server, Activity, Plus, Trash2, CheckCircle, XCircle,
+} from 'lucide-react';
+import { api } from 'agent-resources-platform/convex/_generated/api';
+import { Id } from 'agent-resources-platform/convex/_generated/dataModel';
+import type { Doc } from 'agent-resources-platform/convex/_generated/dataModel';
+import { CreateProviderModal } from '../components/CreateProviderModal';
+import { toast } from '../lib/toast';
 
 interface FederationViewProps {
-  tenantId: Id<"tenants">;
+  tenantId: Id<'tenants'>;
 }
 
 export function FederationView({ tenantId }: FederationViewProps) {
@@ -20,22 +22,22 @@ export function FederationView({ tenantId }: FederationViewProps) {
 
   useEffect(() => {
     if (!providers) return;
-    providers.forEach((p: Doc<"providers">) => {
+    providers.forEach((p: Doc<'providers'>) => {
       if (p.healthEndpoint) {
         checkHealth({ healthEndpoint: p.healthEndpoint })
           .then((r) => setHealthStatus((s) => ({ ...s, [p._id]: r.status })))
-          .catch(() => setHealthStatus((s) => ({ ...s, [p._id]: "error" })));
+          .catch(() => setHealthStatus((s) => ({ ...s, [p._id]: 'error' })));
       }
     });
   }, [providers, checkHealth]);
 
-  const handleRemove = async (id: Id<"providers">, name: string) => {
+  const handleRemove = async (id: Id<'providers'>, name: string) => {
     if (!window.confirm(`Remove provider "${name}"?`)) return;
     try {
       await removeProvider({ id });
-      toast.success("Provider removed");
+      toast.success('Provider removed');
     } catch {
-      toast.error("Failed to remove provider");
+      toast.error('Failed to remove provider');
     }
   };
 
@@ -71,14 +73,14 @@ export function FederationView({ tenantId }: FederationViewProps) {
         </div>
       ) : (
         <div className="space-y-4">
-          {providers.map((provider: Doc<"providers">) => (
+          {providers.map((provider: Doc<'providers'>) => (
             <div
               key={provider._id}
               className="bg-arm-surface border border-arm-border rounded-lg p-6"
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  {provider.type === "federated" ? (
+                  {provider.type === 'federated' ? (
                     <Globe className="w-8 h-8 text-arm-accent" />
                   ) : (
                     <Server className="w-8 h-8 text-arm-textMuted" />
@@ -89,9 +91,9 @@ export function FederationView({ tenantId }: FederationViewProps) {
                     </h3>
                     <span
                       className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                        provider.type === "federated"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-gray-100 text-gray-700"
+                        provider.type === 'federated'
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-gray-100 text-gray-700'
                       }`}
                     >
                       {provider.type}
@@ -102,21 +104,21 @@ export function FederationView({ tenantId }: FederationViewProps) {
                   {provider.healthEndpoint && (
                     <span
                       className={`flex items-center gap-1 text-sm ${
-                        healthStatus[provider._id] === "healthy"
-                          ? "text-green-600"
+                        healthStatus[provider._id] === 'healthy'
+                          ? 'text-green-600'
                           : healthStatus[provider._id]
-                          ? "text-red-600"
-                          : "text-arm-textMuted"
+                            ? 'text-red-600'
+                            : 'text-arm-textMuted'
                       }`}
                     >
-                      {healthStatus[provider._id] === "healthy" ? (
+                      {healthStatus[provider._id] === 'healthy' ? (
                         <CheckCircle className="w-4 h-4" />
                       ) : healthStatus[provider._id] ? (
                         <XCircle className="w-4 h-4" />
                       ) : (
                         <Activity className="w-4 h-4 animate-pulse" />
                       )}
-                      {healthStatus[provider._id] || "Checking..."}
+                      {healthStatus[provider._id] || 'Checking...'}
                     </span>
                   )}
                   <button
@@ -128,8 +130,8 @@ export function FederationView({ tenantId }: FederationViewProps) {
                   </button>
                 </div>
               </div>
-              {provider.federationConfig &&
-                Object.keys(provider.federationConfig).length > 0 && (
+              {provider.federationConfig
+                && Object.keys(provider.federationConfig).length > 0 && (
                   <div className="mt-4 pt-4 border-t border-arm-border">
                     <h4 className="text-sm font-medium text-arm-text mb-2">
                       Federation Config
@@ -138,9 +140,9 @@ export function FederationView({ tenantId }: FederationViewProps) {
                       {JSON.stringify(provider.federationConfig, null, 2)}
                     </pre>
                   </div>
-                )}
-              {provider.metadata &&
-                Object.keys(provider.metadata).length > 0 && (
+              )}
+              {provider.metadata
+                && Object.keys(provider.metadata).length > 0 && (
                   <div className="mt-4 pt-4 border-t border-arm-border">
                     <h4 className="text-sm font-medium text-arm-text mb-2">
                       Metadata
@@ -149,7 +151,7 @@ export function FederationView({ tenantId }: FederationViewProps) {
                       {JSON.stringify(provider.metadata, null, 2)}
                     </pre>
                   </div>
-                )}
+              )}
             </div>
           ))}
         </div>

@@ -2,7 +2,7 @@
 
 **Version:** 1.0  
 **Last Updated:** February 10, 2026  
-**Status:** P1.1 Complete, P1.2 In Planning
+**Status:** Phases 1–5 Complete, Production Ready
 
 ---
 
@@ -84,49 +84,49 @@ ARM reimagines HCM (Human Capital Management) for AI agents with agent-native pr
 
 ---
 
-## In Scope (P1.2 - PLANNED)
+## In Scope (P1.2+ - COMPLETE)
 
 ### Policy Engine
-⬜ **Policy Envelopes** - Governance rules
+✅ **Policy Envelopes** - Governance rules
 - Autonomy tiers (0-5)
 - Allowed tools list
 - Cost limits (daily/monthly)
 - Data scope restrictions
 
-⬜ **Policy Evaluation** - Runtime enforcement
+✅ **Policy Evaluation** - Runtime enforcement
 - Evaluate tool calls against policy
 - Return: ALLOW | DENY | NEEDS_APPROVAL
 - Risk classification (low/medium/high/critical)
 
-⬜ **Policy Editor UI**
+✅ **Policy Editor UI**
 - CRUD for policy envelopes
 - Autonomy tier selector
 - Tool/data scope editor
 - Cost limit inputs
 
 ### Approval Workflows
-⬜ **Approval Records** - Human-in-the-loop
+✅ **Approval Records** - Human-in-the-loop
 - Request approval for high-risk actions
 - Operator approve/deny decisions
 - Timeout handling
 
-⬜ **Approval Center UI**
+✅ **Approval Center UI**
 - List pending approvals
 - One-click approve/deny
 - Context display (tool, params, risk)
 
 ### Enhanced UI
-⬜ **Create Forms**
+✅ **Create Forms**
 - Create Template modal
 - Create Version modal (with genome input)
 - Parent version selector for lineage
 
-⬜ **State Machine Validation**
+✅ **State Machine Validation**
 - Enforce transition rules with guards
 - Clear error messages on invalid transitions
 - Visual state flow diagram
 
-⬜ **Search & Filters**
+✅ **Search & Filters**
 - Search by name, version label, ID
 - Filter by status, environment, tags
 - Sort by created date, updated date

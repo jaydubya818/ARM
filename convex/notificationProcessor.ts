@@ -4,20 +4,18 @@
  * Processes notification events and creates notifications for operators.
  */
 
-import { v } from "convex/values";
-import { internalMutation, internalAction, internalQuery } from "./_generated/server";
-import { internal } from "./_generated/api";
+import { v } from 'convex/values';
+import { internalMutation, internalAction, internalQuery } from './_generated/server';
+import { internal } from './_generated/api';
 
 /**
  * Internal query: Get a notification event by ID
  */
 export const getEvent = internalQuery({
   args: {
-    eventId: v.id("notificationEvents"),
+    eventId: v.id('notificationEvents'),
   },
-  handler: async (ctx, args) => {
-    return await ctx.db.get(args.eventId);
-  },
+  handler: async (ctx, args) => await ctx.db.get(args.eventId),
 });
 
 /**
@@ -25,14 +23,12 @@ export const getEvent = internalQuery({
  */
 export const getOperatorsByTenant = internalQuery({
   args: {
-    tenantId: v.id("tenants"),
+    tenantId: v.id('tenants'),
   },
-  handler: async (ctx, args) => {
-    return await ctx.db
-      .query("operators")
-      .withIndex("by_tenant", (q) => q.eq("tenantId", args.tenantId))
-      .collect();
-  },
+  handler: async (ctx, args) => await ctx.db
+    .query('operators')
+    .withIndex('by_tenant', (q) => q.eq('tenantId', args.tenantId))
+    .collect(),
 });
 
 /**
@@ -40,17 +36,13 @@ export const getOperatorsByTenant = internalQuery({
  */
 export const getPreferenceByEvent = internalQuery({
   args: {
-    operatorId: v.id("operators"),
+    operatorId: v.id('operators'),
     eventType: v.string(),
   },
-  handler: async (ctx, args) => {
-    return await ctx.db
-      .query("notificationPreferences")
-      .withIndex("by_event", (q) =>
-        q.eq("operatorId", args.operatorId).eq("eventType", args.eventType)
-      )
-      .first();
-  },
+  handler: async (ctx, args) => await ctx.db
+    .query('notificationPreferences')
+    .withIndex('by_event', (q) => q.eq('operatorId', args.operatorId).eq('eventType', args.eventType))
+    .first(),
 });
 
 /**
@@ -58,7 +50,7 @@ export const getPreferenceByEvent = internalQuery({
  */
 export const processEvent = internalAction({
   args: {
-    eventId: v.id("notificationEvents"),
+    eventId: v.id('notificationEvents'),
   },
   handler: async (ctx, args) => {
     // Get event via internal query reference
@@ -67,12 +59,12 @@ export const processEvent = internalAction({
     });
 
     if (!event) {
-      console.error("Event not found:", args.eventId);
-      return { success: false, error: "Event not found" };
+      console.error('Event not found:', args.eventId);
+      return { success: false, error: 'Event not found' };
     }
 
     if (event.processed) {
-      console.log("Event already processed:", args.eventId);
+      console.log('Event already processed:', args.eventId);
       return { success: true, skipped: true };
     }
 
@@ -113,7 +105,7 @@ export const processEvent = internalAction({
 
       return { success: true };
     } catch (error) {
-      console.error("Error processing event:", error);
+      console.error('Error processing event:', error);
       return { success: false, error: (error as Error).message };
     }
   },
@@ -124,9 +116,9 @@ export const processEvent = internalAction({
  */
 export const createNotification = internalMutation({
   args: {
-    tenantId: v.id("tenants"),
-    operatorId: v.id("operators"),
-    eventId: v.id("notificationEvents"),
+    tenantId: v.id('tenants'),
+    operatorId: v.id('operators'),
+    eventId: v.id('notificationEvents'),
     type: v.string(),
     payload: v.any(),
   },
@@ -134,11 +126,11 @@ export const createNotification = internalMutation({
     // Generate notification content based on event type
     const { title, message, severity } = generateNotificationContent(
       args.type,
-      args.payload
+      args.payload,
     );
 
     // Create notification
-    const notificationId = await ctx.db.insert("notifications", {
+    const notificationId = await ctx.db.insert('notifications', {
       tenantId: args.tenantId,
       operatorId: args.operatorId,
       eventId: args.eventId,
@@ -158,7 +150,7 @@ export const createNotification = internalMutation({
  */
 export const markProcessed = internalMutation({
   args: {
-    eventId: v.id("notificationEvents"),
+    eventId: v.id('notificationEvents'),
   },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.eventId, {
@@ -172,72 +164,72 @@ export const markProcessed = internalMutation({
  */
 function generateNotificationContent(
   type: string,
-  payload: any
-): { title: string; message: string; severity: "INFO" | "SUCCESS" | "WARNING" | "ERROR" } {
+  payload: any,
+): { title: string; message: string; severity: 'INFO' | 'SUCCESS' | 'WARNING' | 'ERROR' } {
   switch (type) {
-    case "EVAL_COMPLETED": {
+    case 'EVAL_COMPLETED': {
       const passRatePercent = Math.round((payload.passRate || 0) * 1000) / 10;
       return {
-        title: "Evaluation Complete",
+        title: 'Evaluation Complete',
         message: `Evaluation run for suite "${payload.suiteName}" completed with ${passRatePercent}% pass rate.`,
-        severity: (payload.passRate || 0) >= 0.8 ? "SUCCESS" : "WARNING",
+        severity: (payload.passRate || 0) >= 0.8 ? 'SUCCESS' : 'WARNING',
       };
     }
 
-    case "EVAL_FAILED":
+    case 'EVAL_FAILED':
       return {
-        title: "Evaluation Failed",
+        title: 'Evaluation Failed',
         message: `Evaluation run for suite "${payload.suiteName}" failed: ${payload.error}`,
-        severity: "ERROR",
+        severity: 'ERROR',
       };
 
-    case "VERSION_APPROVED":
+    case 'VERSION_APPROVED':
       return {
-        title: "Version Approved",
+        title: 'Version Approved',
         message: `Agent version ${payload.versionLabel} has been approved and is ready for deployment.`,
-        severity: "SUCCESS",
+        severity: 'SUCCESS',
       };
 
-    case "VERSION_REJECTED":
+    case 'VERSION_REJECTED':
       return {
-        title: "Version Rejected",
+        title: 'Version Rejected',
         message: `Agent version ${payload.versionLabel} was rejected: ${payload.reason}`,
-        severity: "WARNING",
+        severity: 'WARNING',
       };
 
-    case "INSTANCE_FAILED":
+    case 'INSTANCE_FAILED':
       return {
-        title: "Instance Failed",
+        title: 'Instance Failed',
         message: `Agent instance in ${payload.environment} has failed. Immediate attention required.`,
-        severity: "ERROR",
+        severity: 'ERROR',
       };
 
-    case "APPROVAL_REQUIRED":
+    case 'APPROVAL_REQUIRED':
       return {
-        title: "Approval Required",
+        title: 'Approval Required',
         message: `${payload.requestType} requires your approval: ${payload.description}`,
-        severity: "INFO",
+        severity: 'INFO',
       };
 
-    case "POLICY_VIOLATION":
+    case 'POLICY_VIOLATION':
       return {
-        title: "Policy Violation",
+        title: 'Policy Violation',
         message: `Policy "${payload.policyName}" was violated: ${payload.reason}`,
-        severity: "WARNING",
+        severity: 'WARNING',
       };
 
-    case "CUSTOM_FUNCTION_ERROR":
+    case 'CUSTOM_FUNCTION_ERROR':
       return {
-        title: "Custom Function Error",
+        title: 'Custom Function Error',
         message: `Custom scoring function "${payload.functionName}" encountered an error: ${payload.error}`,
-        severity: "ERROR",
+        severity: 'ERROR',
       };
 
     default:
       return {
-        title: "Notification",
+        title: 'Notification',
         message: `Event: ${type}`,
-        severity: "INFO",
+        severity: 'INFO',
       };
   }
 }

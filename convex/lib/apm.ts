@@ -5,9 +5,9 @@
  * Datadog, New Relic, or custom monitoring solutions.
  */
 
-import { recordMetric } from "../monitoring/metrics";
+import { recordMetric } from '../monitoring/metrics';
 
-export type APMProvider = "datadog" | "newrelic" | "custom" | "none";
+export type APMProvider = 'datadog' | 'newrelic' | 'custom' | 'none';
 
 export interface APMConfig {
   provider: APMProvider;
@@ -36,10 +36,10 @@ export interface SpanAttributes {
 }
 
 const defaultConfig: APMConfig = {
-  provider: "custom",
+  provider: 'custom',
   enabled: true,
-  serviceName: "arm-platform",
-  environment: process.env.NODE_ENV || "development",
+  serviceName: 'arm-platform',
+  environment: process.env.NODE_ENV || 'development',
   sampleRate: 1.0,
 };
 
@@ -71,7 +71,7 @@ export function isAPMEnabled(): boolean {
  */
 export function startSpan(
   name: string,
-  attributes?: SpanAttributes
+  attributes?: SpanAttributes,
 ): { end: () => void; spanId: string } {
   const spanId = generateId();
   const startTime = Date.now();
@@ -81,23 +81,23 @@ export function startSpan(
     end: () => {
       const duration = Date.now() - startTime;
       recordMetric({
-        type: "CUSTOM",
+        type: 'CUSTOM',
         name: `span.${name}`,
         value: duration,
-        unit: "ms",
+        unit: 'ms',
         tags: {
           spanId,
           ...Object.fromEntries(
-            Object.entries(attributes || {}).map(([k, v]) => [k, String(v)])
+            Object.entries(attributes || {}).map(([k, v]) => [k, String(v)]),
           ),
         },
       });
 
-      if (config.provider === "datadog" && config.datadog?.apiKey) {
+      if (config.provider === 'datadog' && config.datadog?.apiKey) {
         sendToDatadog(name, duration, attributes);
       }
 
-      if (config.provider === "newrelic" && config.newrelic?.licenseKey) {
+      if (config.provider === 'newrelic' && config.newrelic?.licenseKey) {
         sendToNewRelic(name, duration, attributes);
       }
     },
@@ -110,15 +110,15 @@ export function startSpan(
 export function recordAPMMetric(
   name: string,
   value: number,
-  tags?: Record<string, string>
+  tags?: Record<string, string>,
 ): void {
   if (!config.enabled) return;
 
   recordMetric({
-    type: "CUSTOM",
+    type: 'CUSTOM',
     name,
     value,
-    unit: "count",
+    unit: 'count',
     tags,
   });
 }
@@ -128,15 +128,15 @@ export function recordAPMMetric(
  */
 export function recordAPMError(
   error: Error,
-  context?: { [key: string]: string }
+  context?: { [key: string]: string },
 ): void {
   if (!config.enabled) return;
 
   recordMetric({
-    type: "ERROR_RATE",
-    name: "error",
+    type: 'ERROR_RATE',
+    name: 'error',
     value: 1,
-    unit: "count",
+    unit: 'count',
     tags: {
       errorName: error.name,
       errorMessage: error.message.slice(0, 100),
@@ -151,7 +151,7 @@ export function recordAPMError(
 export async function withAPMSpan<T>(
   name: string,
   fn: () => Promise<T>,
-  attributes?: SpanAttributes
+  attributes?: SpanAttributes,
 ): Promise<T> {
   const span = startSpan(name, attributes);
   try {
@@ -178,21 +178,21 @@ function generateId(): string {
 function sendToDatadog(
   name: string,
   duration: number,
-  attributes?: SpanAttributes
+  attributes?: SpanAttributes,
 ): void {
   if (!config.datadog?.apiKey) return;
 
   const payload = {
-    service: config.serviceName || "arm-platform",
+    service: config.serviceName || 'arm-platform',
     resource: name,
-    type: "custom",
+    type: 'custom',
     duration: duration * 1e6,
     meta: attributes,
     metrics: { _sampling_priority_v1: 1 },
   };
 
-  if (process.env.NODE_ENV === "development") {
-    console.debug("[APM->Datadog]", payload);
+  if (process.env.NODE_ENV === 'development') {
+    console.debug('[APM->Datadog]', payload);
   }
 
   // In production, use fetch to send to Datadog API
@@ -205,20 +205,20 @@ function sendToDatadog(
 function sendToNewRelic(
   name: string,
   duration: number,
-  attributes?: SpanAttributes
+  attributes?: SpanAttributes,
 ): void {
   if (!config.newrelic?.licenseKey) return;
 
   const payload = {
-    eventType: "ArmSpan",
+    eventType: 'ArmSpan',
     name,
     duration,
-    service: config.serviceName || "arm-platform",
+    service: config.serviceName || 'arm-platform',
     ...attributes,
   };
 
-  if (process.env.NODE_ENV === "development") {
-    console.debug("[APM->NewRelic]", payload);
+  if (process.env.NODE_ENV === 'development') {
+    console.debug('[APM->NewRelic]', payload);
   }
 
   // In production, use New Relic Insights API
@@ -230,13 +230,13 @@ function sendToNewRelic(
  */
 export const FrontendAPM = {
   mark(name: string): void {
-    if (typeof performance !== "undefined" && performance.mark) {
+    if (typeof performance !== 'undefined' && performance.mark) {
       performance.mark(name);
     }
   },
 
   measure(name: string, startMark: string, endMark?: string): number {
-    if (typeof performance !== "undefined" && performance.measure) {
+    if (typeof performance !== 'undefined' && performance.measure) {
       performance.measure(name, startMark, endMark);
       const entry = performance.getEntriesByName(name).pop();
       return entry?.duration ?? 0;
@@ -245,7 +245,7 @@ export const FrontendAPM = {
   },
 
   getNavigationTiming(): Record<string, number> | null {
-    if (typeof performance !== "undefined" && performance.timing) {
+    if (typeof performance !== 'undefined' && performance.timing) {
       const t = performance.timing;
       return {
         dns: t.domainLookupEnd - t.domainLookupStart,

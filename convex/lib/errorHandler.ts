@@ -1,11 +1,13 @@
 /**
  * Centralized Error Handler for ARM Platform
- * 
+ *
  * Provides consistent error handling, logging, and recovery strategies
  * across all Convex mutations and queries.
  */
 
-import { ARMError, toARMError, isARMError, ErrorCode } from './errorTypes';
+import {
+  ARMError, toARMError, isARMError, ErrorCode,
+} from './errorTypes';
 
 export interface ErrorContext {
   operation: string;
@@ -82,7 +84,7 @@ export class ErrorHandler {
   async handle(
     error: unknown,
     context: ErrorContext,
-    options: ErrorHandlerOptions = {}
+    options: ErrorHandlerOptions = {},
   ): Promise<ARMError> {
     const opts = { ...DEFAULT_OPTIONS, ...options };
     const armError = toARMError(error);
@@ -108,7 +110,7 @@ export class ErrorHandler {
   /**
    * Log error with structured format
    */
-  private log(error: ARMError, context: ErrorContext, includeStack: boolean = false): void {
+  private log(error: ARMError, context: ErrorContext, includeStack = false): void {
     const logEntry: LogEntry = {
       level: this.getLogLevel(error),
       timestamp: new Date().toISOString(),
@@ -167,10 +169,10 @@ export class ErrorHandler {
   private shouldAudit(error: ARMError): boolean {
     // Audit security-related errors and server errors
     return (
-      error.code === ErrorCode.UNAUTHORIZED ||
-      error.code === ErrorCode.FORBIDDEN ||
-      error.code === ErrorCode.INSUFFICIENT_PERMISSIONS ||
-      error.statusCode >= 500
+      error.code === ErrorCode.UNAUTHORIZED
+      || error.code === ErrorCode.FORBIDDEN
+      || error.code === ErrorCode.INSUFFICIENT_PERMISSIONS
+      || error.statusCode >= 500
     );
   }
 
@@ -180,9 +182,9 @@ export class ErrorHandler {
   private shouldNotify(error: ARMError): boolean {
     // Notify on critical errors that affect user operations
     return (
-      error.statusCode >= 500 ||
-      error.code === ErrorCode.RATE_LIMIT_EXCEEDED ||
-      error.code === ErrorCode.INTEGRITY_VIOLATION
+      error.statusCode >= 500
+      || error.code === ErrorCode.RATE_LIMIT_EXCEEDED
+      || error.code === ErrorCode.INTEGRITY_VIOLATION
     );
   }
 
@@ -234,7 +236,7 @@ export class ErrorHandler {
   /**
    * Format error for API response
    */
-  formatResponse(error: ARMError, includeDetails: boolean = false): Record<string, any> {
+  formatResponse(error: ARMError, includeDetails = false): Record<string, any> {
     const response: Record<string, any> = {
       error: {
         code: error.code,
@@ -260,7 +262,7 @@ export class ErrorHandler {
 export async function handleError(
   error: unknown,
   context: ErrorContext,
-  options?: ErrorHandlerOptions
+  options?: ErrorHandlerOptions,
 ): Promise<ARMError> {
   const handler = ErrorHandler.getInstance();
   return handler.handle(error, context, options);
@@ -269,9 +271,10 @@ export async function handleError(
 /**
  * Wrapper for mutation functions with error handling
  */
-export function withErrorHandling<T extends (...args: any[]) => Promise<any>>(
+export function withErrorHandling<T extends(
+...args: any[]) => Promise<any>>(
   fn: T,
-  operation: string
+  operation: string,
 ): T {
   return (async (...args: Parameters<T>): Promise<ReturnType<T>> => {
     try {
@@ -286,9 +289,10 @@ export function withErrorHandling<T extends (...args: any[]) => Promise<any>>(
 /**
  * Wrapper for query functions with error handling
  */
-export function withQueryErrorHandling<T extends (...args: any[]) => Promise<any>>(
+export function withQueryErrorHandling<T extends(
+...args: any[]) => Promise<any>>(
   fn: T,
-  operation: string
+  operation: string,
 ): T {
   return (async (...args: Parameters<T>): Promise<ReturnType<T>> => {
     try {
@@ -309,7 +313,7 @@ export function withQueryErrorHandling<T extends (...args: any[]) => Promise<any
 export async function safeExecute<T>(
   fn: () => Promise<T>,
   fallback: T,
-  context: ErrorContext
+  context: ErrorContext,
 ): Promise<T> {
   try {
     return await fn();
@@ -325,7 +329,7 @@ export async function safeExecute<T>(
 export function validate(
   condition: boolean,
   message: string,
-  details?: Record<string, any>
+  details?: Record<string, any>,
 ): asserts condition {
   if (!condition) {
     const { ValidationError } = require('./errorTypes');
@@ -338,7 +342,7 @@ export function validate(
  */
 export function assert(
   condition: boolean,
-  errorFactory: () => ARMError
+  errorFactory: () => ARMError,
 ): asserts condition {
   if (!condition) {
     throw errorFactory();

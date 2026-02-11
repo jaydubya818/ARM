@@ -1,4 +1,4 @@
-import { Component, ReactNode, ErrorInfo } from 'react'
+import { Component, ReactNode, ErrorInfo } from 'react';
 
 interface ErrorBoundaryProps {
   children: ReactNode
@@ -13,24 +13,24 @@ interface ErrorBoundaryState {
 
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
-    super(props)
+    super(props);
     this.state = {
       hasError: false,
       error: null,
       errorInfo: null,
-    }
+    };
   }
 
   static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
-    return { hasError: true, error }
+    return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo)
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
     this.setState({
       error,
       errorInfo,
-    })
+    });
   }
 
   handleReset = () => {
@@ -38,14 +38,14 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       hasError: false,
       error: null,
       errorInfo: null,
-    })
-  }
+    });
+  };
 
   render() {
     if (this.state.hasError) {
       // Custom fallback UI
       if (this.props.fallback) {
-        return this.props.fallback
+        return this.props.fallback;
       }
 
       // Default error UI
@@ -108,9 +108,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             </div>
           </div>
         </div>
-      )
+      );
     }
 
-    return this.props.children
+    return this.props.children;
   }
 }

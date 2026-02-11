@@ -33,19 +33,31 @@ This guide enables sign-in/sign-up for the ARM platform using Clerk.
 
 ---
 
-## Step 4: Update auth.config.ts
+## Step 4: Update auth.config.ts (production only)
 
-After setting `CLERK_JWT_ISSUER_DOMAIN` in Convex Dashboard, edit `convex/auth.config.ts`:
+**Important:** Set `CLERK_JWT_ISSUER_DOMAIN` in Convex Dashboard first. Convex requires this variable to be set if it is referenced in auth config.
 
-Replace `providers: []` with:
+1. In Convex Dashboard → Settings → Environment Variables, add:
+   - **Name:** `CLERK_JWT_ISSUER_DOMAIN`
+   - **Value:** Your Clerk Issuer URL (e.g. `https://your-instance.clerk.accounts.dev`)
+
+2. Edit `convex/auth.config.ts` and replace the entire file with:
 
 ```typescript
+import type { AuthConfig } from "convex/server";
+
 const clerkDomain = process.env.CLERK_JWT_ISSUER_DOMAIN;
-// ...
-providers: clerkDomain ? [{ domain: clerkDomain, applicationID: "convex" }] : [],
+
+export default {
+  providers: clerkDomain
+    ? [{ domain: clerkDomain, applicationID: "convex" }]
+    : [],
+} satisfies AuthConfig;
 ```
 
-Then run `npx convex dev` or `npx convex deploy` to sync.
+3. Run `npx convex deploy --prod` (or `npx convex dev` for local).
+
+**Dev without Clerk:** Leave `providers: []` in auth.config.ts and omit `CLERK_JWT_ISSUER_DOMAIN`. The app will run without authentication.
 
 ---
 

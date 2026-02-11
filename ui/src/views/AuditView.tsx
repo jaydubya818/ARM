@@ -1,14 +1,14 @@
 /**
  * Audit View
- * 
+ *
  * Main view for audit log viewer.
  */
 
-import { AuditLogViewer } from "../components/AuditLogViewer";
-import { Id } from "../convex/_generated/dataModel";
+import { Id } from 'agent-resources-platform/convex/_generated/dataModel';
+import { AuditLogViewer } from '../components/AuditLogViewer';
 
 interface AuditViewProps {
-  tenantId: Id<"tenants">;
+  tenantId: Id<'tenants'>;
 }
 
 export function AuditView({ tenantId }: AuditViewProps) {

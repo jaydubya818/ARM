@@ -1,16 +1,16 @@
 /**
  * Evaluation Cron Jobs
- * 
+ *
  * Internal functions called by Convex cron scheduler.
  */
 
-import { v } from "convex/values";
-import { internalAction, internalMutation } from "./_generated/server";
-import { api, internal } from "./_generated/api";
+import { v } from 'convex/values';
+import { internalAction, internalMutation } from './_generated/server';
+import { api, internal } from './_generated/api';
 
 /**
  * Process pending evaluation runs for all tenants
- * 
+ *
  * Called by cron job every 5 minutes.
  * Processes up to 5 pending runs per tenant.
  */
@@ -23,7 +23,7 @@ interface CronTenantResult {
 
 export const processPendingEvaluations = internalAction({
   handler: async (ctx): Promise<{ totalProcessed: number; tenants: CronTenantResult[]; timestamp: number }> => {
-    console.log("Processing pending evaluations...");
+    console.log('Processing pending evaluations...');
 
     // Get all tenants
     const tenants = await ctx.runQuery(api.tenants.list);
@@ -69,31 +69,29 @@ export const processPendingEvaluations = internalAction({
 
 /**
  * Clean up old evaluation runs (future implementation)
- * 
+ *
  * Archives completed runs older than 90 days.
  */
 export const cleanupOldRuns = internalMutation({
   handler: async (ctx): Promise<{ totalArchived: number; timestamp: number }> => {
-    console.log("Cleaning up old evaluation runs...");
+    console.log('Cleaning up old evaluation runs...');
 
     const ninetyDaysAgo = Date.now() - (90 * 24 * 60 * 60 * 1000);
 
     // Get all tenants
-    const tenants = await ctx.db.query("tenants").collect();
+    const tenants = await ctx.db.query('tenants').collect();
 
     let totalArchived = 0;
 
     for (const tenant of tenants) {
       // Find old completed runs
       const oldRuns = await ctx.db
-        .query("evaluationRuns")
-        .withIndex("by_tenant", (q) => q.eq("tenantId", tenant._id))
-        .filter((q) =>
-          q.and(
-            q.eq(q.field("status"), "COMPLETED"),
-            q.lt(q.field("completedAt"), ninetyDaysAgo)
-          )
-        )
+        .query('evaluationRuns')
+        .withIndex('by_tenant', (q) => q.eq('tenantId', tenant._id))
+        .filter((q) => q.and(
+          q.eq(q.field('status'), 'COMPLETED'),
+          q.lt(q.field('completedAt'), ninetyDaysAgo),
+        ))
         .collect();
 
       // Archive runs (for now, just log - future: move to archive table)
@@ -114,20 +112,20 @@ export const cleanupOldRuns = internalMutation({
 
 /**
  * Health check for evaluation system
- * 
+ *
  * Monitors pending runs and alerts if backlog is growing.
  */
 interface HealthCheckResult {
   tenantId: string;
   tenantName: string;
-  status: "HEALTHY" | "WARNING";
+  status: 'HEALTHY' | 'WARNING';
   pendingCount: number;
   runningCount: number;
 }
 
 export const healthCheck = internalAction({
   handler: async (ctx): Promise<{ overall: string; tenants: HealthCheckResult[]; timestamp: number }> => {
-    console.log("Evaluation system health check...");
+    console.log('Evaluation system health check...');
 
     const tenants = await ctx.runQuery(api.tenants.list);
 
@@ -141,10 +139,10 @@ export const healthCheck = internalAction({
 
       const running = await ctx.runQuery(api.evaluationRuns.list, {
         tenantId: tenant._id,
-        status: "RUNNING",
+        status: 'RUNNING',
       });
 
-      const status: "HEALTHY" | "WARNING" = pending.length > 20 ? "WARNING" : "HEALTHY";
+      const status: 'HEALTHY' | 'WARNING' = pending.length > 20 ? 'WARNING' : 'HEALTHY';
 
       health.push({
         tenantId: tenant._id as string,
@@ -154,13 +152,13 @@ export const healthCheck = internalAction({
         runningCount: running?.length || 0,
       });
 
-      if (status === "WARNING") {
+      if (status === 'WARNING') {
         console.warn(`High pending count for ${tenant.name}: ${pending.length} runs`);
       }
     }
 
     return {
-      overall: health.every(h => h.status === "HEALTHY") ? "HEALTHY" : "WARNING",
+      overall: health.every((h) => h.status === 'HEALTHY') ? 'HEALTHY' : 'WARNING',
       tenants: health,
       timestamp: Date.now(),
     };
@@ -173,7 +171,7 @@ export const healthCheck = internalAction({
  */
 export const normalizeLegacyPassRates = internalAction({
   args: {
-    tenantId: v.optional(v.id("tenants")),
+    tenantId: v.optional(v.id('tenants')),
     dryRun: v.optional(v.boolean()),
     limit: v.optional(v.number()),
   },
@@ -184,7 +182,7 @@ export const normalizeLegacyPassRates = internalAction({
       : tenants;
 
     if (args.tenantId && targetTenants.length === 0) {
-      throw new Error("Tenant not found for normalization");
+      throw new Error('Tenant not found for normalization');
     }
 
     const results: Array<{
@@ -201,7 +199,7 @@ export const normalizeLegacyPassRates = internalAction({
           tenantId: tenant._id,
           dryRun: args.dryRun,
           limit: args.limit,
-        }
+        },
       );
 
       results.push({
@@ -224,18 +222,18 @@ export const normalizeLegacyPassRates = internalAction({
 
 export const normalizeLegacyPassRatesForTenant = internalMutation({
   args: {
-    tenantId: v.id("tenants"),
+    tenantId: v.id('tenants'),
     dryRun: v.optional(v.boolean()),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const runs = await ctx.db
-      .query("evaluationRuns")
-      .withIndex("by_tenant", (q) => q.eq("tenantId", args.tenantId))
+      .query('evaluationRuns')
+      .withIndex('by_tenant', (q) => q.eq('tenantId', args.tenantId))
       .collect();
 
     const runsToNormalize = runs.filter(
-      (run) => typeof run.passRate === "number" && Math.abs(run.passRate) > 1
+      (run) => typeof run.passRate === 'number' && Math.abs(run.passRate) > 1,
     );
 
     const runTargets = args.limit ? runsToNormalize.slice(0, args.limit) : runsToNormalize;
@@ -248,12 +246,12 @@ export const normalizeLegacyPassRatesForTenant = internalMutation({
     }
 
     const metrics = await ctx.db
-      .query("evaluationMetrics")
-      .withIndex("by_tenant", (q) => q.eq("tenantId", args.tenantId))
+      .query('evaluationMetrics')
+      .withIndex('by_tenant', (q) => q.eq('tenantId', args.tenantId))
       .collect();
 
     const metricsToNormalize = metrics.filter(
-      (metric) => Math.abs(metric.metrics.passRate) > 1
+      (metric) => Math.abs(metric.metrics.passRate) > 1,
     );
 
     const metricTargets = args.limit ? metricsToNormalize.slice(0, args.limit) : metricsToNormalize;

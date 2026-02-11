@@ -190,6 +190,12 @@ const versions = await ctx.db.query("agentVersions").collect()
 ✅ Enhanced DirectoryView (search + filters)  
 ✅ All UI patterns standardized  
 
+## 🚀 Deployment
+
+- **Secrets:** [docs/DEPLOY_SECRETS.md](docs/DEPLOY_SECRETS.md) – GitHub Actions checklist
+- **Guide:** [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) – Full deployment instructions
+- **Verify:** `./scripts/verify-deploy.sh https://your-app.vercel.app`
+
 ## 🔜 Coming in P2.0+
 
 - Evaluation orchestration

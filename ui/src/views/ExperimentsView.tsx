@@ -1,9 +1,9 @@
-import { ExperimentsManagement } from "../components/ExperimentsManagement";
-import type { Id } from "../convex/_generated/dataModel";
+import type { Id } from 'agent-resources-platform/convex/_generated/dataModel';
+import { ExperimentsManagement } from '../components/ExperimentsManagement';
 
 interface ExperimentsViewProps {
-  tenantId: Id<"tenants">;
-  currentOperatorId: Id<"operators">;
+  tenantId: Id<'tenants'>;
+  currentOperatorId: Id<'operators'>;
 }
 
 export function ExperimentsView({

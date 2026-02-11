@@ -1,6 +1,6 @@
 /**
  * Security Utilities
- * 
+ *
  * Provides security utilities including CSRF protection,
  * secure token generation, and security headers.
  */
@@ -13,16 +13,16 @@ import crypto from 'crypto';
 export const SECURITY_HEADERS = {
   // Prevent clickjacking
   'X-Frame-Options': 'DENY',
-  
+
   // Prevent MIME type sniffing
   'X-Content-Type-Options': 'nosniff',
-  
+
   // Enable XSS protection
   'X-XSS-Protection': '1; mode=block',
-  
+
   // Referrer policy
   'Referrer-Policy': 'strict-origin-when-cross-origin',
-  
+
   // Content Security Policy
   'Content-Security-Policy': [
     "default-src 'self'",
@@ -33,7 +33,7 @@ export const SECURITY_HEADERS = {
     "connect-src 'self' wss: https:",
     "frame-ancestors 'none'",
   ].join('; '),
-  
+
   // Permissions policy
   'Permissions-Policy': [
     'camera=()',
@@ -48,9 +48,10 @@ export const SECURITY_HEADERS = {
  */
 export class CSRFTokenManager {
   private tokens: Map<string, { token: string; expiresAt: number }>;
+
   private readonly tokenLifetime: number;
 
-  constructor(tokenLifetimeMs: number = 3600000) { // 1 hour default
+  constructor(tokenLifetimeMs = 3600000) { // 1 hour default
     this.tokens = new Map();
     this.tokenLifetime = tokenLifetimeMs;
   }
@@ -89,7 +90,7 @@ export class CSRFTokenManager {
     // Constant-time comparison to prevent timing attacks
     return crypto.timingSafeEqual(
       Buffer.from(stored.token),
-      Buffer.from(token)
+      Buffer.from(token),
     );
   }
 
@@ -121,7 +122,7 @@ export const csrfManager = new CSRFTokenManager();
 /**
  * Generate secure random token
  */
-export function generateSecureToken(length: number = 32): string {
+export function generateSecureToken(length = 32): string {
   return crypto.randomBytes(length).toString('hex');
 }
 
@@ -161,7 +162,7 @@ export function verifyHash(data: string, hashedData: string): boolean {
 /**
  * Mask sensitive data for logging
  */
-export function maskSensitiveData(data: string, visibleChars: number = 4): string {
+export function maskSensitiveData(data: string, visibleChars = 4): string {
   if (data.length <= visibleChars) {
     return '*'.repeat(data.length);
   }
@@ -174,11 +175,11 @@ export function maskSensitiveData(data: string, visibleChars: number = 4): strin
 export function maskEmail(email: string): string {
   const [local, domain] = email.split('@');
   if (!domain) return maskSensitiveData(email);
-  
+
   const maskedLocal = local.length > 2
     ? local[0] + '*'.repeat(local.length - 2) + local[local.length - 1]
     : '*'.repeat(local.length);
-  
+
   return `${maskedLocal}@${domain}`;
 }
 
@@ -198,7 +199,7 @@ export const ContentSecurity = {
       /<object/i,
       /<embed/i,
     ];
-    return xssPatterns.some(pattern => pattern.test(value));
+    return xssPatterns.some((pattern) => pattern.test(value));
   },
 
   /**
@@ -212,7 +213,7 @@ export const ContentSecurity = {
       /;/,
       /'\s*(OR|AND)\s*'?\d/i,
     ];
-    return sqlPatterns.some(pattern => pattern.test(value));
+    return sqlPatterns.some((pattern) => pattern.test(value));
   },
 
   /**
@@ -225,19 +226,17 @@ export const ContentSecurity = {
       /%2e%2e%2f/i,
       /%2e%2e%5c/i,
     ];
-    return pathPatterns.some(pattern => pattern.test(value));
+    return pathPatterns.some((pattern) => pattern.test(value));
   },
 
   /**
    * Validate content is safe
    */
-  isSafe: (value: string): boolean => {
-    return (
-      !ContentSecurity.hasXSS(value) &&
-      !ContentSecurity.hasSQLInjection(value) &&
-      !ContentSecurity.hasPathTraversal(value)
-    );
-  },
+  isSafe: (value: string): boolean => (
+    !ContentSecurity.hasXSS(value)
+      && !ContentSecurity.hasSQLInjection(value)
+      && !ContentSecurity.hasPathTraversal(value)
+  ),
 };
 
 /**
@@ -290,7 +289,7 @@ export function anonymizeIP(ip: string): string {
   // IPv6: mask last 80 bits
   if (ip.includes(':')) {
     const parts = ip.split(':');
-    return parts.slice(0, 3).join(':') + '::';
+    return `${parts.slice(0, 3).join(':')}::`;
   }
 
   return 'unknown';

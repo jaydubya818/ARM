@@ -1,8 +1,8 @@
-import { useState } from 'react'
-import { useMutation } from 'convex/react'
-import { api } from '../convex/_generated/api'
-import { Id } from '../convex/_generated/dataModel'
-import { toast } from '../lib/toast'
+import { useState } from 'react';
+import { useMutation } from 'convex/react';
+import { api } from 'agent-resources-platform/convex/_generated/api';
+import { Id } from 'agent-resources-platform/convex/_generated/dataModel';
+import { toast } from '../lib/toast';
 
 interface CreateTemplateModalProps {
   tenantId: Id<'tenants'>
@@ -10,39 +10,39 @@ interface CreateTemplateModalProps {
 }
 
 export function CreateTemplateModal({ tenantId, onClose }: CreateTemplateModalProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const createTemplate = useMutation(api.agentTemplates.create)
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const createTemplate = useMutation(api.agentTemplates.create);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+    e.preventDefault();
+    setIsSubmitting(true);
 
-    const formData = new FormData(e.currentTarget)
-    const name = formData.get('name') as string
-    const description = formData.get('description') as string
-    const ownersStr = formData.get('owners') as string
-    const tagsStr = formData.get('tags') as string
+    const formData = new FormData(e.currentTarget);
+    const name = formData.get('name') as string;
+    const description = formData.get('description') as string;
+    const ownersStr = formData.get('owners') as string;
+    const tagsStr = formData.get('tags') as string;
 
     // Parse owners (comma-separated emails)
     const owners = ownersStr
       .split(',')
       .map((email) => email.trim())
-      .filter(Boolean)
+      .filter(Boolean);
 
     // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    const invalidEmails = owners.filter((email) => !emailRegex.test(email))
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const invalidEmails = owners.filter((email) => !emailRegex.test(email));
     if (invalidEmails.length > 0) {
-      toast.error(`Invalid email format: ${invalidEmails.join(', ')}`)
-      setIsSubmitting(false)
-      return
+      toast.error(`Invalid email format: ${invalidEmails.join(', ')}`);
+      setIsSubmitting(false);
+      return;
     }
 
     // Parse tags (comma-separated)
     const tags = tagsStr
       .split(',')
       .map((tag) => tag.trim())
-      .filter(Boolean)
+      .filter(Boolean);
 
     try {
       await createTemplate({
@@ -51,15 +51,15 @@ export function CreateTemplateModal({ tenantId, onClose }: CreateTemplateModalPr
         description: description || undefined,
         owners,
         tags,
-      })
-      toast.success('Template created successfully')
-      onClose()
+      });
+      toast.success('Template created successfully');
+      onClose();
     } catch (error) {
-      toast.error('Error creating template: ' + (error as Error).message)
+      toast.error(`Error creating template: ${(error as Error).message}`);
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -160,5 +160,5 @@ export function CreateTemplateModal({ tenantId, onClose }: CreateTemplateModalPr
         </form>
       </div>
     </div>
-  )
+  );
 }

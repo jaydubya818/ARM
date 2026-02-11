@@ -1,12 +1,12 @@
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../convex/_generated/api";
-import type { Id, Doc } from "../convex/_generated/dataModel";
-import { useState } from "react";
-import { Play, Plus } from "lucide-react";
+import { useQuery, useMutation } from 'convex/react';
+import { useState } from 'react';
+import { Play, Plus } from 'lucide-react';
+import { api } from 'agent-resources-platform/convex/_generated/api';
+import type { Id, Doc } from 'agent-resources-platform/convex/_generated/dataModel';
 
 interface ExperimentsManagementProps {
-  tenantId: Id<"tenants">;
-  currentOperatorId: Id<"operators">;
+  tenantId: Id<'tenants'>;
+  currentOperatorId: Id<'operators'>;
 }
 
 export function ExperimentsManagement({
@@ -18,10 +18,10 @@ export function ExperimentsManagement({
   const createExperiment = useMutation(api.experiments.create);
 
   const [showForm, setShowForm] = useState(false);
-  const [newKey, setNewKey] = useState("");
-  const [newName, setNewName] = useState("");
-  const [controlName, setControlName] = useState("Control");
-  const [variantName, setVariantName] = useState("Variant A");
+  const [newKey, setNewKey] = useState('');
+  const [newName, setNewName] = useState('');
+  const [controlName, setControlName] = useState('Control');
+  const [variantName, setVariantName] = useState('Variant A');
 
   const handleCreate = async () => {
     if (!newKey.trim() || !newName.trim()) return;
@@ -30,27 +30,27 @@ export function ExperimentsManagement({
       key: newKey.trim(),
       name: newName.trim(),
       variants: [
-        { id: "control", name: controlName, weight: 50 },
-        { id: "variant_a", name: variantName, weight: 50 },
+        { id: 'control', name: controlName, weight: 50 },
+        { id: 'variant_a', name: variantName, weight: 50 },
       ],
       createdBy: currentOperatorId,
     });
-    setNewKey("");
-    setNewName("");
-    setControlName("Control");
-    setVariantName("Variant A");
+    setNewKey('');
+    setNewName('');
+    setControlName('Control');
+    setVariantName('Variant A');
     setShowForm(false);
   };
 
-  const handleStart = async (experimentId: Id<"experiments">) => {
+  const handleStart = async (experimentId: Id<'experiments'>) => {
     await startExperiment({ experimentId });
   };
 
   const statusColor: Record<string, string> = {
-    DRAFT: "bg-gray-500",
-    RUNNING: "bg-green-500",
-    PAUSED: "bg-yellow-500",
-    COMPLETED: "bg-blue-500",
+    DRAFT: 'bg-gray-500',
+    RUNNING: 'bg-green-500',
+    PAUSED: 'bg-yellow-500',
+    COMPLETED: 'bg-blue-500',
   };
 
   return (
@@ -154,11 +154,11 @@ export function ExperimentsManagement({
                 <th className="text-left px-4 py-3 text-sm font-medium text-arm-text">
                   Variants
                 </th>
-                <th className="w-32"></th>
+                <th className="w-32" />
               </tr>
             </thead>
             <tbody>
-              {experiments.map((exp: Doc<"experiments">) => (
+              {experiments.map((exp: Doc<'experiments'>) => (
                 <tr
                   key={exp._id}
                   className="border-t border-arm-border hover:bg-arm-surface/50"
@@ -172,17 +172,17 @@ export function ExperimentsManagement({
                   <td className="px-4 py-3">
                     <span
                       className={`px-2 py-1 rounded text-xs text-white ${
-                        statusColor[exp.status] ?? "bg-gray-500"
+                        statusColor[exp.status] ?? 'bg-gray-500'
                       }`}
                     >
                       {exp.status}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-sm text-arm-text">
-                    {exp.variants.map((v: { name: string; weight: number }) => `${v.name} (${v.weight}%)`).join(", ")}
+                    {exp.variants.map((v: { name: string; weight: number }) => `${v.name} (${v.weight}%)`).join(', ')}
                   </td>
                   <td className="px-4 py-3 flex gap-2">
-                    {exp.status === "DRAFT" && (
+                    {exp.status === 'DRAFT' && (
                       <button
                         onClick={() => handleStart(exp._id)}
                         className="flex items-center gap-1 px-2 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-500"

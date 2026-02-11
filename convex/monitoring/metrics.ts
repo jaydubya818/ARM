@@ -1,12 +1,12 @@
 /**
  * Performance Metrics Collection
- * 
+ *
  * Collects and aggregates performance metrics for monitoring
  * query latency, mutation success rates, and system health.
  */
 
-import { query, mutation } from "../_generated/server";
-import { v } from "convex/values";
+import { v } from 'convex/values';
+import { query, mutation } from '../_generated/server';
 
 /**
  * Metric types
@@ -68,7 +68,7 @@ export function recordMetric(metric: Omit<MetricEntry, 'timestamp'>): void {
 export function recordQueryLatency(
   queryName: string,
   latencyMs: number,
-  tags?: Record<string, string>
+  tags?: Record<string, string>,
 ): void {
   recordMetric({
     type: 'QUERY_LATENCY',
@@ -85,7 +85,7 @@ export function recordQueryLatency(
 export function recordMutationLatency(
   mutationName: string,
   latencyMs: number,
-  tags?: Record<string, string>
+  tags?: Record<string, string>,
 ): void {
   recordMetric({
     type: 'MUTATION_LATENCY',
@@ -101,7 +101,7 @@ export function recordMutationLatency(
  */
 export function recordMutationSuccess(
   mutationName: string,
-  tags?: Record<string, string>
+  tags?: Record<string, string>,
 ): void {
   recordMetric({
     type: 'MUTATION_SUCCESS',
@@ -118,7 +118,7 @@ export function recordMutationSuccess(
 export function recordMutationFailure(
   mutationName: string,
   errorCode: string,
-  tags?: Record<string, string>
+  tags?: Record<string, string>,
 ): void {
   recordMetric({
     type: 'MUTATION_FAILURE',
@@ -133,7 +133,7 @@ export function recordMutationFailure(
  * Calculate metrics for a time window
  */
 export function calculateMetrics(
-  windowMs: number = 60000 // Default: last 1 minute
+  windowMs = 60000, // Default: last 1 minute
 ): {
   queryLatency: { avg: number; p50: number; p95: number; p99: number };
   mutationLatency: { avg: number; p50: number; p95: number; p99: number };
@@ -146,42 +146,40 @@ export function calculateMetrics(
   const windowStart = now - windowMs;
 
   // Filter metrics in time window
-  const recentMetrics = metricsStore.filter(m => m.timestamp >= windowStart);
+  const recentMetrics = metricsStore.filter((m) => m.timestamp >= windowStart);
 
   // Calculate query latency
   const queryLatencies = recentMetrics
-    .filter(m => m.type === 'QUERY_LATENCY')
-    .map(m => m.value)
+    .filter((m) => m.type === 'QUERY_LATENCY')
+    .map((m) => m.value)
     .sort((a, b) => a - b);
 
   const queryLatency = calculatePercentiles(queryLatencies);
 
   // Calculate mutation latency
   const mutationLatencies = recentMetrics
-    .filter(m => m.type === 'MUTATION_LATENCY')
-    .map(m => m.value)
+    .filter((m) => m.type === 'MUTATION_LATENCY')
+    .map((m) => m.value)
     .sort((a, b) => a - b);
 
   const mutationLatency = calculatePercentiles(mutationLatencies);
 
   // Calculate success rate
   const mutationSuccesses = recentMetrics.filter(
-    m => m.type === 'MUTATION_SUCCESS'
+    (m) => m.type === 'MUTATION_SUCCESS',
   ).length;
   const mutationFailures = recentMetrics.filter(
-    m => m.type === 'MUTATION_FAILURE'
+    (m) => m.type === 'MUTATION_FAILURE',
   ).length;
   const totalMutations = mutationSuccesses + mutationFailures;
-  const mutationSuccessRate =
-    totalMutations > 0 ? (mutationSuccesses / totalMutations) * 100 : 100;
+  const mutationSuccessRate = totalMutations > 0 ? (mutationSuccesses / totalMutations) * 100 : 100;
 
   // Calculate error rate
   const totalErrors = recentMetrics.filter(
-    m => m.type === 'MUTATION_FAILURE' || m.type === 'ERROR_RATE'
+    (m) => m.type === 'MUTATION_FAILURE' || m.type === 'ERROR_RATE',
   ).length;
   const totalOperations = queryLatencies.length + totalMutations;
-  const errorRate =
-    totalOperations > 0 ? (totalErrors / totalOperations) * 100 : 0;
+  const errorRate = totalOperations > 0 ? (totalErrors / totalOperations) * 100 : 0;
 
   return {
     queryLatency,
@@ -203,7 +201,9 @@ function calculatePercentiles(values: number[]): {
   p99: number;
 } {
   if (values.length === 0) {
-    return { avg: 0, p50: 0, p95: 0, p99: 0 };
+    return {
+      avg: 0, p50: 0, p95: 0, p99: 0,
+    };
   }
 
   const avg = values.reduce((sum, v) => sum + v, 0) / values.length;
@@ -211,7 +211,9 @@ function calculatePercentiles(values: number[]): {
   const p95 = percentile(values, 0.95);
   const p99 = percentile(values, 0.99);
 
-  return { avg, p50, p95, p99 };
+  return {
+    avg, p50, p95, p99,
+  };
 }
 
 /**
@@ -253,8 +255,8 @@ export const getMetricsByType = query({
     const windowStart = now - (args.windowMs || 60000);
 
     const filtered = metricsStore
-      .filter(m => m.type === args.type && m.timestamp >= windowStart)
-      .map(m => ({
+      .filter((m) => m.type === args.type && m.timestamp >= windowStart)
+      .map((m) => ({
         name: m.name,
         value: m.value,
         unit: m.unit,
@@ -283,10 +285,10 @@ export const getSlowQueries = query({
     const threshold = args.thresholdMs || 100;
 
     const slowQueries = metricsStore
-      .filter(m => m.type === 'QUERY_LATENCY' && m.value > threshold)
+      .filter((m) => m.type === 'QUERY_LATENCY' && m.value > threshold)
       .sort((a, b) => b.value - a.value)
       .slice(0, limit)
-      .map(m => ({
+      .map((m) => ({
         name: m.name,
         latencyMs: m.value,
         timestamp: m.timestamp,
@@ -313,12 +315,12 @@ export const getErrorBreakdown = query({
     const windowStart = now - (args.windowMs || 3600000); // Default: 1 hour
 
     const errors = metricsStore.filter(
-      m => m.type === 'MUTATION_FAILURE' && m.timestamp >= windowStart
+      (m) => m.type === 'MUTATION_FAILURE' && m.timestamp >= windowStart,
     );
 
     // Group by error code
     const breakdown: Record<string, number> = {};
-    errors.forEach(error => {
+    errors.forEach((error) => {
       const code = error.tags?.errorCode || 'UNKNOWN';
       breakdown[code] = (breakdown[code] || 0) + 1;
     });
@@ -343,7 +345,7 @@ export const clearOldMetrics = mutation({
     const before = metricsStore.length;
 
     // Remove old metrics
-    let i = 0;
+    const i = 0;
     while (i < metricsStore.length && metricsStore[i].timestamp < cutoff) {
       metricsStore.shift();
     }
@@ -363,7 +365,7 @@ export const clearOldMetrics = mutation({
 export async function measureTime<T>(
   fn: () => Promise<T>,
   metricName: string,
-  metricType: 'query' | 'mutation' = 'query'
+  metricType: 'query' | 'mutation' = 'query',
 ): Promise<T> {
   const start = Date.now();
   try {
@@ -385,7 +387,7 @@ export async function measureTime<T>(
       recordMutationLatency(metricName, latency);
       recordMutationFailure(
         metricName,
-        error instanceof Error ? error.name : 'UNKNOWN'
+        error instanceof Error ? error.name : 'UNKNOWN',
       );
     }
 

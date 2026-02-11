@@ -1,12 +1,14 @@
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../convex/_generated/api";
-import type { Id, Doc } from "../convex/_generated/dataModel";
-import { useState } from "react";
-import { Plus, ToggleLeft, ToggleRight, Trash2 } from "lucide-react";
+import { useQuery, useMutation } from 'convex/react';
+import { useState } from 'react';
+import {
+  Plus, ToggleLeft, ToggleRight, Trash2,
+} from 'lucide-react';
+import { api } from 'agent-resources-platform/convex/_generated/api';
+import type { Id, Doc } from 'agent-resources-platform/convex/_generated/dataModel';
 
 interface FeatureFlagManagementProps {
-  tenantId: Id<"tenants">;
-  currentOperatorId: Id<"operators">;
+  tenantId: Id<'tenants'>;
+  currentOperatorId: Id<'operators'>;
 }
 
 export function FeatureFlagManagement({
@@ -19,8 +21,8 @@ export function FeatureFlagManagement({
   const removeFlag = useMutation(api.featureFlags.remove);
 
   const [showForm, setShowForm] = useState(false);
-  const [newKey, setNewKey] = useState("");
-  const [newName, setNewName] = useState("");
+  const [newKey, setNewKey] = useState('');
+  const [newName, setNewName] = useState('');
   const [newRollout, setNewRollout] = useState(0);
 
   const handleCreate = async () => {
@@ -33,18 +35,18 @@ export function FeatureFlagManagement({
       rolloutPercentage: newRollout,
       createdBy: currentOperatorId,
     });
-    setNewKey("");
-    setNewName("");
+    setNewKey('');
+    setNewName('');
     setNewRollout(0);
     setShowForm(false);
   };
 
-  const toggleEnabled = async (flagId: Id<"featureFlags">, enabled: boolean) => {
+  const toggleEnabled = async (flagId: Id<'featureFlags'>, enabled: boolean) => {
     await updateFlag({ flagId, enabled });
   };
 
-  const handleRemove = async (flagId: Id<"featureFlags">) => {
-    if (confirm("Remove this feature flag?")) await removeFlag({ flagId });
+  const handleRemove = async (flagId: Id<'featureFlags'>) => {
+    if (confirm('Remove this feature flag?')) await removeFlag({ flagId });
   };
 
   return (
@@ -139,11 +141,11 @@ export function FeatureFlagManagement({
                 <th className="text-left px-4 py-3 text-sm font-medium text-arm-text">
                   Status
                 </th>
-                <th className="w-24"></th>
+                <th className="w-24" />
               </tr>
             </thead>
             <tbody>
-              {flags.map((flag: Doc<"featureFlags">) => (
+              {flags.map((flag: Doc<'featureFlags'>) => (
                 <tr
                   key={flag._id}
                   className="border-t border-arm-border hover:bg-arm-surface/50"
@@ -153,7 +155,8 @@ export function FeatureFlagManagement({
                   </td>
                   <td className="px-4 py-3 text-arm-text">{flag.name}</td>
                   <td className="px-4 py-3 text-arm-text">
-                    {flag.rolloutPercentage}%
+                    {flag.rolloutPercentage}
+                    %
                   </td>
                   <td className="px-4 py-3">
                     <button

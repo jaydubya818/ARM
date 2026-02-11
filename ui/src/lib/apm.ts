@@ -4,7 +4,7 @@
  * Browser-side performance monitoring and integration with APM providers.
  */
 
-export type APMProvider = "datadog" | "newrelic" | "sentry" | "custom" | "none";
+export type APMProvider = 'datadog' | 'newrelic' | 'sentry' | 'custom' | 'none';
 
 export interface FrontendAPMConfig {
   provider: APMProvider;
@@ -14,7 +14,7 @@ export interface FrontendAPMConfig {
 }
 
 const defaultConfig: FrontendAPMConfig = {
-  provider: "custom",
+  provider: 'custom',
   enabled: true,
   sampleRate: 1.0,
   reportErrors: true,
@@ -26,7 +26,7 @@ let config: FrontendAPMConfig = { ...defaultConfig };
  * Configure frontend APM
  */
 export function configureFrontendAPM(
-  newConfig: Partial<FrontendAPMConfig>
+  newConfig: Partial<FrontendAPMConfig>,
 ): void {
   config = { ...config, ...newConfig };
 }
@@ -35,7 +35,7 @@ export function configureFrontendAPM(
  * Mark a performance timestamp
  */
 export function mark(name: string): void {
-  if (!config.enabled || typeof performance === "undefined") return;
+  if (!config.enabled || typeof performance === 'undefined') return;
   performance.mark(`arm_${name}`);
 }
 
@@ -45,15 +45,15 @@ export function mark(name: string): void {
 export function measure(
   name: string,
   startMark: string,
-  endMark?: string
+  endMark?: string,
 ): number {
-  if (!config.enabled || typeof performance === "undefined") return 0;
+  if (!config.enabled || typeof performance === 'undefined') return 0;
   try {
     const measureName = `arm_measure_${name}`;
     performance.measure(
       measureName,
       `arm_${startMark}`,
-      endMark ? `arm_${endMark}` : undefined
+      endMark ? `arm_${endMark}` : undefined,
     );
     const entry = performance.getEntriesByName(measureName).pop();
     const duration = entry?.duration ?? 0;
@@ -71,14 +71,14 @@ export function measure(
  */
 export function getNavigationMetrics(): Record<string, number> | null {
   if (
-    !config.enabled ||
-    typeof performance === "undefined" ||
-    !performance.getEntriesByType
+    !config.enabled
+    || typeof performance === 'undefined'
+    || !performance.getEntriesByType
   ) {
     return null;
   }
 
-  const navEntries = performance.getEntriesByType("navigation");
+  const navEntries = performance.getEntriesByType('navigation');
   const nav = navEntries[0] as PerformanceNavigationTiming | undefined;
   if (!nav) return null;
 
@@ -98,7 +98,7 @@ export function getNavigationMetrics(): Record<string, number> | null {
  */
 export function reportError(
   error: Error,
-  context?: Record<string, string | number | boolean>
+  context?: Record<string, string | number | boolean>,
 ): void {
   if (!config.enabled || !config.reportErrors) return;
 
@@ -110,12 +110,12 @@ export function reportError(
     timestamp: new Date().toISOString(),
   };
 
-  if (config.provider === "sentry") {
-    console.debug("[APM] Would send to Sentry:", payload);
-  } else if (config.provider === "datadog") {
-    console.debug("[APM] Would send to Datadog:", payload);
+  if (config.provider === 'sentry') {
+    console.debug('[APM] Would send to Sentry:', payload);
+  } else if (config.provider === 'datadog') {
+    console.debug('[APM] Would send to Datadog:', payload);
   } else {
-    console.debug("[APM] Error captured:", payload);
+    console.debug('[APM] Error captured:', payload);
   }
 }
 
@@ -124,7 +124,7 @@ export function reportError(
  */
 export function trackEvent(
   name: string,
-  properties?: Record<string, string | number | boolean>
+  properties?: Record<string, string | number | boolean>,
 ): void {
   if (!config.enabled || Math.random() > (config.sampleRate ?? 1)) return;
 
@@ -134,7 +134,7 @@ export function trackEvent(
     timestamp: Date.now(),
   };
 
-  console.debug("[APM] Event:", payload);
+  console.debug('[APM] Event:', payload);
 }
 
 /**
@@ -143,9 +143,9 @@ export function trackEvent(
 export function trackPageView(
   path: string,
   title?: string,
-  duration?: number
+  duration?: number,
 ): void {
-  trackEvent("page_view", {
+  trackEvent('page_view', {
     path,
     title: title ?? document.title,
     duration: duration ?? 0,

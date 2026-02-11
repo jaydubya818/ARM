@@ -4,25 +4,23 @@
  * Enables gradual rollouts, user targeting, and feature gating.
  */
 
-import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
+import { v } from 'convex/values';
+import { mutation, query } from './_generated/server';
 
 /**
  * Check if a feature flag is enabled for an operator
  */
 export const isEnabled = query({
   args: {
-    tenantId: v.id("tenants"),
+    tenantId: v.id('tenants'),
     flagKey: v.string(),
-    operatorId: v.optional(v.id("operators")),
+    operatorId: v.optional(v.id('operators')),
     environment: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const flag = await ctx.db
-      .query("featureFlags")
-      .withIndex("by_key", (q) =>
-        q.eq("tenantId", args.tenantId).eq("key", args.flagKey)
-      )
+      .query('featureFlags')
+      .withIndex('by_key', (q) => q.eq('tenantId', args.tenantId).eq('key', args.flagKey))
       .first();
 
     if (!flag || !flag.enabled) return false;
@@ -41,9 +39,9 @@ export const isEnabled = query({
 
     // Check environment targeting
     if (
-      flag.targetEnvironments?.length &&
-      args.environment &&
-      !flag.targetEnvironments.includes(args.environment)
+      flag.targetEnvironments?.length
+      && args.environment
+      && !flag.targetEnvironments.includes(args.environment)
     ) {
       return false;
     }
@@ -57,14 +55,14 @@ export const isEnabled = query({
  */
 export const getFlagsForOperator = query({
   args: {
-    tenantId: v.id("tenants"),
-    operatorId: v.optional(v.id("operators")),
+    tenantId: v.id('tenants'),
+    operatorId: v.optional(v.id('operators')),
     environment: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const flags = await ctx.db
-      .query("featureFlags")
-      .withIndex("by_tenant", (q) => q.eq("tenantId", args.tenantId))
+      .query('featureFlags')
+      .withIndex('by_tenant', (q) => q.eq('tenantId', args.tenantId))
       .collect();
 
     const result: Record<string, boolean> = {};
@@ -80,7 +78,7 @@ export const getFlagsForOperator = query({
         } else if (flag.rolloutPercentage < 100) {
           const hash = hashOperatorToPercent(
             args.operatorId,
-            flag.key
+            flag.key,
           );
           result[flag.key] = hash < flag.rolloutPercentage;
         } else {
@@ -91,10 +89,10 @@ export const getFlagsForOperator = query({
       }
 
       if (
-        result[flag.key] &&
-        flag.targetEnvironments?.length &&
-        args.environment &&
-        !flag.targetEnvironments.includes(args.environment)
+        result[flag.key]
+        && flag.targetEnvironments?.length
+        && args.environment
+        && !flag.targetEnvironments.includes(args.environment)
       ) {
         result[flag.key] = false;
       }
@@ -108,20 +106,18 @@ export const getFlagsForOperator = query({
  * List all feature flags (admin)
  */
 export const list = query({
-  args: { tenantId: v.id("tenants") },
-  handler: async (ctx, args) => {
-    return await ctx.db
-      .query("featureFlags")
-      .withIndex("by_tenant", (q) => q.eq("tenantId", args.tenantId))
-      .collect();
-  },
+  args: { tenantId: v.id('tenants') },
+  handler: async (ctx, args) => await ctx.db
+    .query('featureFlags')
+    .withIndex('by_tenant', (q) => q.eq('tenantId', args.tenantId))
+    .collect(),
 });
 
 /**
  * Get single flag
  */
 export const get = query({
-  args: { flagId: v.id("featureFlags") },
+  args: { flagId: v.id('featureFlags') },
   handler: async (ctx, args) => ctx.db.get(args.flagId),
 });
 
@@ -130,27 +126,25 @@ export const get = query({
  */
 export const create = mutation({
   args: {
-    tenantId: v.id("tenants"),
+    tenantId: v.id('tenants'),
     key: v.string(),
     name: v.string(),
     description: v.optional(v.string()),
     enabled: v.optional(v.boolean()),
     rolloutPercentage: v.optional(v.number()),
-    targetOperators: v.optional(v.array(v.id("operators"))),
+    targetOperators: v.optional(v.array(v.id('operators'))),
     targetEnvironments: v.optional(v.array(v.string())),
-    createdBy: v.id("operators"),
+    createdBy: v.id('operators'),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
-      .query("featureFlags")
-      .withIndex("by_key", (q) =>
-        q.eq("tenantId", args.tenantId).eq("key", args.key)
-      )
+      .query('featureFlags')
+      .withIndex('by_key', (q) => q.eq('tenantId', args.tenantId).eq('key', args.key))
       .first();
 
-    if (existing) throw new Error("Feature flag with this key already exists");
+    if (existing) throw new Error('Feature flag with this key already exists');
 
-    return await ctx.db.insert("featureFlags", {
+    return await ctx.db.insert('featureFlags', {
       tenantId: args.tenantId,
       key: args.key,
       name: args.name,
@@ -171,21 +165,21 @@ export const create = mutation({
  */
 export const update = mutation({
   args: {
-    flagId: v.id("featureFlags"),
+    flagId: v.id('featureFlags'),
     name: v.optional(v.string()),
     description: v.optional(v.string()),
     enabled: v.optional(v.boolean()),
     rolloutPercentage: v.optional(v.number()),
-    targetOperators: v.optional(v.array(v.id("operators"))),
+    targetOperators: v.optional(v.array(v.id('operators'))),
     targetEnvironments: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     const { flagId, ...updates } = args;
     const flag = await ctx.db.get(flagId);
-    if (!flag) throw new Error("Feature flag not found");
+    if (!flag) throw new Error('Feature flag not found');
 
     const filtered = Object.fromEntries(
-      Object.entries(updates).filter(([, v]) => v !== undefined)
+      Object.entries(updates).filter(([, v]) => v !== undefined),
     ) as Record<string, unknown>;
 
     await ctx.db.patch(flagId, {
@@ -201,7 +195,7 @@ export const update = mutation({
  * Delete feature flag
  */
 export const remove = mutation({
-  args: { flagId: v.id("featureFlags") },
+  args: { flagId: v.id('featureFlags') },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.flagId);
   },
@@ -212,14 +206,14 @@ export const remove = mutation({
  */
 function hashOperatorToPercent(
   operatorId: string,
-  flagKey: string
+  flagKey: string,
 ): number {
   const str = `${operatorId}_${flagKey}`;
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
     hash = (hash << 5) - hash + char;
-    hash = hash & hash;
+    hash &= hash;
   }
   return Math.abs(hash % 100);
 }

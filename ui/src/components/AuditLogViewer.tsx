@@ -1,21 +1,21 @@
 /**
  * Audit Log Viewer Component
- * 
+ *
  * Search, filter, and view audit logs with export functionality.
  */
 
-import { useState } from "react";
-import { useQuery } from "convex/react";
-import { api } from "../convex/_generated/api";
-import { Id, type Doc } from "../convex/_generated/dataModel";
+import { useState } from 'react';
+import { useQuery } from 'convex/react';
+import { api } from 'agent-resources-platform/convex/_generated/api';
+import { Id, type Doc } from 'agent-resources-platform/convex/_generated/dataModel';
 
 interface AuditLogViewerProps {
-  tenantId: Id<"tenants">;
+  tenantId: Id<'tenants'>;
 }
 
 export function AuditLogViewer({ tenantId }: AuditLogViewerProps) {
-  const [severity, setSeverity] = useState<"INFO" | "WARNING" | "ERROR" | undefined>();
-  const [searchTerm, setSearchTerm] = useState("");
+  const [severity, setSeverity] = useState<'INFO' | 'WARNING' | 'ERROR' | undefined>();
+  const [searchTerm, setSearchTerm] = useState('');
   const [limit, setLimit] = useState(100);
 
   // Queries
@@ -23,39 +23,39 @@ export function AuditLogViewer({ tenantId }: AuditLogViewerProps) {
     tenantId,
     limit,
     severity,
-  }) as Doc<"auditLogs">[] | undefined;
+  }) as Doc<'auditLogs'>[] | undefined;
 
   const stats = useQuery(api.auditLogs.getStatistics, {
     tenantId,
   });
 
-  const operators = useQuery(api.operators.list, { tenantId }) as Doc<"operators">[] | undefined;
+  const operators = useQuery(api.operators.list, { tenantId }) as Doc<'operators'>[] | undefined;
 
   // Filter logs by search term
   const filteredLogs = logs?.filter((log) => {
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
     return (
-      log.action.toLowerCase().includes(term) ||
-      log.resource.toLowerCase().includes(term) ||
-      log.details.permission?.toLowerCase().includes(term) ||
-      log.details.reason?.toLowerCase().includes(term)
+      log.action.toLowerCase().includes(term)
+      || log.resource.toLowerCase().includes(term)
+      || log.details.permission?.toLowerCase().includes(term)
+      || log.details.reason?.toLowerCase().includes(term)
     );
   });
 
   const getSeverityColor = (sev: string) => {
     switch (sev) {
-      case "ERROR":
-        return "bg-red-100 text-red-700";
-      case "WARNING":
-        return "bg-yellow-100 text-yellow-700";
+      case 'ERROR':
+        return 'bg-red-100 text-red-700';
+      case 'WARNING':
+        return 'bg-yellow-100 text-yellow-700';
       default:
-        return "bg-blue-100 text-blue-700";
+        return 'bg-blue-100 text-blue-700';
     }
   };
 
   const getActionIcon = (action: string) => {
-    if (action === "ACCESS_GRANTED") {
+    if (action === 'ACCESS_GRANTED') {
       return (
         <svg
           className="w-5 h-5 text-green-600"
@@ -72,7 +72,7 @@ export function AuditLogViewer({ tenantId }: AuditLogViewerProps) {
         </svg>
       );
     }
-    if (action === "ACCESS_DENIED") {
+    if (action === 'ACCESS_DENIED') {
       return (
         <svg
           className="w-5 h-5 text-red-600"
@@ -115,22 +115,20 @@ export function AuditLogViewer({ tenantId }: AuditLogViewerProps) {
     if (!filteredLogs) return;
 
     const csv = [
-      ["Timestamp", "Action", "Resource", "Operator", "Severity", "Details"].join(","),
-      ...filteredLogs.map((log) =>
-        [
-          formatTimestamp(log.timestamp),
-          log.action,
-          log.resource,
-          log.operatorId || "System",
-          log.severity,
-          JSON.stringify(log.details).replace(/,/g, ";"),
-        ].join(",")
-      ),
-    ].join("\n");
+      ['Timestamp', 'Action', 'Resource', 'Operator', 'Severity', 'Details'].join(','),
+      ...filteredLogs.map((log) => [
+        formatTimestamp(log.timestamp),
+        log.action,
+        log.resource,
+        log.operatorId || 'System',
+        log.severity,
+        JSON.stringify(log.details).replace(/,/g, ';'),
+      ].join(',')),
+    ].join('\n');
 
-    const blob = new Blob([csv], { type: "text/csv" });
+    const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
+    const a = document.createElement('a');
     a.href = url;
     a.download = `audit-logs-${Date.now()}.csv`;
     a.click();
@@ -226,12 +224,10 @@ export function AuditLogViewer({ tenantId }: AuditLogViewerProps) {
               Severity
             </label>
             <select
-              value={severity || ""}
-              onChange={(e) =>
-                setSeverity(
-                  e.target.value as "INFO" | "WARNING" | "ERROR" | undefined
-                )
-              }
+              value={severity || ''}
+              onChange={(e) => setSeverity(
+                  e.target.value as 'INFO' | 'WARNING' | 'ERROR' | undefined,
+              )}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">All Severities</option>
@@ -251,8 +247,8 @@ export function AuditLogViewer({ tenantId }: AuditLogViewerProps) {
                 onClick={() => setLimit(num)}
                 className={`px-3 py-1 text-sm rounded-lg transition-colors ${
                   limit === num
-                    ? "bg-blue-100 text-blue-700 font-medium"
-                    : "text-gray-600 hover:bg-gray-100"
+                    ? 'bg-blue-100 text-blue-700 font-medium'
+                    : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
                 {num}
@@ -261,7 +257,15 @@ export function AuditLogViewer({ tenantId }: AuditLogViewerProps) {
           </div>
 
           <p className="text-sm text-gray-600">
-            Showing {filteredLogs?.length || 0} of {logs?.length || 0} logs
+            Showing
+            {' '}
+            {filteredLogs?.length || 0}
+            {' '}
+            of
+            {' '}
+            {logs?.length || 0}
+            {' '}
+            logs
           </p>
         </div>
       </div>
@@ -313,12 +317,12 @@ export function AuditLogViewer({ tenantId }: AuditLogViewerProps) {
                       {log.resource}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {operator?.name || log.operatorId || "System"}
+                      {operator?.name || log.operatorId || 'System'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`px-2 py-1 text-xs font-medium rounded ${getSeverityColor(
-                          log.severity
+                          log.severity,
                         )}`}
                       >
                         {log.severity}
@@ -327,19 +331,23 @@ export function AuditLogViewer({ tenantId }: AuditLogViewerProps) {
                     <td className="px-6 py-4 text-sm text-gray-600">
                       {log.details.permission && (
                         <div>
-                          <span className="font-medium">Permission:</span>{" "}
+                          <span className="font-medium">Permission:</span>
+                          {' '}
                           {log.details.permission}
                         </div>
                       )}
                       {log.details.reason && (
                         <div>
-                          <span className="font-medium">Reason:</span>{" "}
+                          <span className="font-medium">Reason:</span>
+                          {' '}
                           {log.details.reason}
                         </div>
                       )}
                       {log.details.ipAddress && (
                         <div className="text-xs text-gray-500">
-                          IP: {log.details.ipAddress}
+                          IP:
+                          {' '}
+                          {log.details.ipAddress}
                         </div>
                       )}
                     </td>
@@ -367,8 +375,8 @@ export function AuditLogViewer({ tenantId }: AuditLogViewerProps) {
               <p className="font-medium">No audit logs found</p>
               <p className="text-sm mt-1">
                 {searchTerm || severity
-                  ? "Try adjusting your filters"
-                  : "Logs will appear here as actions are performed"}
+                  ? 'Try adjusting your filters'
+                  : 'Logs will appear here as actions are performed'}
               </p>
             </div>
           )}

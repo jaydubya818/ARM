@@ -10,5 +10,5 @@ export function PlaceholderView({ title }: PlaceholderViewProps) {
         <p className="text-arm-textMuted">Coming in Phase 1.2+</p>
       </div>
     </div>
-  )
+  );
 }

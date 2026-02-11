@@ -1,6 +1,6 @@
 /**
  * Frontend Error Handler
- * 
+ *
  * Provides client-side error handling, toast notifications,
  * and error recovery strategies.
  */
@@ -122,7 +122,7 @@ export function logError(
     operation?: string;
     userId?: string;
     metadata?: Record<string, any>;
-  }
+  },
 ): void {
   const parsed = parseConvexError(error);
   const severity = getErrorSeverity(error);
@@ -155,7 +155,7 @@ export async function handleWithRetry<T>(
     maxAttempts?: number;
     delay?: number;
     onRetry?: (attempt: number) => void;
-  } = {}
+  } = {},
 ): Promise<T> {
   const { maxAttempts = 3, delay = 1000, onRetry } = options;
   let lastError: unknown;
@@ -171,7 +171,7 @@ export async function handleWithRetry<T>(
       }
 
       onRetry?.(attempt);
-      await new Promise(resolve => setTimeout(resolve, delay * attempt));
+      await new Promise((resolve) => setTimeout(resolve, delay * attempt));
     }
   }
 
@@ -188,7 +188,7 @@ export function isOffline(): boolean {
 /**
  * Wait for online status
  */
-export function waitForOnline(timeout: number = 30000): Promise<void> {
+export function waitForOnline(timeout = 30000): Promise<void> {
   return new Promise((resolve, reject) => {
     if (navigator.onLine) {
       resolve();
@@ -219,7 +219,7 @@ export const ErrorRecovery = {
    */
   async retryWithBackoff<T>(
     fn: () => Promise<T>,
-    maxAttempts: number = 3
+    maxAttempts = 3,
   ): Promise<T> {
     return handleWithRetry(fn, {
       maxAttempts,
@@ -242,7 +242,7 @@ export const ErrorRecovery = {
    */
   async withFallback<T>(
     fn: () => Promise<T>,
-    fallback: T
+    fallback: T,
   ): Promise<T> {
     try {
       return await fn();
@@ -257,7 +257,7 @@ export const ErrorRecovery = {
    */
   async gracefulDegrade<T>(
     primary: () => Promise<T>,
-    secondary: () => Promise<T>
+    secondary: () => Promise<T>,
   ): Promise<T> {
     try {
       return await primary();
@@ -291,20 +291,18 @@ export function createErrorHandler(context?: {
 
     handleWithRetry: async <T>(
       fn: () => Promise<T>,
-      onRetry?: (attempt: number) => void
-    ): Promise<T> => {
-      return handleWithRetry(fn, {
-        onRetry: (attempt) => {
-          if (context?.showToast) {
-            context.showToast(
-              `Retrying... (attempt ${attempt})`,
-              'info'
-            );
-          }
-          onRetry?.(attempt);
-        },
-      });
-    },
+      onRetry?: (attempt: number) => void,
+    ): Promise<T> => handleWithRetry(fn, {
+      onRetry: (attempt) => {
+        if (context?.showToast) {
+          context.showToast(
+            `Retrying... (attempt ${attempt})`,
+            'info',
+          );
+        }
+        onRetry?.(attempt);
+      },
+    }),
   };
 }
 

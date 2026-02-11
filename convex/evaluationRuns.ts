@@ -1,31 +1,31 @@
 /**
  * Evaluation Runs
- * 
+ *
  * CRUD operations for evaluation runs (test suite executions).
  */
 
-import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
-import { Id } from "./_generated/dataModel";
+import { v } from 'convex/values';
+import { mutation, query } from './_generated/server';
+import { Id } from './_generated/dataModel';
 
 /**
  * List evaluation runs for a tenant
  */
 export const list = query({
   args: {
-    tenantId: v.id("tenants"),
+    tenantId: v.id('tenants'),
     status: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    let runsQuery = ctx.db
-      .query("evaluationRuns")
-      .withIndex("by_tenant", (q) => q.eq("tenantId", args.tenantId));
+    const runsQuery = ctx.db
+      .query('evaluationRuns')
+      .withIndex('by_tenant', (q) => q.eq('tenantId', args.tenantId));
 
     const runs = await runsQuery.collect();
 
     // Filter by status if provided
     if (args.status) {
-      return runs.filter(r => r.status === args.status);
+      return runs.filter((r) => r.status === args.status);
     }
 
     return runs;
@@ -37,12 +37,12 @@ export const list = query({
  */
 export const getByVersion = query({
   args: {
-    versionId: v.id("agentVersions"),
+    versionId: v.id('agentVersions'),
   },
   handler: async (ctx, args) => {
     const runs = await ctx.db
-      .query("evaluationRuns")
-      .withIndex("by_version", (q) => q.eq("versionId", args.versionId))
+      .query('evaluationRuns')
+      .withIndex('by_version', (q) => q.eq('versionId', args.versionId))
       .collect();
 
     return runs;
@@ -54,12 +54,12 @@ export const getByVersion = query({
  */
 export const get = query({
   args: {
-    runId: v.id("evaluationRuns"),
+    runId: v.id('evaluationRuns'),
   },
   handler: async (ctx, args) => {
     const run = await ctx.db.get(args.runId);
     if (!run) {
-      throw new Error("Evaluation run not found");
+      throw new Error('Evaluation run not found');
     }
 
     // Enrich with suite and version info
@@ -79,55 +79,53 @@ export const get = query({
  */
 export const create = mutation({
   args: {
-    tenantId: v.id("tenants"),
-    suiteId: v.id("evaluationSuites"),
-    versionId: v.id("agentVersions"),
-    triggeredBy: v.optional(v.id("operators")),
+    tenantId: v.id('tenants'),
+    suiteId: v.id('evaluationSuites'),
+    versionId: v.id('agentVersions'),
+    triggeredBy: v.optional(v.id('operators')),
   },
   handler: async (ctx, args) => {
     // Verify suite exists
     const suite = await ctx.db.get(args.suiteId);
     if (!suite) {
-      throw new Error("Evaluation suite not found");
+      throw new Error('Evaluation suite not found');
     }
 
     // Verify version exists
     const version = await ctx.db.get(args.versionId);
     if (!version) {
-      throw new Error("Agent version not found");
+      throw new Error('Agent version not found');
     }
 
     // Check if there's already a pending/running evaluation for this version
     const existingRun = await ctx.db
-      .query("evaluationRuns")
-      .withIndex("by_version", (q) => q.eq("versionId", args.versionId))
-      .filter((q) =>
-        q.or(
-          q.eq(q.field("status"), "PENDING"),
-          q.eq(q.field("status"), "RUNNING")
-        )
-      )
+      .query('evaluationRuns')
+      .withIndex('by_version', (q) => q.eq('versionId', args.versionId))
+      .filter((q) => q.or(
+        q.eq(q.field('status'), 'PENDING'),
+        q.eq(q.field('status'), 'RUNNING'),
+      ))
       .first();
 
     if (existingRun) {
-      throw new Error("Version already has a pending or running evaluation");
+      throw new Error('Version already has a pending or running evaluation');
     }
 
     // Create run
-    const runId = await ctx.db.insert("evaluationRuns", {
+    const runId = await ctx.db.insert('evaluationRuns', {
       tenantId: args.tenantId,
       suiteId: args.suiteId,
       versionId: args.versionId,
-      status: "PENDING",
+      status: 'PENDING',
       previousEvalStatus: version.evalStatus,
       triggeredBy: args.triggeredBy,
     });
 
     // Write change record
-    await ctx.db.insert("changeRecords", {
+    await ctx.db.insert('changeRecords', {
       tenantId: args.tenantId,
-      type: "EVAL_RUN_CREATED",
-      targetEntity: "evaluationRun",
+      type: 'EVAL_RUN_CREATED',
+      targetEntity: 'evaluationRun',
       targetId: runId,
       operatorId: args.triggeredBy,
       payload: {
@@ -148,20 +146,20 @@ export const create = mutation({
  */
 export const claimPending = mutation({
   args: {
-    runId: v.id("evaluationRuns"),
+    runId: v.id('evaluationRuns'),
   },
   handler: async (ctx, args) => {
     const run = await ctx.db.get(args.runId);
     if (!run) {
-      throw new Error("Evaluation run not found");
+      throw new Error('Evaluation run not found');
     }
 
-    if (run.status !== "PENDING") {
+    if (run.status !== 'PENDING') {
       return { claimed: false, status: run.status };
     }
 
     const updates: any = {
-      status: "RUNNING",
+      status: 'RUNNING',
     };
 
     if (!run.startedAt) {
@@ -172,22 +170,22 @@ export const claimPending = mutation({
 
     // Update version evalStatus to RUNNING when execution starts
     await ctx.db.patch(run.versionId, {
-      evalStatus: "RUNNING",
+      evalStatus: 'RUNNING',
     });
 
     // Write change record for run status update
-    await ctx.db.insert("changeRecords", {
+    await ctx.db.insert('changeRecords', {
       tenantId: run.tenantId,
-      type: "EVAL_RUN_UPDATED",
-      targetEntity: "evaluationRun",
+      type: 'EVAL_RUN_UPDATED',
+      targetEntity: 'evaluationRun',
       targetId: args.runId,
       payload: {
-        status: "RUNNING",
+        status: 'RUNNING',
       },
       timestamp: Date.now(),
     });
 
-    return { claimed: true, status: "RUNNING" };
+    return { claimed: true, status: 'RUNNING' };
   },
 });
 
@@ -196,13 +194,13 @@ export const claimPending = mutation({
  */
 export const updateStatus = mutation({
   args: {
-    runId: v.id("evaluationRuns"),
+    runId: v.id('evaluationRuns'),
     status: v.union(
-      v.literal("PENDING"),
-      v.literal("RUNNING"),
-      v.literal("COMPLETED"),
-      v.literal("FAILED"),
-      v.literal("CANCELLED")
+      v.literal('PENDING'),
+      v.literal('RUNNING'),
+      v.literal('COMPLETED'),
+      v.literal('FAILED'),
+      v.literal('CANCELLED'),
     ),
     results: v.optional(v.array(v.object({
       testCaseId: v.string(),
@@ -218,7 +216,7 @@ export const updateStatus = mutation({
   handler: async (ctx, args) => {
     const run = await ctx.db.get(args.runId);
     if (!run) {
-      throw new Error("Evaluation run not found");
+      throw new Error('Evaluation run not found');
     }
 
     const updates: any = {
@@ -226,11 +224,11 @@ export const updateStatus = mutation({
     };
 
     // Set timestamps
-    if (args.status === "RUNNING" && !run.startedAt) {
+    if (args.status === 'RUNNING' && !run.startedAt) {
       updates.startedAt = Date.now();
     }
 
-    if (args.status === "COMPLETED" || args.status === "FAILED" || args.status === "CANCELLED") {
+    if (args.status === 'COMPLETED' || args.status === 'FAILED' || args.status === 'CANCELLED') {
       updates.completedAt = Date.now();
     }
 
@@ -251,19 +249,19 @@ export const updateStatus = mutation({
     await ctx.db.patch(args.runId, updates);
 
     // Update version evalStatus based on run status
-    if (args.status === "COMPLETED") {
+    if (args.status === 'COMPLETED') {
       const passThreshold = 0.8; // 80% pass rate required (0-1)
-      const evalStatus = (args.passRate || 0) >= passThreshold ? "PASS" : "FAIL";
-      
+      const evalStatus = (args.passRate || 0) >= passThreshold ? 'PASS' : 'FAIL';
+
       await ctx.db.patch(run.versionId, {
         evalStatus,
       });
 
       // Write change record for version eval status update
-      await ctx.db.insert("changeRecords", {
+      await ctx.db.insert('changeRecords', {
         tenantId: run.tenantId,
-        type: "VERSION_EVAL_COMPLETED",
-        targetEntity: "agentVersion",
+        type: 'VERSION_EVAL_COMPLETED',
+        targetEntity: 'agentVersion',
         targetId: run.versionId,
         payload: {
           runId: args.runId,
@@ -273,22 +271,22 @@ export const updateStatus = mutation({
         },
         timestamp: Date.now(),
       });
-    } else if (args.status === "FAILED") {
+    } else if (args.status === 'FAILED') {
       await ctx.db.patch(run.versionId, {
-        evalStatus: "FAIL",
+        evalStatus: 'FAIL',
       });
-    } else if (args.status === "CANCELLED") {
-      const previousEvalStatus = run.previousEvalStatus || "NOT_RUN";
+    } else if (args.status === 'CANCELLED') {
+      const previousEvalStatus = run.previousEvalStatus || 'NOT_RUN';
       await ctx.db.patch(run.versionId, {
         evalStatus: previousEvalStatus,
       });
     }
 
     // Write change record for run status update
-    await ctx.db.insert("changeRecords", {
+    await ctx.db.insert('changeRecords', {
       tenantId: run.tenantId,
-      type: "EVAL_RUN_UPDATED",
-      targetEntity: "evaluationRun",
+      type: 'EVAL_RUN_UPDATED',
+      targetEntity: 'evaluationRun',
       targetId: args.runId,
       payload: {
         status: args.status,
@@ -307,36 +305,36 @@ export const updateStatus = mutation({
  */
 export const cancel = mutation({
   args: {
-    runId: v.id("evaluationRuns"),
-    cancelledBy: v.optional(v.id("operators")),
+    runId: v.id('evaluationRuns'),
+    cancelledBy: v.optional(v.id('operators')),
   },
   handler: async (ctx, args) => {
     const run = await ctx.db.get(args.runId);
     if (!run) {
-      throw new Error("Evaluation run not found");
+      throw new Error('Evaluation run not found');
     }
 
-    if (run.status !== "PENDING" && run.status !== "RUNNING") {
-      throw new Error("Can only cancel pending or running evaluations");
+    if (run.status !== 'PENDING' && run.status !== 'RUNNING') {
+      throw new Error('Can only cancel pending or running evaluations');
     }
 
     // Update run status
     await ctx.db.patch(args.runId, {
-      status: "CANCELLED",
+      status: 'CANCELLED',
       completedAt: Date.now(),
     });
 
     // Restore version evalStatus
-    const previousEvalStatus = run.previousEvalStatus || "NOT_RUN";
+    const previousEvalStatus = run.previousEvalStatus || 'NOT_RUN';
     await ctx.db.patch(run.versionId, {
       evalStatus: previousEvalStatus,
     });
 
     // Write change record
-    await ctx.db.insert("changeRecords", {
+    await ctx.db.insert('changeRecords', {
       tenantId: run.tenantId,
-      type: "EVAL_RUN_CANCELLED",
-      targetEntity: "evaluationRun",
+      type: 'EVAL_RUN_CANCELLED',
+      targetEntity: 'evaluationRun',
       targetId: args.runId,
       operatorId: args.cancelledBy,
       payload: {
@@ -354,15 +352,13 @@ export const cancel = mutation({
  */
 export const getPending = query({
   args: {
-    tenantId: v.id("tenants"),
+    tenantId: v.id('tenants'),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const runs = await ctx.db
-      .query("evaluationRuns")
-      .withIndex("by_status", (q) =>
-        q.eq("tenantId", args.tenantId).eq("status", "PENDING")
-      )
+      .query('evaluationRuns')
+      .withIndex('by_status', (q) => q.eq('tenantId', args.tenantId).eq('status', 'PENDING'))
       .take(args.limit || 10);
 
     return runs;
@@ -374,19 +370,19 @@ export const getPending = query({
  */
 export const getSummary = query({
   args: {
-    versionId: v.id("agentVersions"),
+    versionId: v.id('agentVersions'),
   },
   handler: async (ctx, args) => {
     const runs = await ctx.db
-      .query("evaluationRuns")
-      .withIndex("by_version", (q) => q.eq("versionId", args.versionId))
+      .query('evaluationRuns')
+      .withIndex('by_version', (q) => q.eq('versionId', args.versionId))
       .collect();
 
-    const completed = runs.filter(r => r.status === "COMPLETED");
-    const failed = runs.filter(r => r.status === "FAILED");
-    const cancelled = runs.filter(r => r.status === "CANCELLED");
-    const running = runs.filter(r => r.status === "RUNNING");
-    const pending = runs.filter(r => r.status === "PENDING");
+    const completed = runs.filter((r) => r.status === 'COMPLETED');
+    const failed = runs.filter((r) => r.status === 'FAILED');
+    const cancelled = runs.filter((r) => r.status === 'CANCELLED');
+    const running = runs.filter((r) => r.status === 'RUNNING');
+    const pending = runs.filter((r) => r.status === 'PENDING');
 
     const avgPassRate = completed.length > 0
       ? completed.reduce((sum, r) => sum + (r.passRate || 0), 0) / completed.length
@@ -407,7 +403,7 @@ export const getSummary = query({
       avgPassRate,
       avgScore,
       lastRunAt: runs.length > 0
-        ? Math.max(...runs.map(r => r._creationTime))
+        ? Math.max(...runs.map((r) => r._creationTime))
         : undefined,
     };
   },

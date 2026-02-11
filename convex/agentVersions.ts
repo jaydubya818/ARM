@@ -1,36 +1,36 @@
-import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
-import { Id, Doc } from "./_generated/dataModel";
-import { computeGenomeHash, verifyGenomeIntegrity } from "./lib/genomeHash";
+import { v } from 'convex/values';
+import { mutation, query } from './_generated/server';
+import { Id, Doc } from './_generated/dataModel';
+import { computeGenomeHash, verifyGenomeIntegrity } from './lib/genomeHash';
 
 export const create = mutation({
   args: {
-    templateId: v.id("agentTemplates"),
-    tenantId: v.id("tenants"),
+    templateId: v.id('agentTemplates'),
+    tenantId: v.id('tenants'),
     versionLabel: v.string(),
     genome: v.any(),
-    parentVersionId: v.optional(v.id("agentVersions")),
+    parentVersionId: v.optional(v.id('agentVersions')),
   },
   handler: async (ctx, args) => {
     // Compute hash
     const genomeHash = await computeGenomeHash(args.genome);
 
-    const versionId = await ctx.db.insert("agentVersions", {
+    const versionId = await ctx.db.insert('agentVersions', {
       templateId: args.templateId,
       tenantId: args.tenantId,
       versionLabel: args.versionLabel,
       genome: args.genome,
       genomeHash,
-      lifecycleState: "DRAFT",
-      evalStatus: "NOT_RUN",
+      lifecycleState: 'DRAFT',
+      evalStatus: 'NOT_RUN',
       parentVersionId: args.parentVersionId,
     });
 
     // Write ChangeRecord
-    await ctx.db.insert("changeRecords", {
+    await ctx.db.insert('changeRecords', {
       tenantId: args.tenantId,
-      type: "VERSION_CREATED",
-      targetEntity: "agentVersion",
+      type: 'VERSION_CREATED',
+      targetEntity: 'agentVersion',
       targetId: versionId,
       payload: { versionLabel: args.versionLabel, genomeHash },
       timestamp: Date.now(),
@@ -41,88 +41,86 @@ export const create = mutation({
 });
 
 export const get = query({
-  args: { versionId: v.id("agentVersions") },
+  args: { versionId: v.id('agentVersions') },
   handler: async (ctx, args) => {
     const version = await ctx.db.get(args.versionId);
     if (!version) return null;
-    
+
     // Verify integrity on detail read
     const isValid = await verifyGenomeIntegrity(
       version.genome,
-      version.genomeHash
+      version.genomeHash,
     );
-    
+
     // Note: Queries cannot write to the database, so integrity verification
     // results are returned but not logged. Use a mutation to log integrity events.
 
     return {
       ...version,
-      integrityStatus: isValid ? "VERIFIED" : "TAMPERED",
+      integrityStatus: isValid ? 'VERIFIED' : 'TAMPERED',
     };
   },
 });
 
 export const list = query({
-  args: { tenantId: v.id("tenants") },
-  handler: async (ctx, args) => {
+  args: { tenantId: v.id('tenants') },
+  handler: (ctx, args) =>
     // NO hash verification on list for performance
-    return await ctx.db
-      .query("agentVersions")
-      .withIndex("by_tenant", (q) => q.eq("tenantId", args.tenantId))
-      .collect();
-  },
+    ctx.db
+      .query('agentVersions')
+      .withIndex('by_tenant', (q) => q.eq('tenantId', args.tenantId))
+      .collect()
+  ,
 });
 
 export const listByTemplate = query({
-  args: { templateId: v.id("agentTemplates") },
-  handler: async (ctx, args) => {
-    return await ctx.db
-      .query("agentVersions")
-      .withIndex("by_template", (q) => q.eq("templateId", args.templateId))
-      .collect();
-  },
+  args: { templateId: v.id('agentTemplates') },
+  handler: (ctx, args) => ctx.db
+    .query('agentVersions')
+    .withIndex('by_template', (q) => q.eq('templateId', args.templateId))
+    .collect(),
 });
 
 export const getLineage = query({
-  args: { versionId: v.id("agentVersions") },
+  args: { versionId: v.id('agentVersions') },
   handler: async (ctx, args) => {
-    const lineage: Doc<"agentVersions">[] = [];
-    let currentId: Id<"agentVersions"> | undefined = args.versionId;
+    const lineage: Doc<'agentVersions'>[] = [];
+    let currentId: Id<'agentVersions'> | undefined = args.versionId;
 
     while (currentId) {
-      const version = await ctx.db.get(currentId) as Doc<"agentVersions"> | null;
+      const version = await ctx.db.get(currentId) as Doc<'agentVersions'> | null;
       if (!version) break;
       lineage.push(version);
       currentId = version.parentVersionId;
     }
-    
+
     return lineage;
   },
 });
 
 export const transition = mutation({
   args: {
-    versionId: v.id("agentVersions"),
+    versionId: v.id('agentVersions'),
     newState: v.union(
-      v.literal("DRAFT"),
-      v.literal("TESTING"),
-      v.literal("CANDIDATE"),
-      v.literal("APPROVED"),
-      v.literal("DEPRECATED"),
-      v.literal("RETIRED")
+      v.literal('DRAFT'),
+      v.literal('TESTING'),
+      v.literal('CANDIDATE'),
+      v.literal('APPROVED'),
+      v.literal('DEPRECATED'),
+      v.literal('RETIRED'),
     ),
-    approvalId: v.optional(v.id("approvalRecords")),
+    approvalId: v.optional(v.id('approvalRecords')),
   },
   handler: async (ctx, args) => {
     const version = await ctx.db.get(args.versionId);
-    if (!version) throw new Error("Version not found");
+    if (!version) throw new Error('Version not found');
 
     // State machine validation (imported from lib/approvalEngine)
-    const { validateVersionTransition } = await import("./lib/approvalEngine");
+    const { validateVersionTransition } = await import('./lib/approvalEngine');
     const validation = validateVersionTransition(
       version.lifecycleState,
       args.newState,
-      version.evalStatus
+      version.evalStatus,
     );
 
     if (!validation.valid) {
@@ -138,10 +136,10 @@ export const transition = mutation({
     });
 
     // Write ChangeRecord
-    await ctx.db.insert("changeRecords", {
+    await ctx.db.insert('changeRecords', {
       tenantId: version.tenantId,
-      type: "VERSION_TRANSITIONED",
-      targetEntity: "agentVersion",
+      type: 'VERSION_TRANSITIONED',
+      targetEntity: 'agentVersion',
       targetId: args.versionId,
       payload: {
         from: version.lifecycleState,
@@ -153,25 +151,25 @@ export const transition = mutation({
 
     // P2.0: Auto-trigger evaluation when transitioning to TESTING
     // Note: This creates a pending run that will be picked up by the evaluation runner
-    if (args.newState === "TESTING") {
+    if (args.newState === 'TESTING') {
       // Find a default evaluation suite for this tenant
       const defaultSuite = await ctx.db
-        .query("evaluationSuites")
-        .withIndex("by_tenant", (q) => q.eq("tenantId", version.tenantId))
+        .query('evaluationSuites')
+        .withIndex('by_tenant', (q) => q.eq('tenantId', version.tenantId))
         .first();
 
       if (defaultSuite) {
         // Create evaluation run
-        await ctx.db.insert("evaluationRuns", {
+        await ctx.db.insert('evaluationRuns', {
           tenantId: version.tenantId,
           suiteId: defaultSuite._id,
           versionId: args.versionId,
-          status: "PENDING",
+          status: 'PENDING',
         });
 
         // Update version evalStatus to RUNNING
         await ctx.db.patch(args.versionId, {
-          evalStatus: "RUNNING",
+          evalStatus: 'RUNNING',
         });
       }
     }

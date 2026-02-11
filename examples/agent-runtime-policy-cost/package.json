@@ -1,0 +1,13 @@
+{
+  "name": "arm-agent-runtime-example",
+  "version": "1.0.0",
+  "description": "Example: Call ARM policy evaluation and cost recording from an agent runtime",
+  "type": "module",
+  "scripts": {
+    "evaluate": "node evaluate-and-record-cost.js",
+    "record-cost": "node record-cost-direct.js"
+  },
+  "dependencies": {
+    "convex": "^1.31.0"
+  }
+}

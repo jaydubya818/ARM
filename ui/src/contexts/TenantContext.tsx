@@ -5,33 +5,33 @@ import {
   useEffect,
   useCallback,
   type ReactNode,
-} from "react";
-import { useQuery } from "convex/react";
-import { api } from "../convex/_generated/api";
-import type { Id } from "../convex/_generated/dataModel";
+} from 'react';
+import { useQuery } from 'convex/react';
+import { api } from 'agent-resources-platform/convex/_generated/api';
+import type { Id } from 'agent-resources-platform/convex/_generated/dataModel';
 
 interface TenantContextValue {
-  tenants: { _id: Id<"tenants">; name: string }[] | undefined;
-  tenantId: Id<"tenants"> | undefined;
-  setTenantId: (id: Id<"tenants">) => void;
+  tenants: { _id: Id<'tenants'>; name: string }[] | undefined;
+  tenantId: Id<'tenants'> | undefined;
+  setTenantId: (id: Id<'tenants'>) => void;
 }
 
 const TenantContext = createContext<TenantContextValue | null>(null);
 
 export function TenantProvider({ children }: { children: ReactNode }) {
   const tenants = useQuery(api.tenants.list);
-  const [selectedId, setSelectedId] = useState<Id<"tenants"> | undefined>();
+  const [selectedId, setSelectedId] = useState<Id<'tenants'> | undefined>();
 
   useEffect(() => {
     if (!tenants?.length) return;
     const firstId = tenants[0]._id;
     setSelectedId((prev) => {
-      if (!prev || !tenants.some((t: { _id: Id<"tenants"> }) => t._id === prev)) return firstId;
+      if (!prev || !tenants.some((t: { _id: Id<'tenants'> }) => t._id === prev)) return firstId;
       return prev;
     });
   }, [tenants]);
 
-  const setTenantId = useCallback((id: Id<"tenants">) => {
+  const setTenantId = useCallback((id: Id<'tenants'>) => {
     setSelectedId(id);
   }, []);
 
@@ -52,6 +52,6 @@ export function TenantProvider({ children }: { children: ReactNode }) {
 
 export function useTenant() {
   const ctx = useContext(TenantContext);
-  if (!ctx) throw new Error("useTenant must be used within TenantProvider");
+  if (!ctx) throw new Error('useTenant must be used within TenantProvider');
   return ctx;
 }

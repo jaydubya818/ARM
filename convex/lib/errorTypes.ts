@@ -1,6 +1,6 @@
 /**
  * Custom Error Types for ARM Platform
- * 
+ *
  * Provides typed error classes for different error scenarios
  * with proper error codes and user-friendly messages.
  */
@@ -10,36 +10,36 @@ export enum ErrorCode {
   VALIDATION_ERROR = 'VALIDATION_ERROR',
   INVALID_INPUT = 'INVALID_INPUT',
   MISSING_REQUIRED_FIELD = 'MISSING_REQUIRED_FIELD',
-  
+
   // Authentication/Authorization Errors (401/403)
   UNAUTHORIZED = 'UNAUTHORIZED',
   FORBIDDEN = 'FORBIDDEN',
   INSUFFICIENT_PERMISSIONS = 'INSUFFICIENT_PERMISSIONS',
   INVALID_TOKEN = 'INVALID_TOKEN',
-  
+
   // Resource Errors (404)
   NOT_FOUND = 'NOT_FOUND',
   RESOURCE_NOT_FOUND = 'RESOURCE_NOT_FOUND',
-  
+
   // Conflict Errors (409)
   CONFLICT = 'CONFLICT',
   DUPLICATE_RESOURCE = 'DUPLICATE_RESOURCE',
   VERSION_CONFLICT = 'VERSION_CONFLICT',
-  
+
   // Business Logic Errors (422)
   BUSINESS_LOGIC_ERROR = 'BUSINESS_LOGIC_ERROR',
   INVALID_STATE_TRANSITION = 'INVALID_STATE_TRANSITION',
   DEPENDENCY_NOT_MET = 'DEPENDENCY_NOT_MET',
   INTEGRITY_VIOLATION = 'INTEGRITY_VIOLATION',
-  
+
   // Rate Limiting (429)
   RATE_LIMIT_EXCEEDED = 'RATE_LIMIT_EXCEEDED',
-  
+
   // Server Errors (500)
   INTERNAL_ERROR = 'INTERNAL_ERROR',
   DATABASE_ERROR = 'DATABASE_ERROR',
   EXTERNAL_SERVICE_ERROR = 'EXTERNAL_SERVICE_ERROR',
-  
+
   // Timeout Errors (504)
   TIMEOUT = 'TIMEOUT',
   OPERATION_TIMEOUT = 'OPERATION_TIMEOUT',
@@ -59,17 +59,21 @@ export interface ErrorDetails {
  */
 export class ARMError extends Error {
   public readonly code: ErrorCode;
+
   public readonly statusCode: number;
+
   public readonly details?: Record<string, any>;
+
   public readonly retryable: boolean;
+
   public readonly timestamp: string;
 
   constructor(
     code: ErrorCode,
     message: string,
-    statusCode: number = 500,
+    statusCode = 500,
     details?: Record<string, any>,
-    retryable: boolean = false
+    retryable = false,
   ) {
     super(message);
     this.name = 'ARMError';
@@ -78,7 +82,7 @@ export class ARMError extends Error {
     this.details = details;
     this.retryable = retryable;
     this.timestamp = new Date().toISOString();
-    
+
     // Maintains proper stack trace for where our error was thrown
     Error.captureStackTrace(this, this.constructor);
   }
@@ -112,7 +116,7 @@ export class InvalidInputError extends ARMError {
       `Invalid input for field '${field}': ${reason}`,
       400,
       { field, reason, ...details },
-      false
+      false,
     );
     this.name = 'InvalidInputError';
   }
@@ -125,7 +129,7 @@ export class MissingFieldError extends ARMError {
       `Required field '${field}' is missing`,
       400,
       { field, ...details },
-      false
+      false,
     );
     this.name = 'MissingFieldError';
   }
@@ -135,14 +139,14 @@ export class MissingFieldError extends ARMError {
  * Authentication/Authorization errors (401/403)
  */
 export class UnauthorizedError extends ARMError {
-  constructor(message: string = 'Authentication required', details?: Record<string, any>) {
+  constructor(message = 'Authentication required', details?: Record<string, any>) {
     super(ErrorCode.UNAUTHORIZED, message, 401, details, false);
     this.name = 'UnauthorizedError';
   }
 }
 
 export class ForbiddenError extends ARMError {
-  constructor(message: string = 'Access forbidden', details?: Record<string, any>) {
+  constructor(message = 'Access forbidden', details?: Record<string, any>) {
     super(ErrorCode.FORBIDDEN, message, 403, details, false);
     this.name = 'ForbiddenError';
   }
@@ -155,7 +159,7 @@ export class InsufficientPermissionsError extends ARMError {
       `Insufficient permissions. Required: ${requiredPermission}`,
       403,
       { requiredPermission, ...details },
-      false
+      false,
     );
     this.name = 'InsufficientPermissionsError';
   }
@@ -171,7 +175,7 @@ export class NotFoundError extends ARMError {
       `${resource} with ID '${id}' not found`,
       404,
       { resource, id, ...details },
-      false
+      false,
     );
     this.name = 'NotFoundError';
   }
@@ -193,8 +197,10 @@ export class DuplicateResourceError extends ARMError {
       ErrorCode.DUPLICATE_RESOURCE,
       `${resource} with ${field} '${value}' already exists`,
       409,
-      { resource, field, value, ...details },
-      false
+      {
+        resource, field, value, ...details,
+      },
+      false,
     );
     this.name = 'DuplicateResourceError';
   }
@@ -207,7 +213,7 @@ export class VersionConflictError extends ARMError {
       `Version conflict for ${resource}. Expected: ${expectedVersion}, Actual: ${actualVersion}`,
       409,
       { resource, expectedVersion, actualVersion },
-      false
+      false,
     );
     this.name = 'VersionConflictError';
   }
@@ -229,8 +235,10 @@ export class InvalidStateTransitionError extends ARMError {
       ErrorCode.INVALID_STATE_TRANSITION,
       `Invalid state transition for ${resource} from '${from}' to '${to}'${reason ? `: ${reason}` : ''}`,
       422,
-      { resource, from, to, reason },
-      false
+      {
+        resource, from, to, reason,
+      },
+      false,
     );
     this.name = 'InvalidStateTransitionError';
   }
@@ -243,7 +251,7 @@ export class DependencyNotMetError extends ARMError {
       `Cannot proceed with ${resource}: dependency '${dependency}' not met`,
       422,
       { resource, dependency, ...details },
-      false
+      false,
     );
     this.name = 'DependencyNotMetError';
   }
@@ -266,7 +274,7 @@ export class RateLimitError extends ARMError {
       `Rate limit exceeded: ${limit} requests per ${window}`,
       429,
       { limit, window, retryAfter },
-      true
+      true,
     );
     this.name = 'RateLimitError';
   }
@@ -276,7 +284,7 @@ export class RateLimitError extends ARMError {
  * Server errors (500)
  */
 export class InternalError extends ARMError {
-  constructor(message: string = 'Internal server error', details?: Record<string, any>) {
+  constructor(message = 'Internal server error', details?: Record<string, any>) {
     super(ErrorCode.INTERNAL_ERROR, message, 500, details, true);
     this.name = 'InternalError';
   }
@@ -289,7 +297,7 @@ export class DatabaseError extends ARMError {
       `Database error during ${operation}`,
       500,
       { operation, ...details },
-      true
+      true,
     );
     this.name = 'DatabaseError';
   }
@@ -302,7 +310,7 @@ export class ExternalServiceError extends ARMError {
       `External service error: ${service}`,
       500,
       { service, ...details },
-      true
+      true,
     );
     this.name = 'ExternalServiceError';
   }
@@ -318,7 +326,7 @@ export class TimeoutError extends ARMError {
       `Operation '${operation}' timed out after ${timeout}ms`,
       504,
       { operation, timeout, ...details },
-      true
+      true,
     );
     this.name = 'TimeoutError';
   }
@@ -345,10 +353,10 @@ export function toARMError(error: unknown): ARMError {
   if (isARMError(error)) {
     return error;
   }
-  
+
   if (error instanceof Error) {
     return new InternalError(error.message, { originalError: error.name });
   }
-  
+
   return new InternalError('Unknown error occurred', { error: String(error) });
 }

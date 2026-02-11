@@ -1,11 +1,11 @@
 /**
  * Health Check Endpoint
- * 
+ *
  * Provides system health status for monitoring and load balancers.
  */
 
-import { query } from "../_generated/server";
-import { calculateMetrics } from "./metrics";
+import { query } from '../_generated/server';
+import { calculateMetrics } from './metrics';
 
 export type HealthStatus = 'healthy' | 'degraded' | 'unhealthy';
 
@@ -53,17 +53,16 @@ function getHealthStatus(
   value: number,
   warningThreshold: number,
   criticalThreshold: number,
-  inverse: boolean = false // true if lower is better
+  inverse = false, // true if lower is better
 ): HealthStatus {
   if (inverse) {
     if (value >= criticalThreshold) return 'unhealthy';
     if (value >= warningThreshold) return 'degraded';
     return 'healthy';
-  } else {
-    if (value <= criticalThreshold) return 'unhealthy';
-    if (value <= warningThreshold) return 'degraded';
-    return 'healthy';
   }
+  if (value <= criticalThreshold) return 'unhealthy';
+  if (value <= warningThreshold) return 'degraded';
+  return 'healthy';
 }
 
 /**
@@ -75,7 +74,7 @@ async function checkDatabase(ctx: any): Promise<{
 }> {
   try {
     // Try a simple query to verify database connectivity
-    await ctx.db.query("tenants").first();
+    await ctx.db.query('tenants').first();
     return {
       status: 'healthy',
       message: 'Database connection OK',
@@ -102,7 +101,7 @@ function checkQueries(metrics: ReturnType<typeof calculateMetrics>): {
     avgLatency,
     THRESHOLDS.QUERY_LATENCY_WARNING,
     THRESHOLDS.QUERY_LATENCY_CRITICAL,
-    true
+    true,
   );
 
   let message = `Average query latency: ${avgLatency.toFixed(2)}ms`;
@@ -133,7 +132,7 @@ function checkMutations(metrics: ReturnType<typeof calculateMetrics>): {
     successRate,
     THRESHOLDS.SUCCESS_RATE_WARNING,
     THRESHOLDS.SUCCESS_RATE_CRITICAL,
-    false
+    false,
   );
 
   let message = `Mutation success rate: ${successRate.toFixed(2)}%`;
@@ -158,13 +157,13 @@ function checkErrors(metrics: ReturnType<typeof calculateMetrics>): {
   message: string;
   errorRate: number;
 } {
-  const errorRate = metrics.errorRate;
+  const { errorRate } = metrics;
 
   const status = getHealthStatus(
     errorRate,
     THRESHOLDS.ERROR_RATE_WARNING,
     THRESHOLDS.ERROR_RATE_CRITICAL,
-    true
+    true,
   );
 
   let message = `Error rate: ${errorRate.toFixed(2)}%`;
@@ -185,7 +184,7 @@ function checkErrors(metrics: ReturnType<typeof calculateMetrics>): {
  * Determine overall health status
  */
 function getOverallStatus(checks: HealthCheckResult['checks']): HealthStatus {
-  const statuses = Object.values(checks).map(check => check.status);
+  const statuses = Object.values(checks).map((check) => check.status);
 
   if (statuses.includes('unhealthy')) {
     return 'unhealthy';
@@ -245,12 +244,10 @@ export const healthCheck = query({
  */
 export const liveness = query({
   args: {},
-  handler: async () => {
-    return {
-      status: 'ok',
-      timestamp: Date.now(),
-    };
-  },
+  handler: async () => ({
+    status: 'ok',
+    timestamp: Date.now(),
+  }),
 });
 
 /**
@@ -261,7 +258,7 @@ export const readiness = query({
   handler: async (ctx) => {
     try {
       // Check if database is accessible
-      await ctx.db.query("tenants").first();
+      await ctx.db.query('tenants').first();
 
       return {
         status: 'ready',
@@ -282,12 +279,10 @@ export const readiness = query({
  */
 export const systemInfo = query({
   args: {},
-  handler: async () => {
-    return {
-      version: process.env.npm_package_version || '0.3.0',
-      environment: process.env.NODE_ENV || 'development',
-      uptime: Date.now() - SERVICE_START_TIME,
-      timestamp: Date.now(),
-    };
-  },
+  handler: async () => ({
+    version: process.env.npm_package_version || '0.3.0',
+    environment: process.env.NODE_ENV || 'development',
+    uptime: Date.now() - SERVICE_START_TIME,
+    timestamp: Date.now(),
+  }),
 });

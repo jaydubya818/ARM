@@ -1,16 +1,16 @@
-import { useState } from "react";
-import { useQuery } from "convex/react";
-import { api } from "../convex/_generated/api";
-import { Id } from "../convex/_generated/dataModel";
-import { Shield, TrendingUp, Plus } from "lucide-react";
-import { RecordCostModal } from "../components/RecordCostModal";
+import { useState } from 'react';
+import { useQuery } from 'convex/react';
+import { Shield, TrendingUp, Plus } from 'lucide-react';
+import { api } from 'agent-resources-platform/convex/_generated/api';
+import { Id } from 'agent-resources-platform/convex/_generated/dataModel';
+import { RecordCostModal } from '../components/RecordCostModal';
 
 interface CostViewProps {
-  tenantId: Id<"tenants">;
+  tenantId: Id<'tenants'>;
 }
 
 interface PolicyWithCost {
-  _id: Id<"policyEnvelopes">;
+  _id: Id<'policyEnvelopes'>;
   name: string;
   costLimits?: { dailyTokens?: number; monthlyCost?: number };
 }
@@ -18,7 +18,7 @@ interface PolicyWithCost {
 export function CostView({ tenantId }: CostViewProps) {
   const [showRecordModal, setShowRecordModal] = useState(false);
   const policies = useQuery(api.policyEnvelopes.list, { tenantId });
-  const summary = useQuery(api.costLedger.getSummary, { tenantId, period: "month" });
+  const summary = useQuery(api.costLedger.getSummary, { tenantId, period: 'month' });
   const recentEntries = useQuery(api.costLedger.list, {
     tenantId,
     limit: 20,
@@ -57,7 +57,12 @@ export function CostView({ tenantId }: CostViewProps) {
             <div>
               <h3 className="font-semibold text-arm-text">Policies with Cost Limits</h3>
               <p className="text-sm text-arm-textMuted">
-                {withCostLimits.length} of {policies?.length ?? 0} policies
+                {withCostLimits.length}
+                {' '}
+                of
+                {policies?.length ?? 0}
+                {' '}
+                policies
               </p>
             </div>
           </div>
@@ -76,12 +81,15 @@ export function CostView({ tenantId }: CostViewProps) {
                   <div className="mt-2 flex flex-wrap gap-4 text-sm">
                     {(policy.costLimits as { dailyTokens?: number })?.dailyTokens && (
                       <span className="text-arm-textMuted">
-                        Daily tokens: {(policy.costLimits as { dailyTokens: number }).dailyTokens.toLocaleString()}
+                        Daily tokens:
+                        {' '}
+                        {(policy.costLimits as { dailyTokens: number }).dailyTokens.toLocaleString()}
                       </span>
                     )}
                     {(policy.costLimits as { monthlyCost?: number })?.monthlyCost !== undefined && (
                       <span className="text-arm-textMuted">
-                        Monthly: ${(policy.costLimits as { monthlyCost: number }).monthlyCost}
+                        Monthly: $
+                        {(policy.costLimits as { monthlyCost: number }).monthlyCost}
                       </span>
                     )}
                   </div>
@@ -99,20 +107,23 @@ export function CostView({ tenantId }: CostViewProps) {
               <p className="text-sm text-arm-textMuted">
                 {summary
                   ? `${summary.totalTokens.toLocaleString()} tokens · $${summary.totalCost.toFixed(2)}`
-                  : "Loading..."}
+                  : 'Loading...'}
               </p>
             </div>
           </div>
           {recentEntries && recentEntries.length > 0 ? (
             <div className="space-y-2 max-h-48 overflow-y-auto">
-              {recentEntries.slice(0, 5).map((e: { _id: Id<"costLedger">; source: string; tokensUsed: number; estimatedCost: number }) => (
+              {recentEntries.slice(0, 5).map((e: { _id: Id<'costLedger'>; source: string; tokensUsed: number; estimatedCost: number }) => (
                 <div
                   key={e._id}
                   className="flex justify-between text-sm py-1 border-b border-arm-border last:border-0"
                 >
                   <span className="text-arm-textMuted">{e.source}</span>
                   <span className="text-arm-text">
-                    {e.tokensUsed.toLocaleString()} tok · ${e.estimatedCost.toFixed(3)}
+                    {e.tokensUsed.toLocaleString()}
+                    {' '}
+                    tok · $
+                    {e.estimatedCost.toFixed(3)}
                   </span>
                 </div>
               ))}

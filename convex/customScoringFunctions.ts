@@ -1,14 +1,14 @@
 /**
  * Custom Scoring Functions
- * 
+ *
  * Registry and execution sandbox for custom JavaScript scoring functions.
  */
 
-import { v } from "convex/values";
-import { query, mutation, action } from "./_generated/server";
-import { api } from "./_generated/api";
-import { Doc, Id } from "./_generated/dataModel";
-import ivm from "isolated-vm";
+import { v } from 'convex/values';
+import ivm from 'isolated-vm';
+import { query, mutation, action } from './_generated/server';
+import { api } from './_generated/api';
+import { Doc, Id } from './_generated/dataModel';
 
 type ExecutionArgs = {
   input: unknown;
@@ -23,16 +23,16 @@ type ExecutionResult = {
   executionTime: number;
 };
 
-type FunctionExample = Doc<"customScoringFunctions">["metadata"]["examples"][number];
+type FunctionExample = Doc<'customScoringFunctions'>['metadata']['examples'][number];
 
 async function runCustomFunction(
-  func: Doc<"customScoringFunctions">,
-  args: ExecutionArgs
+  func: Doc<'customScoringFunctions'>,
+  args: ExecutionArgs,
 ): Promise<ExecutionResult> {
   const isolate = new ivm.Isolate({ memoryLimit: 128 });
   const context = await isolate.createContext();
   const jail = context.global;
-  await jail.set("global", jail.derefInto());
+  await jail.set('global', jail.derefInto());
 
   const code = `
     "use strict";
@@ -44,14 +44,14 @@ async function runCustomFunction(
   const startTime = Date.now();
   try {
     await script.run(context, { timeout: 5000 });
-    const result = await context.global.get("score");
+    const result = await context.global.get('score');
 
-    if (typeof result !== "number") {
-      throw new Error("Function must produce a numeric score");
+    if (typeof result !== 'number') {
+      throw new Error('Function must produce a numeric score');
     }
 
     if (result < 0 || result > 1) {
-      throw new Error("Function must return a score between 0 and 1");
+      throw new Error('Function must return a score between 0 and 1');
     }
 
     return {
@@ -75,17 +75,17 @@ async function runCustomFunction(
  */
 export const list = query({
   args: {
-    tenantId: v.id("tenants"),
+    tenantId: v.id('tenants'),
     activeOnly: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    let query = ctx.db
-      .query("customScoringFunctions")
-      .withIndex("by_tenant", (q) => q.eq("tenantId", args.tenantId));
+    const query = ctx.db
+      .query('customScoringFunctions')
+      .withIndex('by_tenant', (q) => q.eq('tenantId', args.tenantId));
 
     if (args.activeOnly) {
       return await query
-        .filter((q) => q.eq(q.field("isActive"), true))
+        .filter((q) => q.eq(q.field('isActive'), true))
         .collect();
     }
 
@@ -98,11 +98,9 @@ export const list = query({
  */
 export const get = query({
   args: {
-    functionId: v.id("customScoringFunctions"),
+    functionId: v.id('customScoringFunctions'),
   },
-  handler: async (ctx, args) => {
-    return await ctx.db.get(args.functionId);
-  },
+  handler: async (ctx, args) => await ctx.db.get(args.functionId),
 });
 
 /**
@@ -110,17 +108,13 @@ export const get = query({
  */
 export const getByName = query({
   args: {
-    tenantId: v.id("tenants"),
+    tenantId: v.id('tenants'),
     name: v.string(),
   },
-  handler: async (ctx, args) => {
-    return await ctx.db
-      .query("customScoringFunctions")
-      .withIndex("by_name", (q) =>
-        q.eq("tenantId", args.tenantId).eq("name", args.name)
-      )
-      .first();
-  },
+  handler: async (ctx, args) => await ctx.db
+    .query('customScoringFunctions')
+    .withIndex('by_name', (q) => q.eq('tenantId', args.tenantId).eq('name', args.name))
+    .first(),
 });
 
 /**
@@ -128,11 +122,11 @@ export const getByName = query({
  */
 export const create = mutation({
   args: {
-    tenantId: v.id("tenants"),
+    tenantId: v.id('tenants'),
     name: v.string(),
     description: v.string(),
     code: v.string(),
-    createdBy: v.id("operators"),
+    createdBy: v.id('operators'),
     metadata: v.object({
       parameters: v.array(v.object({
         name: v.string(),
@@ -149,64 +143,60 @@ export const create = mutation({
       })),
     }),
   },
-  handler: async (ctx, args) => {
-    return await ctx.db.atomic(async (tx) => {
-      // Validate function name
-      if (!args.name.trim()) {
-        throw new Error("Function name is required");
-      }
+  handler: async (ctx, args) => await ctx.db.atomic(async (tx) => {
+    // Validate function name
+    if (!args.name.trim()) {
+      throw new Error('Function name is required');
+    }
 
-      // Check for duplicate name
-      const existing = await tx
-        .query("customScoringFunctions")
-        .withIndex("by_name", (q) =>
-          q.eq("tenantId", args.tenantId).eq("name", args.name)
-        )
-        .first();
+    // Check for duplicate name
+    const existing = await tx
+      .query('customScoringFunctions')
+      .withIndex('by_name', (q) => q.eq('tenantId', args.tenantId).eq('name', args.name))
+      .first();
 
-      if (existing) {
-        throw new Error(`Function with name "${args.name}" already exists`);
-      }
+    if (existing) {
+      throw new Error(`Function with name "${args.name}" already exists`);
+    }
 
-      // Validate code (basic syntax check)
-      try {
-        new Function(args.code);
-      } catch (error) {
-        throw new Error(`Invalid JavaScript code: ${(error as Error).message}`);
-      }
+    // Validate code (basic syntax check)
+    try {
+      new Function(args.code);
+    } catch (error) {
+      throw new Error(`Invalid JavaScript code: ${(error as Error).message}`);
+    }
 
-      // Create function
-      const now = Date.now();
-      const functionId = await tx.insert("customScoringFunctions", {
-        tenantId: args.tenantId,
-        name: args.name,
-        description: args.description,
-        code: args.code,
-        language: "javascript",
-        version: 1,
-        isActive: true,
-        createdBy: args.createdBy,
-        createdAt: now,
-        updatedAt: now,
-        metadata: args.metadata,
-      });
-
-      // Write change record
-      await tx.insert("changeRecords", {
-        tenantId: args.tenantId,
-        type: "CUSTOM_FUNCTION_CREATED",
-        targetEntity: "customScoringFunction",
-        targetId: functionId,
-        payload: {
-          name: args.name,
-          version: 1,
-        },
-        timestamp: now,
-      });
-
-      return functionId;
+    // Create function
+    const now = Date.now();
+    const functionId = await tx.insert('customScoringFunctions', {
+      tenantId: args.tenantId,
+      name: args.name,
+      description: args.description,
+      code: args.code,
+      language: 'javascript',
+      version: 1,
+      isActive: true,
+      createdBy: args.createdBy,
+      createdAt: now,
+      updatedAt: now,
+      metadata: args.metadata,
     });
-  },
+
+    // Write change record
+    await tx.insert('changeRecords', {
+      tenantId: args.tenantId,
+      type: 'CUSTOM_FUNCTION_CREATED',
+      targetEntity: 'customScoringFunction',
+      targetId: functionId,
+      payload: {
+        name: args.name,
+        version: 1,
+      },
+      timestamp: now,
+    });
+
+    return functionId;
+  }),
 });
 
 /**
@@ -214,7 +204,7 @@ export const create = mutation({
  */
 export const update = mutation({
   args: {
-    functionId: v.id("customScoringFunctions"),
+    functionId: v.id('customScoringFunctions'),
     name: v.optional(v.string()),
     description: v.optional(v.string()),
     code: v.optional(v.string()),
@@ -235,68 +225,64 @@ export const update = mutation({
       })),
     })),
   },
-  handler: async (ctx, args) => {
-    return await ctx.db.atomic(async (tx) => {
-      const func = await tx.get(args.functionId);
-      if (!func) {
-        throw new Error("Function not found");
+  handler: async (ctx, args) => await ctx.db.atomic(async (tx) => {
+    const func = await tx.get(args.functionId);
+    if (!func) {
+      throw new Error('Function not found');
+    }
+
+    // Validate code if provided
+    if (args.code) {
+      try {
+        new Function(args.code);
+      } catch (error) {
+        throw new Error(`Invalid JavaScript code: ${(error as Error).message}`);
       }
+    }
 
-      // Validate code if provided
-      if (args.code) {
-        try {
-          new Function(args.code);
-        } catch (error) {
-          throw new Error(`Invalid JavaScript code: ${(error as Error).message}`);
-        }
+    // Check for duplicate name if changing name
+    if (args.name && args.name !== func.name) {
+      const existing = await tx
+        .query('customScoringFunctions')
+        .withIndex('by_name', (q) => q.eq('tenantId', func.tenantId).eq('name', args.name!))
+        .first();
+
+      if (existing) {
+        throw new Error(`Function with name "${args.name}" already exists`);
       }
+    }
 
-      // Check for duplicate name if changing name
-      if (args.name && args.name !== func.name) {
-        const existing = await tx
-          .query("customScoringFunctions")
-          .withIndex("by_name", (q) =>
-            q.eq("tenantId", func.tenantId).eq("name", args.name!)
-          )
-          .first();
+    // Update function
+    const updates: any = {
+      updatedAt: Date.now(),
+    };
 
-        if (existing) {
-          throw new Error(`Function with name "${args.name}" already exists`);
-        }
-      }
+    if (args.name !== undefined) updates.name = args.name;
+    if (args.description !== undefined) updates.description = args.description;
+    if (args.code !== undefined) {
+      updates.code = args.code;
+      updates.version = func.version + 1;
+    }
+    if (args.isActive !== undefined) updates.isActive = args.isActive;
+    if (args.metadata !== undefined) updates.metadata = args.metadata;
 
-      // Update function
-      const updates: any = {
-        updatedAt: Date.now(),
-      };
+    await tx.patch(args.functionId, updates);
 
-      if (args.name !== undefined) updates.name = args.name;
-      if (args.description !== undefined) updates.description = args.description;
-      if (args.code !== undefined) {
-        updates.code = args.code;
-        updates.version = func.version + 1;
-      }
-      if (args.isActive !== undefined) updates.isActive = args.isActive;
-      if (args.metadata !== undefined) updates.metadata = args.metadata;
-
-      await tx.patch(args.functionId, updates);
-
-      // Write change record
-      await tx.insert("changeRecords", {
-        tenantId: func.tenantId,
-        type: "CUSTOM_FUNCTION_UPDATED",
-        targetEntity: "customScoringFunction",
-        targetId: args.functionId,
-        payload: {
-          name: args.name || func.name,
-          version: updates.version || func.version,
-        },
-        timestamp: Date.now(),
-      });
-
-      return args.functionId;
+    // Write change record
+    await tx.insert('changeRecords', {
+      tenantId: func.tenantId,
+      type: 'CUSTOM_FUNCTION_UPDATED',
+      targetEntity: 'customScoringFunction',
+      targetId: args.functionId,
+      payload: {
+        name: args.name || func.name,
+        version: updates.version || func.version,
+      },
+      timestamp: Date.now(),
     });
-  },
+
+    return args.functionId;
+  }),
 });
 
 /**
@@ -304,34 +290,32 @@ export const update = mutation({
  */
 export const remove = mutation({
   args: {
-    functionId: v.id("customScoringFunctions"),
+    functionId: v.id('customScoringFunctions'),
   },
-  handler: async (ctx, args) => {
-    return await ctx.db.atomic(async (tx) => {
-      const func = await tx.get(args.functionId);
-      if (!func) {
-        throw new Error("Function not found");
-      }
+  handler: async (ctx, args) => await ctx.db.atomic(async (tx) => {
+    const func = await tx.get(args.functionId);
+    if (!func) {
+      throw new Error('Function not found');
+    }
 
-      // Delete function
-      await tx.delete(args.functionId);
+    // Delete function
+    await tx.delete(args.functionId);
 
-      // Write change record
-      await tx.insert("changeRecords", {
-        tenantId: func.tenantId,
-        type: "CUSTOM_FUNCTION_DELETED",
-        targetEntity: "customScoringFunction",
-        targetId: args.functionId,
-        payload: {
-          name: func.name,
-          version: func.version,
-        },
-        timestamp: Date.now(),
-      });
-
-      return { success: true };
+    // Write change record
+    await tx.insert('changeRecords', {
+      tenantId: func.tenantId,
+      type: 'CUSTOM_FUNCTION_DELETED',
+      targetEntity: 'customScoringFunction',
+      targetId: args.functionId,
+      payload: {
+        name: func.name,
+        version: func.version,
+      },
+      timestamp: Date.now(),
     });
-  },
+
+    return { success: true };
+  }),
 });
 
 /**
@@ -339,7 +323,7 @@ export const remove = mutation({
  */
 export const execute = action({
   args: {
-    functionId: v.id("customScoringFunctions"),
+    functionId: v.id('customScoringFunctions'),
     input: v.any(),
     expectedOutput: v.any(),
     actualOutput: v.any(),
@@ -348,14 +332,14 @@ export const execute = action({
     // Get function via proper query reference
     const func = await ctx.runQuery(api.customScoringFunctions.get, {
       functionId: args.functionId,
-    }) as Doc<"customScoringFunctions"> | null;
+    }) as Doc<'customScoringFunctions'> | null;
 
     if (!func) {
-      throw new Error("Function not found");
+      throw new Error('Function not found');
     }
 
     if (!func.isActive) {
-      throw new Error("Function is not active");
+      throw new Error('Function is not active');
     }
 
     return await runCustomFunction(func, {
@@ -371,10 +355,10 @@ export const execute = action({
  */
 export const test = action({
   args: {
-    functionId: v.id("customScoringFunctions"),
+    functionId: v.id('customScoringFunctions'),
   },
   handler: async (ctx, args): Promise<{
-    functionId: Id<"customScoringFunctions">;
+    functionId: Id<'customScoringFunctions'>;
     functionName: string;
     totalTests: number;
     passed: number;
@@ -389,10 +373,10 @@ export const test = action({
     // Get function via proper query reference
     const func = await ctx.runQuery(api.customScoringFunctions.get, {
       functionId: args.functionId,
-    }) as Doc<"customScoringFunctions"> | null;
+    }) as Doc<'customScoringFunctions'> | null;
 
     if (!func) {
-      throw new Error("Function not found");
+      throw new Error('Function not found');
     }
 
     const results: Array<{

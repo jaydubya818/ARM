@@ -1,6 +1,6 @@
 /**
  * Rate Limiting
- * 
+ *
  * Implements rate limiting to prevent abuse and ensure fair usage.
  * Uses sliding window algorithm for accurate rate limiting.
  */
@@ -44,6 +44,7 @@ interface RequestRecord {
  */
 export class RateLimiter {
   private requests: Map<string, RequestRecord[]>;
+
   private readonly config: RateLimitConfig;
 
   constructor(config: RateLimitConfig) {
@@ -62,7 +63,7 @@ export class RateLimiter {
     let records = this.requests.get(identifier) || [];
 
     // Remove expired requests
-    records = records.filter(r => r.timestamp > windowStart);
+    records = records.filter((r) => r.timestamp > windowStart);
 
     // Count total requests in window
     const totalRequests = records.reduce((sum, r) => sum + r.count, 0);
@@ -101,7 +102,7 @@ export class RateLimiter {
       throw new RateLimitError(
         this.config.limit,
         `${this.config.windowMs / 1000}s`,
-        result.retryAfter
+        result.retryAfter,
       );
     }
   }
@@ -132,7 +133,7 @@ export class RateLimiter {
     const windowStart = now - this.config.windowMs;
 
     const records = this.requests.get(identifier) || [];
-    const validRecords = records.filter(r => r.timestamp > windowStart);
+    const validRecords = records.filter((r) => r.timestamp > windowStart);
     const totalRequests = validRecords.reduce((sum, r) => sum + r.count, 0);
 
     return {
@@ -203,10 +204,11 @@ export function getRateLimiter(name: keyof typeof RateLimiters): RateLimiter {
 /**
  * Middleware to apply rate limiting
  */
-export function withRateLimit<T extends (...args: any[]) => Promise<any>>(
+export function withRateLimit<T extends(
+...args: any[]) => Promise<any>>(
   fn: T,
   limiter: RateLimiter,
-  getIdentifier: (...args: Parameters<T>) => string
+  getIdentifier: (...args: Parameters<T>) => string,
 ): T {
   return (async (...args: Parameters<T>): Promise<ReturnType<T>> => {
     const identifier = getIdentifier(...args);
@@ -218,9 +220,10 @@ export function withRateLimit<T extends (...args: any[]) => Promise<any>>(
 /**
  * Rate limit by user ID
  */
-export function rateLimitByUser<T extends (...args: any[]) => Promise<any>>(
+export function rateLimitByUser<T extends(
+...args: any[]) => Promise<any>>(
   fn: T,
-  limiter: RateLimiter = RateLimiters.standard
+  limiter: RateLimiter = RateLimiters.standard,
 ): T {
   return withRateLimit(fn, limiter, (...args) => {
     // Extract user ID from first arg (typically ctx)
@@ -232,9 +235,10 @@ export function rateLimitByUser<T extends (...args: any[]) => Promise<any>>(
 /**
  * Rate limit by tenant ID
  */
-export function rateLimitByTenant<T extends (...args: any[]) => Promise<any>>(
+export function rateLimitByTenant<T extends(
+...args: any[]) => Promise<any>>(
   fn: T,
-  limiter: RateLimiter = RateLimiters.standard
+  limiter: RateLimiter = RateLimiters.standard,
 ): T {
   return withRateLimit(fn, limiter, (...args) => {
     // Extract tenant ID from second arg (typically args object)
@@ -246,9 +250,10 @@ export function rateLimitByTenant<T extends (...args: any[]) => Promise<any>>(
 /**
  * Rate limit by IP address (requires IP from context)
  */
-export function rateLimitByIP<T extends (...args: any[]) => Promise<any>>(
+export function rateLimitByIP<T extends(
+...args: any[]) => Promise<any>>(
   fn: T,
-  limiter: RateLimiter = RateLimiters.api
+  limiter: RateLimiter = RateLimiters.api,
 ): T {
   return withRateLimit(fn, limiter, (...args) => {
     // Extract IP from context metadata

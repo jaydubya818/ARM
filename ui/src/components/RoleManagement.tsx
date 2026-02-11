@@ -1,31 +1,31 @@
 /**
  * Role Management Component
- * 
+ *
  * Manage roles, permissions, and role assignments.
  */
 
-import { useState } from "react";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../convex/_generated/api";
-import { Id, type Doc } from "../convex/_generated/dataModel";
+import { useState } from 'react';
+import { useQuery, useMutation } from 'convex/react';
+import { api } from 'agent-resources-platform/convex/_generated/api';
+import { Id, type Doc } from 'agent-resources-platform/convex/_generated/dataModel';
 
 interface RoleManagementProps {
-  tenantId: Id<"tenants">;
-  currentOperatorId: Id<"operators">;
+  tenantId: Id<'tenants'>;
+  currentOperatorId: Id<'operators'>;
 }
 
 export function RoleManagement({ tenantId, currentOperatorId }: RoleManagementProps) {
-  const [view, setView] = useState<"roles" | "assignments">("roles");
-  const [selectedRole, setSelectedRole] = useState<Id<"roles"> | null>(null);
+  const [view, setView] = useState<'roles' | 'assignments'>('roles');
+  const [selectedRole, setSelectedRole] = useState<Id<'roles'> | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
 
   // Queries
-  const roles = useQuery(api.roles.list, { tenantId }) as Doc<"roles">[] | undefined;
-  const permissions = useQuery(api.permissions.list) as Doc<"permissions">[] | undefined;
-  const operators = useQuery(api.operators.list, { tenantId }) as Doc<"operators">[] | undefined;
+  const roles = useQuery(api.roles.list, { tenantId }) as Doc<'roles'>[] | undefined;
+  const permissions = useQuery(api.permissions.list) as Doc<'permissions'>[] | undefined;
+  const operators = useQuery(api.operators.list, { tenantId }) as Doc<'operators'>[] | undefined;
   const assignments = useQuery(api.roleAssignments.list, { tenantId }) as
-    | Doc<"roleAssignments">[]
+    | Doc<'roleAssignments'>[]
     | undefined;
 
   // Mutations
@@ -33,7 +33,7 @@ export function RoleManagement({ tenantId, currentOperatorId }: RoleManagementPr
   const revokeRole = useMutation(api.roleAssignments.revoke);
 
   // Group permissions by category
-  const permissionsByCategory = (permissions ?? []).reduce<Record<string, Doc<"permissions">[]>>((acc, perm) => {
+  const permissionsByCategory = (permissions ?? []).reduce<Record<string, Doc<'permissions'>[]>>((acc, perm) => {
     if (!acc[perm.category]) {
       acc[perm.category] = [];
     }
@@ -64,30 +64,34 @@ export function RoleManagement({ tenantId, currentOperatorId }: RoleManagementPr
       <div className="border-b border-gray-200">
         <nav className="flex gap-8">
           <button
-            onClick={() => setView("roles")}
+            onClick={() => setView('roles')}
             className={`pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-              view === "roles"
-                ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+              view === 'roles'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
-            Roles ({roles?.length || 0})
+            Roles (
+            {roles?.length || 0}
+            )
           </button>
           <button
-            onClick={() => setView("assignments")}
+            onClick={() => setView('assignments')}
             className={`pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-              view === "assignments"
-                ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+              view === 'assignments'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
-            Assignments ({assignments?.length || 0})
+            Assignments (
+            {assignments?.length || 0}
+            )
           </button>
         </nav>
       </div>
 
       {/* Roles View */}
-      {view === "roles" && (
+      {view === 'roles' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Roles List */}
           <div className="lg:col-span-1 space-y-3">
@@ -97,8 +101,8 @@ export function RoleManagement({ tenantId, currentOperatorId }: RoleManagementPr
                 onClick={() => setSelectedRole(role._id)}
                 className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
                   selectedRole === role._id
-                    ? "border-blue-600 bg-blue-50"
-                    : "border-gray-200 hover:border-gray-300 bg-white"
+                    ? 'border-blue-600 bg-blue-50'
+                    : 'border-gray-200 hover:border-gray-300 bg-white'
                 }`}
               >
                 <div className="flex items-start justify-between">
@@ -115,7 +119,9 @@ export function RoleManagement({ tenantId, currentOperatorId }: RoleManagementPr
                       <p className="text-sm text-gray-600 mt-1">{role.description}</p>
                     )}
                     <p className="text-xs text-gray-500 mt-2">
-                      {role.permissions.length} permissions
+                      {role.permissions.length}
+                      {' '}
+                      permissions
                     </p>
                   </div>
                 </div>
@@ -160,7 +166,7 @@ export function RoleManagement({ tenantId, currentOperatorId }: RoleManagementPr
                             onClick={async () => {
                               if (
                                 confirm(
-                                  `Are you sure you want to delete the role "${role.name}"?`
+                                  `Are you sure you want to delete the role "${role.name}"?`,
                                 )
                               ) {
                                 await deleteRole({
@@ -180,15 +186,15 @@ export function RoleManagement({ tenantId, currentOperatorId }: RoleManagementPr
 
                     <div>
                       <h4 className="text-sm font-semibold text-gray-900 mb-3">
-                        Permissions ({role.permissions.length})
+                        Permissions (
+                        {role.permissions.length}
+                        )
                       </h4>
 
-                      {Object.entries(permissionsByCategory as Record<string, Doc<"permissions">[]>).map(
+                      {Object.entries(permissionsByCategory as Record<string, Doc<'permissions'>[]>).map(
                         ([category, perms]) => {
                           const rolePerms = role.permissions;
-                          const categoryPerms = perms.filter((p) =>
-                            rolePerms.includes(`${p.action}:${p.resource}`)
-                          );
+                          const categoryPerms = perms.filter((p) => rolePerms.includes(`${p.action}:${p.resource}`));
 
                           if (categoryPerms.length === 0) return null;
 
@@ -217,24 +223,30 @@ export function RoleManagement({ tenantId, currentOperatorId }: RoleManagementPr
                                       />
                                     </svg>
                                     <span className="text-gray-900 font-medium">
-                                      {perm.action}:{perm.resource}
+                                      {perm.action}
+                                      :
+                                      {perm.resource}
                                     </span>
                                     <span className="text-gray-500">
-                                      - {perm.description}
+                                      -
+                                      {' '}
+                                      {perm.description}
                                     </span>
                                   </div>
                                 ))}
                               </div>
                             </div>
                           );
-                        }
+                        },
                       )}
                     </div>
 
                     {role.isSystem && (
                       <div className="mt-6 p-4 bg-gray-50 rounded-lg">
                         <p className="text-sm text-gray-600">
-                          <strong>System Role:</strong> This role is built-in and cannot be
+                          <strong>System Role:</strong>
+                          {' '}
+                          This role is built-in and cannot be
                           modified or deleted.
                         </p>
                       </div>
@@ -265,7 +277,7 @@ export function RoleManagement({ tenantId, currentOperatorId }: RoleManagementPr
       )}
 
       {/* Assignments View */}
-      {view === "assignments" && (
+      {view === 'assignments' && (
         <div className="bg-white rounded-lg border border-gray-200">
           <div className="p-6 border-b border-gray-200 flex items-center justify-between">
             <h3 className="text-lg font-semibold text-gray-900">Role Assignments</h3>
@@ -308,16 +320,16 @@ export function RoleManagement({ tenantId, currentOperatorId }: RoleManagementPr
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">
-                            {operator?.name || "Unknown"}
+                            {operator?.name || 'Unknown'}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {operator?.email || ""}
+                            {operator?.email || ''}
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded">
-                          {role?.name || "Unknown"}
+                          {role?.name || 'Unknown'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -326,14 +338,14 @@ export function RoleManagement({ tenantId, currentOperatorId }: RoleManagementPr
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {assignment.expiresAt
                           ? new Date(assignment.expiresAt).toLocaleDateString()
-                          : "Never"}
+                          : 'Never'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                         <button
                           onClick={async () => {
                             if (
                               confirm(
-                                `Revoke ${role?.name} role from ${operator?.name}?`
+                                `Revoke ${role?.name} role from ${operator?.name}?`,
                               )
                             ) {
                               await revokeRole({

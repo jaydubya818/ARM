@@ -15,14 +15,15 @@ export interface Toast {
 type ToastListener = (toast: Toast) => void
 
 class ToastManager {
-  private listeners: ToastListener[] = []
-  private toastCounter = 0
+  private listeners: ToastListener[] = [];
+
+  private toastCounter = 0;
 
   subscribe(listener: ToastListener) {
-    this.listeners.push(listener)
+    this.listeners.push(listener);
     return () => {
-      this.listeners = this.listeners.filter((l) => l !== listener)
-    }
+      this.listeners = this.listeners.filter((l) => l !== listener);
+    };
   }
 
   show(type: ToastType, message: string, duration = 5000) {
@@ -31,25 +32,25 @@ class ToastManager {
       type,
       message,
       duration,
-    }
-    this.listeners.forEach((listener) => listener(toast))
+    };
+    this.listeners.forEach((listener) => listener(toast));
   }
 
   success(message: string, duration?: number) {
-    this.show('success', message, duration)
+    this.show('success', message, duration);
   }
 
   error(message: string, duration?: number) {
-    this.show('error', message, duration)
+    this.show('error', message, duration);
   }
 
   warning(message: string, duration?: number) {
-    this.show('warning', message, duration)
+    this.show('warning', message, duration);
   }
 
   info(message: string, duration?: number) {
-    this.show('info', message, duration)
+    this.show('info', message, duration);
   }
 }
 
-export const toast = new ToastManager()
+export const toast = new ToastManager();

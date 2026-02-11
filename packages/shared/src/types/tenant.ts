@@ -1,4 +1,4 @@
-import { Id, Timestamps } from './common'
+import { Id, Timestamps } from './common';
 
 export interface Tenant extends Timestamps {
   _id: Id<'tenants'>

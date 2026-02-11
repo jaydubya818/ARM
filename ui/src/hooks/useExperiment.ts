@@ -1,20 +1,20 @@
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../convex/_generated/api";
-import { useState, useEffect, useRef } from "react";
-import type { Id } from "../convex/_generated/dataModel";
+import { useQuery, useMutation } from 'convex/react';
+import { useState, useEffect, useRef } from 'react';
+import { api } from 'agent-resources-platform/convex/_generated/api';
+import type { Id } from 'agent-resources-platform/convex/_generated/dataModel';
 
 /**
  * Get assigned variant for an experiment
  */
 export function useExperiment(
-  experimentId: Id<"experiments"> | undefined,
-  operatorId: Id<"operators"> | undefined
+  experimentId: Id<'experiments'> | undefined,
+  operatorId: Id<'operators'> | undefined,
 ) {
   const variant = useQuery(
     api.experiments.getVariant,
     experimentId && operatorId
       ? { experimentId, operatorId }
-      : "skip"
+      : 'skip',
   );
 
   const assignVariant = useMutation(api.experiments.assignVariant);
@@ -23,10 +23,10 @@ export function useExperiment(
 
   useEffect(() => {
     if (
-      variant !== null ||
-      !experimentId ||
-      !operatorId ||
-      assignedRef.current
+      variant !== null
+      || !experimentId
+      || !operatorId
+      || assignedRef.current
     ) {
       return;
     }
@@ -45,7 +45,7 @@ export function useExperiment(
   return {
     variantId: finalVariant,
     loading: variant === undefined && !assignedVariant,
-    isControl: finalVariant === "control",
+    isControl: finalVariant === 'control',
   };
 }
 

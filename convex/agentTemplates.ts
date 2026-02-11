@@ -1,22 +1,22 @@
-import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
+import { v } from 'convex/values';
+import { mutation, query } from './_generated/server';
 
 export const create = mutation({
   args: {
-    tenantId: v.id("tenants"),
+    tenantId: v.id('tenants'),
     name: v.string(),
     description: v.optional(v.string()),
     owners: v.array(v.string()),
     tags: v.array(v.string()),
   },
   handler: async (ctx, args) => {
-    const templateId = await ctx.db.insert("agentTemplates", args);
+    const templateId = await ctx.db.insert('agentTemplates', args);
 
     // Write ChangeRecord
-    await ctx.db.insert("changeRecords", {
+    await ctx.db.insert('changeRecords', {
       tenantId: args.tenantId,
-      type: "TEMPLATE_CREATED",
-      targetEntity: "agentTemplate",
+      type: 'TEMPLATE_CREATED',
+      targetEntity: 'agentTemplate',
       targetId: templateId,
       payload: { name: args.name },
       timestamp: Date.now(),
@@ -27,25 +27,21 @@ export const create = mutation({
 });
 
 export const list = query({
-  args: { tenantId: v.id("tenants") },
-  handler: async (ctx, args) => {
-    return await ctx.db
-      .query("agentTemplates")
-      .withIndex("by_tenant", (q) => q.eq("tenantId", args.tenantId))
-      .collect();
-  },
+  args: { tenantId: v.id('tenants') },
+  handler: (ctx, args) => ctx.db
+    .query('agentTemplates')
+    .withIndex('by_tenant', (q) => q.eq('tenantId', args.tenantId))
+    .collect(),
 });
 
 export const get = query({
-  args: { templateId: v.id("agentTemplates") },
-  handler: async (ctx, args) => {
-    return await ctx.db.get(args.templateId);
-  },
+  args: { templateId: v.id('agentTemplates') },
+  handler: (ctx, args) => ctx.db.get(args.templateId),
 });
 
 export const update = mutation({
   args: {
-    templateId: v.id("agentTemplates"),
+    templateId: v.id('agentTemplates'),
     description: v.optional(v.string()),
     owners: v.optional(v.array(v.string())),
     tags: v.optional(v.array(v.string())),
@@ -53,15 +49,15 @@ export const update = mutation({
   handler: async (ctx, args) => {
     const { templateId, ...updates } = args;
     const template = await ctx.db.get(templateId);
-    if (!template) throw new Error("Template not found");
+    if (!template) throw new Error('Template not found');
 
     await ctx.db.patch(templateId, updates);
 
     // Write ChangeRecord
-    await ctx.db.insert("changeRecords", {
+    await ctx.db.insert('changeRecords', {
       tenantId: template.tenantId,
-      type: "TEMPLATE_UPDATED",
-      targetEntity: "agentTemplate",
+      type: 'TEMPLATE_UPDATED',
+      targetEntity: 'agentTemplate',
       targetId: templateId,
       payload: updates,
       timestamp: Date.now(),

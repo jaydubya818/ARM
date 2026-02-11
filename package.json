@@ -15,7 +15,7 @@
     "migrate": "docker exec -i ar-postgres psql -U ar -d ar_dev < services/control-plane/migrations/001_init_schema.sql && docker exec -i ar-postgres psql -U ar -d ar_dev < services/control-plane/migrations/002_seed_data.sql",
     "api": "cd services/control-plane && source venv/bin/activate && python api/main.py",
     "test": "vitest",
-    "test:unit": "cd ui && vitest run",
+    "test:unit": "pnpm -C ui exec vitest --run --watch=false",
     "test:convex": "vitest run convex",
     "test:e2e": "npx playwright test",
     "test:all": "pnpm test:unit && pnpm test:convex && pnpm test:e2e",
@@ -37,7 +37,16 @@
   },
   "devDependencies": {
     "@edge-runtime/vm": "^5.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.62.0",
+    "@typescript-eslint/parser": "^5.62.0",
     "convex-test": "^0.0.41",
+    "eslint": "^8.57.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-jsx-a11y": "^6.8.0",
+    "eslint-plugin-react": "^7.34.1",
+    "eslint-plugin-react-hooks": "^4.6.0",
     "vitest": "^1.6.1"
   }
 }

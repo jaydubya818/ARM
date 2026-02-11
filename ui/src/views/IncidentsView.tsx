@@ -1,27 +1,27 @@
-import { useQuery } from "convex/react";
-import { api } from "../convex/_generated/api";
-import { Id } from "../convex/_generated/dataModel";
-import { AlertTriangle, AlertCircle, Info } from "lucide-react";
+import { useQuery } from 'convex/react';
+import { AlertTriangle, AlertCircle, Info } from 'lucide-react';
+import { api } from 'agent-resources-platform/convex/_generated/api';
+import { Id } from 'agent-resources-platform/convex/_generated/dataModel';
 
 interface IncidentsViewProps {
-  tenantId: Id<"tenants">;
+  tenantId: Id<'tenants'>;
 }
 
 export function IncidentsView({ tenantId }: IncidentsViewProps) {
   const errors = useQuery(api.auditLogs.list, {
     tenantId,
-    severity: "ERROR",
+    severity: 'ERROR',
     limit: 50,
   });
   const warnings = useQuery(api.auditLogs.list, {
     tenantId,
-    severity: "WARNING",
+    severity: 'WARNING',
     limit: 50,
   });
 
   const incidents = [
-    ...(errors ?? []).map((e: { _id: unknown; timestamp?: number; action: string; resource: string; details?: unknown }) => ({ ...e, type: "error" as const })),
-    ...(warnings ?? []).map((w: { _id: unknown; timestamp?: number; action: string; resource: string; details?: unknown }) => ({ ...w, type: "warning" as const })),
+    ...(errors ?? []).map((e: { _id: unknown; timestamp?: number; action: string; resource: string; details?: unknown }) => ({ ...e, type: 'error' as const })),
+    ...(warnings ?? []).map((w: { _id: unknown; timestamp?: number; action: string; resource: string; details?: unknown }) => ({ ...w, type: 'warning' as const })),
   ].sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0));
 
   return (
@@ -44,12 +44,12 @@ export function IncidentsView({ tenantId }: IncidentsViewProps) {
             <div
               key={incident._id}
               className={`flex items-start gap-4 p-4 rounded-lg border ${
-                incident.type === "error"
-                  ? "bg-red-50 border-red-200"
-                  : "bg-amber-50 border-amber-200"
+                incident.type === 'error'
+                  ? 'bg-red-50 border-red-200'
+                  : 'bg-amber-50 border-amber-200'
               }`}
             >
-              {incident.type === "error" ? (
+              {incident.type === 'error' ? (
                 <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
               ) : (
                 <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
@@ -58,18 +58,20 @@ export function IncidentsView({ tenantId }: IncidentsViewProps) {
                 <p className="font-medium text-arm-text">{incident.action}</p>
                 <p className="text-sm text-arm-textMuted mt-1">
                   {incident.resource}
-                  {incident.details &&
-                    typeof incident.details === "object" &&
-                    Object.keys(incident.details).length > 0 && (
+                  {incident.details
+                    && typeof incident.details === 'object'
+                    && Object.keys(incident.details).length > 0 && (
                       <span className="ml-2">
-                        — {JSON.stringify(incident.details)}
+                        —
+                        {' '}
+                        {JSON.stringify(incident.details)}
                       </span>
-                    )}
+                  )}
                 </p>
                 <p className="text-xs text-arm-textMuted mt-2">
                   {incident.timestamp
                     ? new Date(incident.timestamp).toLocaleString()
-                    : ""}
+                    : ''}
                 </p>
               </div>
             </div>

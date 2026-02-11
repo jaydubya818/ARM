@@ -3,8 +3,8 @@
  * Fetches health endpoint and returns status
  */
 
-import { action } from "../_generated/server";
-import { v } from "convex/values";
+import { v } from 'convex/values';
+import { action } from '../_generated/server';
 
 export const checkProviderHealth = action({
   args: {
@@ -13,16 +13,16 @@ export const checkProviderHealth = action({
   handler: async (_, args) => {
     try {
       const res = await fetch(args.healthEndpoint, {
-        method: "GET",
+        method: 'GET',
         signal: AbortSignal.timeout(5000),
       });
       return {
-        status: res.ok ? "healthy" : "unhealthy",
+        status: res.ok ? 'healthy' : 'unhealthy',
         statusCode: res.status,
       };
     } catch (err) {
       return {
-        status: "unreachable",
+        status: 'unreachable',
         error: err instanceof Error ? err.message : String(err),
       };
     }

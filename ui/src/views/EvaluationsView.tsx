@@ -1,101 +1,101 @@
-import { useState } from 'react'
-import { useQuery, useMutation, useAction } from 'convex/react'
-import { useTenant } from '../contexts/TenantContext'
-import { api } from '../convex/_generated/api'
-import { Id, type Doc } from '../convex/_generated/dataModel'
-import { StatusChip } from '../components/StatusChip'
-import { CopyButton } from '../components/CopyButton'
-import { CreateSuiteModal } from '../components/CreateSuiteModal'
-import { CreateRunModal } from '../components/CreateRunModal'
-import { RunDetailsModal } from '../components/RunDetailsModal'
-import { SuiteStatistics } from '../components/SuiteStatistics'
-import { toast } from '../lib/toast'
-import { normalizeRate } from '../lib/metrics'
+import { useState } from 'react';
+import { useQuery, useMutation, useAction } from 'convex/react';
+import { api } from 'agent-resources-platform/convex/_generated/api';
+import { Id, type Doc } from 'agent-resources-platform/convex/_generated/dataModel';
+import { useTenant } from '../contexts/TenantContext';
+import { StatusChip } from '../components/StatusChip';
+import { CopyButton } from '../components/CopyButton';
+import { CreateSuiteModal } from '../components/CreateSuiteModal';
+import { CreateRunModal } from '../components/CreateRunModal';
+import { RunDetailsModal } from '../components/RunDetailsModal';
+import { SuiteStatistics } from '../components/SuiteStatistics';
+import { toast } from '../lib/toast';
+import { normalizeRate } from '../lib/metrics';
 
 type EvalRunStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED'
 type ViewMode = 'runs' | 'suites' | 'statistics'
 
 export function EvaluationsView() {
-  const [viewMode, setViewMode] = useState<ViewMode>('runs')
-  const [selectedStatus, setSelectedStatus] = useState<EvalRunStatus | 'ALL'>('ALL')
-  const [selectedRunId, setSelectedRunId] = useState<Id<'evaluationRuns'> | null>(null)
-  const [showCreateSuite, setShowCreateSuite] = useState(false)
-  const [showCreateRun, setShowCreateRun] = useState(false)
+  const [viewMode, setViewMode] = useState<ViewMode>('runs');
+  const [selectedStatus, setSelectedStatus] = useState<EvalRunStatus | 'ALL'>('ALL');
+  const [selectedRunId, setSelectedRunId] = useState<Id<'evaluationRuns'> | null>(null);
+  const [showCreateSuite, setShowCreateSuite] = useState(false);
+  const [showCreateRun, setShowCreateRun] = useState(false);
 
-  const { tenantId } = useTenant()
+  const { tenantId } = useTenant();
 
   const operators = useQuery(
     api.operators.list,
-    tenantId ? { tenantId } : 'skip'
-  )
-  const operatorId = operators?.[0]?._id
+    tenantId ? { tenantId } : 'skip',
+  );
+  const operatorId = operators?.[0]?._id;
 
   // Fetch evaluation runs
   const runs = useQuery(
     api.evaluationRuns.list,
     tenantId
       ? {
-          tenantId,
-          status: selectedStatus === 'ALL' ? undefined : selectedStatus,
-        }
-      : 'skip'
-  ) as Doc<'evaluationRuns'>[] | undefined
+        tenantId,
+        status: selectedStatus === 'ALL' ? undefined : selectedStatus,
+      }
+      : 'skip',
+  ) as Doc<'evaluationRuns'>[] | undefined;
 
   // Fetch evaluation suites
   const suites = useQuery(
     api.evaluationSuites.list,
-    tenantId ? { tenantId } : 'skip'
-  ) as Doc<'evaluationSuites'>[] | undefined
+    tenantId ? { tenantId } : 'skip',
+  ) as Doc<'evaluationSuites'>[] | undefined;
 
-  const executeRun = useAction(api.evaluationActions.executeRun)
-  const cancelRun = useMutation(api.evaluationRuns.cancel)
+  const executeRun = useAction(api.evaluationActions.executeRun);
+  const cancelRun = useMutation(api.evaluationRuns.cancel);
 
   const handleExecute = async (runId: Id<'evaluationRuns'>) => {
     try {
-      toast.info('Starting evaluation...')
-      const result = await executeRun({ runId })
+      toast.info('Starting evaluation...');
+      const result = await executeRun({ runId });
       if (result?.status === 'CANCELLED') {
-        toast.warning('Evaluation was cancelled before completion')
-        return
+        toast.warning('Evaluation was cancelled before completion');
+        return;
       }
-      toast.success('Evaluation completed successfully')
+      toast.success('Evaluation completed successfully');
     } catch (error) {
-      toast.error('Error: ' + (error as Error).message)
+      toast.error(`Error: ${(error as Error).message}`);
     }
-  }
+  };
 
   const handleCancel = async (runId: Id<'evaluationRuns'>) => {
     if (!operatorId) {
-      toast.error('No operator found')
-      return
+      toast.error('No operator found');
+      return;
     }
 
-    const confirm = window.confirm('Cancel this evaluation run?')
-    if (!confirm) return
+    const confirm = window.confirm('Cancel this evaluation run?');
+    if (!confirm) return;
 
     try {
-      await cancelRun({ runId, cancelledBy: operatorId })
-      toast.success('Evaluation cancelled')
-      setSelectedRunId(null)
+      await cancelRun({ runId, cancelledBy: operatorId });
+      toast.success('Evaluation cancelled');
+      setSelectedRunId(null);
     } catch (error) {
-      toast.error('Error: ' + (error as Error).message)
+      toast.error(`Error: ${(error as Error).message}`);
     }
-  }
+  };
 
   const refreshData = () => {
     // Convex automatically refreshes queries
-    toast.success('Data refreshed')
-  }
+    toast.success('Data refreshed');
+  };
 
   if (!tenantId) {
     return (
       <div className="p-8">
         <div className="text-arm-text-secondary">Loading...</div>
       </div>
-    )
+    );
   }
 
-  const filteredRuns = runs || []
+  const filteredRuns = runs || [];
 
   return (
     <div className="p-8">
@@ -180,7 +180,9 @@ export function EvaluationsView() {
               }`}
               onClick={() => setSelectedStatus('ALL')}
             >
-              All ({runs?.length || 0})
+              All (
+              {runs?.length || 0}
+              )
             </button>
             <button
               className={`px-4 py-2 rounded-lg transition-colors ${
@@ -190,7 +192,9 @@ export function EvaluationsView() {
               }`}
               onClick={() => setSelectedStatus('PENDING')}
             >
-              Pending ({runs?.filter(r => r.status === 'PENDING').length || 0})
+              Pending (
+              {runs?.filter((r) => r.status === 'PENDING').length || 0}
+              )
             </button>
             <button
               className={`px-4 py-2 rounded-lg transition-colors ${
@@ -200,7 +204,9 @@ export function EvaluationsView() {
               }`}
               onClick={() => setSelectedStatus('RUNNING')}
             >
-              Running ({runs?.filter(r => r.status === 'RUNNING').length || 0})
+              Running (
+              {runs?.filter((r) => r.status === 'RUNNING').length || 0}
+              )
             </button>
             <button
               className={`px-4 py-2 rounded-lg transition-colors ${
@@ -210,7 +216,9 @@ export function EvaluationsView() {
               }`}
               onClick={() => setSelectedStatus('COMPLETED')}
             >
-              Completed ({runs?.filter(r => r.status === 'COMPLETED').length || 0})
+              Completed (
+              {runs?.filter((r) => r.status === 'COMPLETED').length || 0}
+              )
             </button>
             <button
               className={`px-4 py-2 rounded-lg transition-colors ${
@@ -220,7 +228,9 @@ export function EvaluationsView() {
               }`}
               onClick={() => setSelectedStatus('FAILED')}
             >
-              Failed ({runs?.filter(r => r.status === 'FAILED').length || 0})
+              Failed (
+              {runs?.filter((r) => r.status === 'FAILED').length || 0}
+              )
             </button>
             <button
               className={`px-4 py-2 rounded-lg transition-colors ${
@@ -230,7 +240,9 @@ export function EvaluationsView() {
               }`}
               onClick={() => setSelectedStatus('CANCELLED')}
             >
-              Cancelled ({runs?.filter(r => r.status === 'CANCELLED').length || 0})
+              Cancelled (
+              {runs?.filter((r) => r.status === 'CANCELLED').length || 0}
+              )
             </button>
           </div>
 
@@ -257,7 +269,7 @@ export function EvaluationsView() {
                   </tr>
                 ) : (
                   filteredRuns.map((run) => {
-                    const suite = suites?.find(s => s._id === run.suiteId)
+                    const suite = suites?.find((s) => s._id === run.suiteId);
                     return (
                       <tr
                         key={run._id}
@@ -296,8 +308,8 @@ export function EvaluationsView() {
                             {run.status === 'PENDING' && (
                               <button
                                 onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleExecute(run._id)
+                                  e.stopPropagation();
+                                  handleExecute(run._id);
                                 }}
                                 className="px-3 py-1 text-sm bg-arm-accent text-white rounded hover:bg-arm-accent-hover"
                               >
@@ -307,8 +319,8 @@ export function EvaluationsView() {
                             {(run.status === 'PENDING' || run.status === 'RUNNING') && (
                               <button
                                 onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleCancel(run._id)
+                                  e.stopPropagation();
+                                  handleCancel(run._id);
                                 }}
                                 className="px-3 py-1 text-sm bg-arm-danger text-white rounded hover:bg-red-600"
                               >
@@ -318,7 +330,7 @@ export function EvaluationsView() {
                           </div>
                         </td>
                       </tr>
-                    )
+                    );
                   })
                 )}
               </tbody>
@@ -395,8 +407,8 @@ export function EvaluationsView() {
           operatorId={operatorId}
           onClose={() => setShowCreateSuite(false)}
           onSuccess={() => {
-            setShowCreateSuite(false)
-            refreshData()
+            setShowCreateSuite(false);
+            refreshData();
           }}
         />
       )}
@@ -406,11 +418,11 @@ export function EvaluationsView() {
           tenantId={tenantId}
           onClose={() => setShowCreateRun(false)}
           onSuccess={() => {
-            setShowCreateRun(false)
-            refreshData()
+            setShowCreateRun(false);
+            refreshData();
           }}
         />
       )}
     </div>
-  )
+  );
 }

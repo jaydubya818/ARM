@@ -1,8 +1,8 @@
-import { useState } from 'react'
-import { useQuery, useMutation } from 'convex/react'
-import { api } from '../convex/_generated/api'
-import { Id, type Doc } from '../convex/_generated/dataModel'
-import { toast } from '../lib/toast'
+import { useState } from 'react';
+import { useQuery, useMutation } from 'convex/react';
+import { api } from 'agent-resources-platform/convex/_generated/api';
+import { Id, type Doc } from 'agent-resources-platform/convex/_generated/dataModel';
+import { toast } from '../lib/toast';
 
 interface CreateVersionModalProps {
   tenantId: Id<'tenants'>
@@ -17,18 +17,20 @@ interface ToolEntry {
 }
 
 export function CreateVersionModal({ tenantId, onClose }: CreateVersionModalProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [tools, setTools] = useState<ToolEntry[]>([
-    { id: '1', toolId: '', schemaVersion: '1.0', requiredPermissions: '' },
-  ])
+    {
+      id: '1', toolId: '', schemaVersion: '1.0', requiredPermissions: '',
+    },
+  ]);
 
   const templates = useQuery(api.agentTemplates.list, { tenantId }) as
     | Doc<'agentTemplates'>[]
-    | undefined
+    | undefined;
   const versions = useQuery(api.agentVersions.list, { tenantId }) as
     | Doc<'agentVersions'>[]
-    | undefined
-  const createVersion = useMutation(api.agentVersions.create)
+    | undefined;
+  const createVersion = useMutation(api.agentVersions.create);
 
   const addTool = () => {
     setTools([
@@ -39,57 +41,57 @@ export function CreateVersionModal({ tenantId, onClose }: CreateVersionModalProp
         schemaVersion: '1.0',
         requiredPermissions: '',
       },
-    ])
-  }
+    ]);
+  };
 
   const removeTool = (id: string) => {
     if (tools.length === 1) {
-      toast.warning('At least one tool is required')
-      return
+      toast.warning('At least one tool is required');
+      return;
     }
-    setTools(tools.filter((t) => t.id !== id))
-  }
+    setTools(tools.filter((t) => t.id !== id));
+  };
 
   const updateTool = (id: string, field: keyof ToolEntry, value: string) => {
     setTools(
-      tools.map((t) => (t.id === id ? { ...t, [field]: value } : t))
-    )
-  }
+      tools.map((t) => (t.id === id ? { ...t, [field]: value } : t)),
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+    e.preventDefault();
+    setIsSubmitting(true);
 
-    const formData = new FormData(e.currentTarget)
-    const templateId = formData.get('templateId') as string
-    const versionLabel = formData.get('versionLabel') as string
-    const parentVersionId = formData.get('parentVersionId') as string
-    const provider = formData.get('provider') as string
-    const model = formData.get('model') as string
-    const temperature = formData.get('temperature') as string
-    const maxTokens = formData.get('maxTokens') as string
-    const promptBundleHash = formData.get('promptBundleHash') as string
+    const formData = new FormData(e.currentTarget);
+    const templateId = formData.get('templateId') as string;
+    const versionLabel = formData.get('versionLabel') as string;
+    const parentVersionId = formData.get('parentVersionId') as string;
+    const provider = formData.get('provider') as string;
+    const model = formData.get('model') as string;
+    const temperature = formData.get('temperature') as string;
+    const maxTokens = formData.get('maxTokens') as string;
+    const promptBundleHash = formData.get('promptBundleHash') as string;
 
     // Validate version label format (semver)
     if (!/^v\d+\.\d+\.\d+$/.test(versionLabel)) {
-      toast.error('Version label must be in semver format (e.g., v1.0.0)')
-      setIsSubmitting(false)
-      return
+      toast.error('Version label must be in semver format (e.g., v1.0.0)');
+      setIsSubmitting(false);
+      return;
     }
 
     // Validate prompt hash format (SHA-256)
     if (!/^[a-f0-9]{64}$/i.test(promptBundleHash)) {
-      toast.error('Prompt bundle hash must be a valid SHA-256 hash (64 hex characters)')
-      setIsSubmitting(false)
-      return
+      toast.error('Prompt bundle hash must be a valid SHA-256 hash (64 hex characters)');
+      setIsSubmitting(false);
+      return;
     }
 
     // Validate tools
-    const invalidTools = tools.filter((t) => !t.toolId.trim())
+    const invalidTools = tools.filter((t) => !t.toolId.trim());
     if (invalidTools.length > 0) {
-      toast.error('All tools must have a Tool ID')
-      setIsSubmitting(false)
-      return
+      toast.error('All tools must have a Tool ID');
+      setIsSubmitting(false);
+      return;
     }
 
     // Build genome
@@ -113,7 +115,7 @@ export function CreateVersionModal({ tenantId, onClose }: CreateVersionModalProp
         builtAt: new Date().toISOString(),
         builtBy: 'ops@arm-dev.com', // TODO: Get from auth
       },
-    }
+    };
 
     try {
       await createVersion({
@@ -124,15 +126,15 @@ export function CreateVersionModal({ tenantId, onClose }: CreateVersionModalProp
         parentVersionId: parentVersionId
           ? (parentVersionId as Id<'agentVersions'>)
           : undefined,
-      })
-      toast.success('Version created successfully')
-      onClose()
+      });
+      toast.success('Version created successfully');
+      onClose();
     } catch (error) {
-      toast.error('Error creating version: ' + (error as Error).message)
+      toast.error(`Error creating version: ${(error as Error).message}`);
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -317,7 +319,9 @@ export function CreateVersionModal({ tenantId, onClose }: CreateVersionModalProp
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-semibold text-arm-textMuted">
-                    Tool {index + 1}
+                    Tool
+                    {' '}
+                    {index + 1}
                   </span>
                   {tools.length > 1 && (
                     <button
@@ -337,9 +341,7 @@ export function CreateVersionModal({ tenantId, onClose }: CreateVersionModalProp
                   <input
                     type="text"
                     value={tool.toolId}
-                    onChange={(e) =>
-                      updateTool(tool.id, 'toolId', e.target.value)
-                    }
+                    onChange={(e) => updateTool(tool.id, 'toolId', e.target.value)}
                     required
                     className="w-full px-3 py-2 bg-arm-surface border border-arm-border rounded text-arm-text text-sm focus:border-arm-accent focus:outline-none"
                     placeholder="zendesk_search"
@@ -354,9 +356,7 @@ export function CreateVersionModal({ tenantId, onClose }: CreateVersionModalProp
                     <input
                       type="text"
                       value={tool.schemaVersion}
-                      onChange={(e) =>
-                        updateTool(tool.id, 'schemaVersion', e.target.value)
-                      }
+                      onChange={(e) => updateTool(tool.id, 'schemaVersion', e.target.value)}
                       required
                       className="w-full px-3 py-2 bg-arm-surface border border-arm-border rounded text-arm-text text-sm focus:border-arm-accent focus:outline-none"
                       placeholder="1.0"
@@ -370,13 +370,11 @@ export function CreateVersionModal({ tenantId, onClose }: CreateVersionModalProp
                     <input
                       type="text"
                       value={tool.requiredPermissions}
-                      onChange={(e) =>
-                        updateTool(
-                          tool.id,
-                          'requiredPermissions',
-                          e.target.value
-                        )
-                      }
+                      onChange={(e) => updateTool(
+                        tool.id,
+                        'requiredPermissions',
+                        e.target.value,
+                      )}
                       className="w-full px-3 py-2 bg-arm-surface border border-arm-border rounded text-arm-text text-sm focus:border-arm-accent focus:outline-none"
                       placeholder="zendesk:read"
                     />
@@ -407,5 +405,5 @@ export function CreateVersionModal({ tenantId, onClose }: CreateVersionModalProp
         </form>
       </div>
     </div>
-  )
+  );
 }

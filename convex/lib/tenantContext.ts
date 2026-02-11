@@ -1,27 +1,27 @@
 /**
  * Tenant Context Helpers
- * 
+ *
  * Ensures all operations are scoped to the correct tenant.
  */
 
-import { QueryCtx, MutationCtx } from "../_generated/server";
-import { Id } from "../_generated/dataModel";
-import { getOperatorByIdentity } from "./rbac";
+import { QueryCtx, MutationCtx } from '../_generated/server';
+import { Id } from '../_generated/dataModel';
+import { getOperatorByIdentity } from './rbac';
 
 /**
  * Get the tenant ID for the current authenticated operator
  */
 export async function getTenantContext(
-  ctx: QueryCtx | MutationCtx
-): Promise<Id<"tenants">> {
+  ctx: QueryCtx | MutationCtx,
+): Promise<Id<'tenants'>> {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) {
-    throw new Error("Not authenticated");
+    throw new Error('Not authenticated');
   }
 
   const operator = await getOperatorByIdentity(ctx, identity);
   if (!operator) {
-    throw new Error("Operator not found");
+    throw new Error('Operator not found');
   }
 
   return operator.tenantId;
@@ -32,12 +32,12 @@ export async function getTenantContext(
  */
 export async function validateTenantAccess(
   ctx: QueryCtx | MutationCtx,
-  resourceTenantId: Id<"tenants">
+  resourceTenantId: Id<'tenants'>,
 ): Promise<void> {
   const operatorTenantId = await getTenantContext(ctx);
 
   if (operatorTenantId !== resourceTenantId) {
-    throw new Error("Access denied: Resource belongs to different tenant");
+    throw new Error('Access denied: Resource belongs to different tenant');
   }
 }
 
@@ -45,16 +45,16 @@ export async function validateTenantAccess(
  * Get operator from current auth context
  */
 export async function getCurrentOperator(
-  ctx: QueryCtx | MutationCtx
+  ctx: QueryCtx | MutationCtx,
 ): Promise<any> {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) {
-    throw new Error("Not authenticated");
+    throw new Error('Not authenticated');
   }
 
   const operator = await getOperatorByIdentity(ctx, identity);
   if (!operator) {
-    throw new Error("Operator not found");
+    throw new Error('Operator not found');
   }
 
   return operator;

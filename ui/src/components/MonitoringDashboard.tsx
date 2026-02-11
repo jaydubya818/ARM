@@ -1,7 +1,9 @@
-import { useQuery } from "convex/react";
-import { api } from "../convex/_generated/api";
-import { Activity, AlertTriangle, CheckCircle, Clock, TrendingUp, Zap } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useQuery } from 'convex/react';
+import {
+  Activity, AlertTriangle, CheckCircle, Clock, TrendingUp, Zap,
+} from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { api } from 'agent-resources-platform/convex/_generated/api';
 
 export function MonitoringDashboard() {
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -17,7 +19,7 @@ export function MonitoringDashboard() {
 
     const interval = setInterval(() => {
       // Force re-query by updating a dummy state
-      setRefreshInterval(prev => prev);
+      setRefreshInterval((prev) => prev);
     }, refreshInterval);
 
     return () => clearInterval(interval);
@@ -26,7 +28,7 @@ export function MonitoringDashboard() {
   if (!metrics || !health) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-arm-primary"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-arm-primary" />
       </div>
     );
   }
@@ -150,7 +152,8 @@ export function MonitoringDashboard() {
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm text-arm-text-secondary">Average Latency</span>
                 <span className="text-sm font-mono text-arm-text">
-                  {metrics.queries.avgLatency.toFixed(2)}ms
+                  {metrics.queries.avgLatency.toFixed(2)}
+                  ms
                 </span>
               </div>
               <div className="w-full bg-arm-bg-secondary rounded-full h-2">
@@ -165,7 +168,8 @@ export function MonitoringDashboard() {
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm text-arm-text-secondary">P95 Latency</span>
                 <span className="text-sm font-mono text-arm-text">
-                  {metrics.queries.p95Latency.toFixed(2)}ms
+                  {metrics.queries.p95Latency.toFixed(2)}
+                  ms
                 </span>
               </div>
               <div className="w-full bg-arm-bg-secondary rounded-full h-2">
@@ -180,7 +184,8 @@ export function MonitoringDashboard() {
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm text-arm-text-secondary">Success Rate</span>
                 <span className="text-sm font-mono text-arm-text">
-                  {metrics.queries.successRate.toFixed(1)}%
+                  {metrics.queries.successRate.toFixed(1)}
+                  %
                 </span>
               </div>
               <div className="w-full bg-arm-bg-secondary rounded-full h-2">
@@ -212,7 +217,8 @@ export function MonitoringDashboard() {
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm text-arm-text-secondary">Average Latency</span>
                 <span className="text-sm font-mono text-arm-text">
-                  {metrics.mutations.avgLatency.toFixed(2)}ms
+                  {metrics.mutations.avgLatency.toFixed(2)}
+                  ms
                 </span>
               </div>
               <div className="w-full bg-arm-bg-secondary rounded-full h-2">
@@ -227,7 +233,8 @@ export function MonitoringDashboard() {
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm text-arm-text-secondary">P95 Latency</span>
                 <span className="text-sm font-mono text-arm-text">
-                  {metrics.mutations.p95Latency.toFixed(2)}ms
+                  {metrics.mutations.p95Latency.toFixed(2)}
+                  ms
                 </span>
               </div>
               <div className="w-full bg-arm-bg-secondary rounded-full h-2">
@@ -242,7 +249,8 @@ export function MonitoringDashboard() {
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm text-arm-text-secondary">Success Rate</span>
                 <span className="text-sm font-mono text-arm-text">
-                  {metrics.mutations.successRate.toFixed(1)}%
+                  {metrics.mutations.successRate.toFixed(1)}
+                  %
                 </span>
               </div>
               <div className="w-full bg-arm-bg-secondary rounded-full h-2">
@@ -274,10 +282,13 @@ export function MonitoringDashboard() {
           <div>
             <div className="text-sm text-arm-text-secondary mb-1">Error Rate</div>
             <div className="text-2xl font-bold text-arm-text">
-              {metrics.errors.rate.toFixed(2)}%
+              {metrics.errors.rate.toFixed(2)}
+              %
             </div>
             <div className="text-xs text-arm-text-secondary mt-1">
-              {metrics.errors.count} errors
+              {metrics.errors.count}
+              {' '}
+              errors
             </div>
           </div>
 
@@ -287,7 +298,9 @@ export function MonitoringDashboard() {
               {metrics.errors.topErrors[0]?.type || 'None'}
             </div>
             <div className="text-xs text-arm-text-secondary mt-1">
-              {metrics.errors.topErrors[0]?.count || 0} occurrences
+              {metrics.errors.topErrors[0]?.count || 0}
+              {' '}
+              occurrences
             </div>
           </div>
 
@@ -319,15 +332,21 @@ export function MonitoringDashboard() {
                 <div>
                   <div className="font-mono text-sm text-arm-text">{query.name}</div>
                   <div className="text-xs text-arm-text-secondary">
-                    {query.count} calls
+                    {query.count}
+                    {' '}
+                    calls
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="text-sm font-semibold text-arm-text">
-                    {query.avgLatency.toFixed(2)}ms
+                    {query.avgLatency.toFixed(2)}
+                    ms
                   </div>
                   <div className="text-xs text-arm-text-secondary">
-                    p95: {query.p95Latency.toFixed(2)}ms
+                    p95:
+                    {' '}
+                    {query.p95Latency.toFixed(2)}
+                    ms
                   </div>
                 </div>
               </div>
@@ -346,7 +365,10 @@ export function MonitoringDashboard() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
           <div>
             <div className="text-arm-text-secondary mb-1">Uptime</div>
-            <div className="font-mono text-arm-text">{health.uptime}s</div>
+            <div className="font-mono text-arm-text">
+              {health.uptime}
+              s
+            </div>
           </div>
 
           <div>

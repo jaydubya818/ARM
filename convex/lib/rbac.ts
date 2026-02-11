@@ -1,25 +1,25 @@
 /**
  * RBAC Helper Functions
- * 
+ *
  * Authorization and permission checking utilities.
  */
 
-import { QueryCtx, MutationCtx } from "../_generated/server";
-import { Id } from "../_generated/dataModel";
+import { QueryCtx, MutationCtx } from '../_generated/server';
+import { Id } from '../_generated/dataModel';
 
 /**
  * Get operator by auth identity (Clerk subject or other provider)
  */
 export async function getOperatorByIdentity(
   ctx: QueryCtx | MutationCtx,
-  identity: { subject?: string } | null
+  identity: { subject?: string } | null,
 ): Promise<any> {
   const subject = identity?.subject;
   if (!subject) return null;
 
   const operator = await ctx.db
-    .query("operators")
-    .withIndex("by_auth", (q) => q.eq("authIdentity", subject))
+    .query('operators')
+    .withIndex('by_auth', (q) => q.eq('authIdentity', subject))
     .first();
 
   return operator ?? null;
@@ -30,18 +30,18 @@ export async function getOperatorByIdentity(
  */
 export async function getOperatorPermissions(
   ctx: QueryCtx | MutationCtx,
-  operatorId: Id<"operators">
+  operatorId: Id<'operators'>,
 ): Promise<string[]> {
   // Get operator's role assignments
   const assignments = await ctx.db
-    .query("roleAssignments")
-    .withIndex("by_operator", (q) => q.eq("operatorId", operatorId))
+    .query('roleAssignments')
+    .withIndex('by_operator', (q) => q.eq('operatorId', operatorId))
     .collect();
 
   // Filter out expired assignments
   const now = Date.now();
   const activeAssignments = assignments.filter(
-    (a) => !a.expiresAt || a.expiresAt > now
+    (a) => !a.expiresAt || a.expiresAt > now,
   );
 
   // Get all roles
@@ -66,8 +66,8 @@ export async function getOperatorPermissions(
  */
 export async function hasPermission(
   ctx: QueryCtx | MutationCtx,
-  operatorId: Id<"operators">,
-  permission: string
+  operatorId: Id<'operators'>,
+  permission: string,
 ): Promise<boolean> {
   const permissions = await getOperatorPermissions(ctx, operatorId);
   return permissions.includes(permission);
@@ -78,8 +78,8 @@ export async function hasPermission(
  */
 export async function hasAnyPermission(
   ctx: QueryCtx | MutationCtx,
-  operatorId: Id<"operators">,
-  permissions: string[]
+  operatorId: Id<'operators'>,
+  permissions: string[],
 ): Promise<boolean> {
   const operatorPermissions = await getOperatorPermissions(ctx, operatorId);
   return permissions.some((p) => operatorPermissions.includes(p));
@@ -90,8 +90,8 @@ export async function hasAnyPermission(
  */
 export async function hasAllPermissions(
   ctx: QueryCtx | MutationCtx,
-  operatorId: Id<"operators">,
-  permissions: string[]
+  operatorId: Id<'operators'>,
+  permissions: string[],
 ): Promise<boolean> {
   const operatorPermissions = await getOperatorPermissions(ctx, operatorId);
   return permissions.every((p) => operatorPermissions.includes(p));
@@ -102,8 +102,8 @@ export async function hasAllPermissions(
  */
 export async function requirePermission(
   ctx: QueryCtx | MutationCtx,
-  operatorId: Id<"operators">,
-  permission: string
+  operatorId: Id<'operators'>,
+  permission: string,
 ): Promise<void> {
   const allowed = await hasPermission(ctx, operatorId, permission);
   if (!allowed) {
@@ -116,13 +116,13 @@ export async function requirePermission(
  */
 export async function requireAnyPermission(
   ctx: QueryCtx | MutationCtx,
-  operatorId: Id<"operators">,
-  permissions: string[]
+  operatorId: Id<'operators'>,
+  permissions: string[],
 ): Promise<void> {
   const allowed = await hasAnyPermission(ctx, operatorId, permissions);
   if (!allowed) {
     throw new Error(
-      `Permission denied: requires one of [${permissions.join(", ")}]`
+      `Permission denied: requires one of [${permissions.join(', ')}]`,
     );
   }
 }
@@ -132,13 +132,13 @@ export async function requireAnyPermission(
  */
 export async function requireAllPermissions(
   ctx: QueryCtx | MutationCtx,
-  operatorId: Id<"operators">,
-  permissions: string[]
+  operatorId: Id<'operators'>,
+  permissions: string[],
 ): Promise<void> {
   const allowed = await hasAllPermissions(ctx, operatorId, permissions);
   if (!allowed) {
     throw new Error(
-      `Permission denied: requires all of [${permissions.join(", ")}]`
+      `Permission denied: requires all of [${permissions.join(', ')}]`,
     );
   }
 }
@@ -148,8 +148,8 @@ export async function requireAllPermissions(
  */
 export async function hasRole(
   ctx: QueryCtx | MutationCtx,
-  operatorId: Id<"operators">,
-  roleName: string
+  operatorId: Id<'operators'>,
+  roleName: string,
 ): Promise<boolean> {
   // Get operator
   const operator = await ctx.db.get(operatorId);
@@ -157,19 +157,17 @@ export async function hasRole(
 
   // Get role by name
   const role = await ctx.db
-    .query("roles")
-    .withIndex("by_name", (q) =>
-      q.eq("tenantId", operator.tenantId).eq("name", roleName)
-    )
+    .query('roles')
+    .withIndex('by_name', (q) => q.eq('tenantId', operator.tenantId).eq('name', roleName))
     .first();
 
   if (!role) return false;
 
   // Check if operator has this role
   const assignment = await ctx.db
-    .query("roleAssignments")
-    .withIndex("by_operator", (q) => q.eq("operatorId", operatorId))
-    .filter((q) => q.eq(q.field("roleId"), role._id))
+    .query('roleAssignments')
+    .withIndex('by_operator', (q) => q.eq('operatorId', operatorId))
+    .filter((q) => q.eq(q.field('roleId'), role._id))
     .first();
 
   if (!assignment) return false;
@@ -184,9 +182,9 @@ export async function hasRole(
  */
 export async function isAdmin(
   ctx: QueryCtx | MutationCtx,
-  operatorId: Id<"operators">
+  operatorId: Id<'operators'>,
 ): Promise<boolean> {
-  return await hasRole(ctx, operatorId, "Admin");
+  return await hasRole(ctx, operatorId, 'Admin');
 }
 
 /**
@@ -194,9 +192,9 @@ export async function isAdmin(
  */
 export async function isSuperAdmin(
   ctx: QueryCtx | MutationCtx,
-  operatorId: Id<"operators">
+  operatorId: Id<'operators'>,
 ): Promise<boolean> {
-  return await hasRole(ctx, operatorId, "Super Admin");
+  return await hasRole(ctx, operatorId, 'Super Admin');
 }
 
 /**
@@ -204,23 +202,23 @@ export async function isSuperAdmin(
  */
 export async function getOperatorRoles(
   ctx: QueryCtx | MutationCtx,
-  operatorId: Id<"operators">
+  operatorId: Id<'operators'>,
 ): Promise<any[]> {
   // Get assignments
   const assignments = await ctx.db
-    .query("roleAssignments")
-    .withIndex("by_operator", (q) => q.eq("operatorId", operatorId))
+    .query('roleAssignments')
+    .withIndex('by_operator', (q) => q.eq('operatorId', operatorId))
     .collect();
 
   // Filter out expired
   const now = Date.now();
   const activeAssignments = assignments.filter(
-    (a) => !a.expiresAt || a.expiresAt > now
+    (a) => !a.expiresAt || a.expiresAt > now,
   );
 
   // Get roles
   const roles = await Promise.all(
-    activeAssignments.map((a) => ctx.db.get(a.roleId))
+    activeAssignments.map((a) => ctx.db.get(a.roleId)),
   );
 
   return roles.filter((r) => r !== null);

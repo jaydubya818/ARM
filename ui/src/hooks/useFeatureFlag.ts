@@ -1,25 +1,25 @@
-import { useQuery } from "convex/react";
-import { api } from "../convex/_generated/api";
-import type { Id } from "../convex/_generated/dataModel";
+import { useQuery } from 'convex/react';
+import { api } from 'agent-resources-platform/convex/_generated/api';
+import type { Id } from 'agent-resources-platform/convex/_generated/dataModel';
 
 /**
  * Check if a single feature flag is enabled
  */
 export function useFeatureFlag(
-  tenantId: Id<"tenants"> | undefined,
+  tenantId: Id<'tenants'> | undefined,
   flagKey: string,
-  operatorId?: Id<"operators">
+  operatorId?: Id<'operators'>,
 ) {
   const enabled = useQuery(
     api.featureFlags.isEnabled,
     tenantId && flagKey
       ? {
-          tenantId,
-          flagKey,
-          operatorId,
-          environment: import.meta.env.MODE,
-        }
-      : "skip"
+        tenantId,
+        flagKey,
+        operatorId,
+        environment: import.meta.env.MODE,
+      }
+      : 'skip',
   );
 
   return {
@@ -32,18 +32,18 @@ export function useFeatureFlag(
  * Get all feature flags for current operator (batch)
  */
 export function useFeatureFlags(
-  tenantId: Id<"tenants"> | undefined,
-  operatorId?: Id<"operators">
+  tenantId: Id<'tenants'> | undefined,
+  operatorId?: Id<'operators'>,
 ) {
   const flags = useQuery(
     api.featureFlags.getFlagsForOperator,
     tenantId
       ? {
-          tenantId,
-          operatorId,
-          environment: import.meta.env.MODE,
-        }
-      : "skip"
+        tenantId,
+        operatorId,
+        environment: import.meta.env.MODE,
+      }
+      : 'skip',
   );
 
   return {

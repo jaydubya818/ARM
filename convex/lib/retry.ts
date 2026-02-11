@@ -1,6 +1,6 @@
 /**
  * Retry Logic with Exponential Backoff
- * 
+ *
  * Provides retry mechanisms for transient failures with
  * configurable backoff strategies.
  */
@@ -72,18 +72,18 @@ const DEFAULT_OPTIONS: Required<RetryOptions> = {
  */
 function calculateDelay(
   attempt: number,
-  options: Required<RetryOptions>
+  options: Required<RetryOptions>,
 ): number {
-  const exponentialDelay = options.initialDelay * Math.pow(options.backoffMultiplier, attempt - 1);
+  const exponentialDelay = options.initialDelay * options.backoffMultiplier ** (attempt - 1);
   const cappedDelay = Math.min(exponentialDelay, options.maxDelay);
-  
+
   if (options.jitter) {
     // Add random jitter (±25%)
     const jitterRange = cappedDelay * 0.25;
     const jitter = Math.random() * jitterRange * 2 - jitterRange;
     return Math.max(0, cappedDelay + jitter);
   }
-  
+
   return cappedDelay;
 }
 
@@ -91,7 +91,7 @@ function calculateDelay(
  * Sleep for specified milliseconds
  */
 function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -100,16 +100,14 @@ function sleep(ms: number): Promise<void> {
 async function withTimeout<T>(
   fn: () => Promise<T>,
   timeoutMs: number,
-  operation: string
+  operation: string,
 ): Promise<T> {
   return Promise.race([
     fn(),
-    new Promise<T>((_, reject) =>
-      setTimeout(
-        () => reject(new TimeoutError(operation, timeoutMs)),
-        timeoutMs
-      )
-    ),
+    new Promise<T>((_, reject) => setTimeout(
+      () => reject(new TimeoutError(operation, timeoutMs)),
+      timeoutMs,
+    )),
   ]);
 }
 
@@ -118,40 +116,40 @@ async function withTimeout<T>(
  */
 export async function retry<T>(
   fn: () => Promise<T>,
-  options: RetryOptions = {}
+  options: RetryOptions = {},
 ): Promise<T> {
   const opts = { ...DEFAULT_OPTIONS, ...options };
   let lastError: unknown;
-  
+
   for (let attempt = 1; attempt <= opts.maxAttempts; attempt++) {
     try {
       // Execute with timeout
       const result = await withTimeout(
         fn,
         opts.timeout,
-        `retry attempt ${attempt}`
+        `retry attempt ${attempt}`,
       );
       return result;
     } catch (error) {
       lastError = error;
-      
+
       // Check if we should retry
       const shouldRetry = opts.isRetryable(error);
       const isLastAttempt = attempt === opts.maxAttempts;
-      
+
       if (!shouldRetry || isLastAttempt) {
         // Don't retry or this was the last attempt
         throw error;
       }
-      
+
       // Calculate delay and wait
       const delay = calculateDelay(attempt, opts);
       opts.onRetry(attempt, error, delay);
-      
+
       await sleep(delay);
     }
   }
-  
+
   // This should never be reached, but TypeScript needs it
   throw lastError;
 }
@@ -162,7 +160,7 @@ export async function retry<T>(
 export async function retryWithContext<T>(
   fn: () => Promise<T>,
   operation: string,
-  options: RetryOptions = {}
+  options: RetryOptions = {},
 ): Promise<T> {
   return retry(fn, {
     ...options,
@@ -181,7 +179,7 @@ export async function retryWithContext<T>(
 export async function retryMutation<T>(
   mutation: () => Promise<T>,
   operation: string,
-  options: RetryOptions = {}
+  options: RetryOptions = {},
 ): Promise<T> {
   try {
     return await retryWithContext(mutation, operation, options);
@@ -204,7 +202,7 @@ export async function retryMutation<T>(
 export async function retryQuery<T>(
   query: () => Promise<T>,
   operation: string,
-  options: RetryOptions = {}
+  options: RetryOptions = {},
 ): Promise<T> {
   try {
     return await retryWithContext(query, operation, {
@@ -229,16 +227,16 @@ export async function retryQuery<T>(
  */
 export async function retryBatch<T>(
   operations: Array<() => Promise<T>>,
-  options: RetryOptions = {}
+  options: RetryOptions = {},
 ): Promise<T[]> {
   const results = await Promise.allSettled(
-    operations.map(op => retry(op, options))
+    operations.map((op) => retry(op, options)),
   );
-  
+
   // Collect successful results and errors
   const successResults: T[] = [];
   const errors: unknown[] = [];
-  
+
   results.forEach((result, index) => {
     if (result.status === 'fulfilled') {
       successResults.push(result.value);
@@ -246,17 +244,17 @@ export async function retryBatch<T>(
       errors.push(result.reason);
     }
   });
-  
+
   // If all failed, throw the first error
   if (errors.length === operations.length) {
     throw errors[0];
   }
-  
+
   // If some failed, log warnings but return successful results
   if (errors.length > 0) {
     console.warn(`Batch retry: ${errors.length} of ${operations.length} operations failed`);
   }
-  
+
   return successResults;
 }
 
@@ -264,14 +262,16 @@ export async function retryBatch<T>(
  * Circuit breaker pattern for preventing cascading failures
  */
 export class CircuitBreaker {
-  private failures: number = 0;
-  private lastFailureTime: number = 0;
+  private failures = 0;
+
+  private lastFailureTime = 0;
+
   private state: 'CLOSED' | 'OPEN' | 'HALF_OPEN' = 'CLOSED';
 
   constructor(
     private readonly threshold: number = 5,
     private readonly timeout: number = 60000,
-    private readonly resetTimeout: number = 30000
+    private readonly resetTimeout: number = 30000,
   ) {}
 
   async execute<T>(fn: () => Promise<T>): Promise<T> {
@@ -286,11 +286,11 @@ export class CircuitBreaker {
 
     try {
       const result = await withTimeout(fn, this.timeout, 'circuit-breaker');
-      
+
       if (this.state === 'HALF_OPEN') {
         this.reset();
       }
-      
+
       return result;
     } catch (error) {
       this.recordFailure();
@@ -301,7 +301,7 @@ export class CircuitBreaker {
   private recordFailure(): void {
     this.failures++;
     this.lastFailureTime = Date.now();
-    
+
     if (this.failures >= this.threshold) {
       this.state = 'OPEN';
       console.warn(`Circuit breaker opened after ${this.failures} failures`);
@@ -332,12 +332,12 @@ export function createCircuitBreaker(
     threshold?: number;
     timeout?: number;
     resetTimeout?: number;
-  }
+  },
 ): CircuitBreaker {
   return new CircuitBreaker(
     options?.threshold,
     options?.timeout,
-    options?.resetTimeout
+    options?.resetTimeout,
   );
 }
 
@@ -347,10 +347,10 @@ export function createCircuitBreaker(
 export async function retryWithCircuitBreaker<T>(
   fn: () => Promise<T>,
   circuitBreaker: CircuitBreaker,
-  retryOptions: RetryOptions = {}
+  retryOptions: RetryOptions = {},
 ): Promise<T> {
   return retry(
     () => circuitBreaker.execute(fn),
-    retryOptions
+    retryOptions,
   );
 }

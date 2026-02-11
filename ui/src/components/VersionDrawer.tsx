@@ -1,6 +1,6 @@
-import { useQuery } from 'convex/react'
-import { api } from '../convex/_generated/api'
-import { Id } from '../convex/_generated/dataModel'
+import { useQuery } from 'convex/react';
+import { api } from 'agent-resources-platform/convex/_generated/api';
+import { Id } from 'agent-resources-platform/convex/_generated/dataModel';
 
 interface VersionDrawerProps {
   versionId: Id<'agentVersions'> | null
@@ -10,22 +10,22 @@ interface VersionDrawerProps {
 export function VersionDrawer({ versionId, onClose }: VersionDrawerProps) {
   const version = useQuery(
     api.agentVersions.get,
-    versionId ? { versionId } : 'skip'
-  )
-  
+    versionId ? { versionId } : 'skip',
+  );
+
   const lineage = useQuery(
     api.agentVersions.getLineage,
-    versionId ? { versionId } : 'skip'
-  )
-  
+    versionId ? { versionId } : 'skip',
+  );
+
   const changeRecords = useQuery(
     api.changeRecords.listByTarget,
     versionId
       ? { targetEntity: 'agentVersion', targetId: versionId }
-      : 'skip'
-  )
+      : 'skip',
+  );
 
-  if (!versionId) return null
+  if (!versionId) return null;
 
   return (
     <div className="fixed inset-y-0 right-0 w-[600px] bg-arm-surfaceLight border-l border-arm-border shadow-2xl overflow-y-auto">
@@ -57,7 +57,9 @@ export function VersionDrawer({ versionId, onClose }: VersionDrawerProps) {
                 {version.lifecycleState}
               </span>
               <span className="px-3 py-1 rounded-full text-xs font-medium bg-arm-blue text-white">
-                Eval: {version.evalStatus}
+                Eval:
+                {' '}
+                {version.evalStatus}
               </span>
               {version.integrityStatus && (
                 <span
@@ -123,7 +125,10 @@ export function VersionDrawer({ versionId, onClose }: VersionDrawerProps) {
           {/* Tool Manifest */}
           <section>
             <h3 className="text-sm font-semibold text-arm-textMuted mb-2">
-              Tool Manifest ({version.genome.toolManifest.length} tools)
+              Tool Manifest (
+              {version.genome.toolManifest.length}
+              {' '}
+              tools)
             </h3>
             <div className="space-y-2">
               {version.genome.toolManifest.map((tool: any, idx: number) => (
@@ -135,7 +140,11 @@ export function VersionDrawer({ versionId, onClose }: VersionDrawerProps) {
                     {tool.toolId}
                   </div>
                   <div className="text-xs text-arm-textMuted mt-1">
-                    v{tool.schemaVersion} •{' '}
+                    v
+                    {tool.schemaVersion}
+                    {' '}
+                    •
+                    {' '}
                     {tool.requiredPermissions.join(', ')}
                   </div>
                 </div>
@@ -168,7 +177,9 @@ export function VersionDrawer({ versionId, onClose }: VersionDrawerProps) {
                       {v.versionLabel}
                     </span>
                     <span className="text-xs text-arm-textMuted">
-                      ({v.lifecycleState})
+                      (
+                      {v.lifecycleState}
+                      )
                     </span>
                   </div>
                 ))}
@@ -207,5 +218,5 @@ export function VersionDrawer({ versionId, onClose }: VersionDrawerProps) {
         </div>
       )}
     </div>
-  )
+  );
 }

@@ -1,33 +1,33 @@
-import { query, mutation } from "./_generated/server";
-import { v } from "convex/values";
+import { v } from 'convex/values';
+import { query, mutation } from './_generated/server';
 
 /**
  * Create a new approval request
  */
 export const create = mutation({
   args: {
-    tenantId: v.id("tenants"),
+    tenantId: v.id('tenants'),
     requestType: v.string(),
     targetId: v.string(),
-    requestedBy: v.id("operators"),
+    requestedBy: v.id('operators'),
     justification: v.optional(v.string()),
     context: v.optional(v.any()),
   },
   handler: async (ctx, args) => {
     // Insert approval record
-    const approvalId = await ctx.db.insert("approvalRecords", {
+    const approvalId = await ctx.db.insert('approvalRecords', {
       tenantId: args.tenantId,
       requestType: args.requestType,
       targetId: args.targetId,
-      status: "PENDING",
+      status: 'PENDING',
       requestedBy: args.requestedBy,
     });
 
     // Write change record
-    await ctx.db.insert("changeRecords", {
+    await ctx.db.insert('changeRecords', {
       tenantId: args.tenantId,
-      type: "APPROVAL_REQUESTED",
-      targetEntity: "approvalRecord",
+      type: 'APPROVAL_REQUESTED',
+      targetEntity: 'approvalRecord',
       targetId: approvalId,
       operatorId: args.requestedBy,
       payload: {
@@ -48,16 +48,16 @@ export const create = mutation({
  */
 export const list = query({
   args: {
-    tenantId: v.id("tenants"),
+    tenantId: v.id('tenants'),
     status: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     let query = ctx.db
-      .query("approvalRecords")
-      .withIndex("by_tenant", (q) => q.eq("tenantId", args.tenantId));
+      .query('approvalRecords')
+      .withIndex('by_tenant', (q) => q.eq('tenantId', args.tenantId));
 
     if (args.status) {
-      query = query.filter((q) => q.eq(q.field("status"), args.status));
+      query = query.filter((q) => q.eq(q.field('status'), args.status));
     }
 
     const records = await query.collect();
@@ -72,12 +72,12 @@ export const list = query({
 
         return {
           ...record,
-          requesterName: requester?.name || "Unknown",
-          requesterEmail: requester?.email || "",
+          requesterName: requester?.name || 'Unknown',
+          requesterEmail: requester?.email || '',
           deciderName: decider?.name,
           deciderEmail: decider?.email,
         };
-      })
+      }),
     );
 
     return enriched;
@@ -89,7 +89,7 @@ export const list = query({
  */
 export const get = query({
   args: {
-    approvalId: v.id("approvalRecords"),
+    approvalId: v.id('approvalRecords'),
   },
   handler: async (ctx, args) => {
     const record = await ctx.db.get(args.approvalId);
@@ -106,16 +106,14 @@ export const get = query({
 
     // Get related change records
     const changeRecords = await ctx.db
-      .query("changeRecords")
-      .withIndex("by_target", (q) =>
-        q.eq("targetEntity", "approvalRecord").eq("targetId", args.approvalId)
-      )
+      .query('changeRecords')
+      .withIndex('by_target', (q) => q.eq('targetEntity', 'approvalRecord').eq('targetId', args.approvalId))
       .collect();
 
     return {
       ...record,
-      requesterName: requester?.name || "Unknown",
-      requesterEmail: requester?.email || "",
+      requesterName: requester?.name || 'Unknown',
+      requesterEmail: requester?.email || '',
       deciderName: decider?.name,
       deciderEmail: decider?.email,
       changeRecords,
@@ -128,21 +126,21 @@ export const get = query({
  */
 export const decide = mutation({
   args: {
-    approvalId: v.id("approvalRecords"),
-    decision: v.union(v.literal("APPROVED"), v.literal("DENIED")),
-    decidedBy: v.id("operators"),
+    approvalId: v.id('approvalRecords'),
+    decision: v.union(v.literal('APPROVED'), v.literal('DENIED')),
+    decidedBy: v.id('operators'),
     reason: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const record = await ctx.db.get(args.approvalId);
 
     if (!record) {
-      throw new Error("Approval record not found");
+      throw new Error('Approval record not found');
     }
 
-    if (record.status !== "PENDING") {
+    if (record.status !== 'PENDING') {
       throw new Error(
-        `Cannot decide on approval with status: ${record.status}`
+        `Cannot decide on approval with status: ${record.status}`,
       );
     }
 
@@ -153,10 +151,10 @@ export const decide = mutation({
     });
 
     // Write change record
-    await ctx.db.insert("changeRecords", {
+    await ctx.db.insert('changeRecords', {
       tenantId: record.tenantId,
-      type: "APPROVAL_DECIDED",
-      targetEntity: "approvalRecord",
+      type: 'APPROVAL_DECIDED',
+      targetEntity: 'approvalRecord',
       targetId: args.approvalId,
       operatorId: args.decidedBy,
       payload: {
@@ -181,38 +179,38 @@ export const decide = mutation({
  */
 export const cancel = mutation({
   args: {
-    approvalId: v.id("approvalRecords"),
-    cancelledBy: v.id("operators"),
+    approvalId: v.id('approvalRecords'),
+    cancelledBy: v.id('operators'),
     reason: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const record = await ctx.db.get(args.approvalId);
 
     if (!record) {
-      throw new Error("Approval record not found");
+      throw new Error('Approval record not found');
     }
 
-    if (record.status !== "PENDING") {
+    if (record.status !== 'PENDING') {
       throw new Error(
-        `Cannot cancel approval with status: ${record.status}`
+        `Cannot cancel approval with status: ${record.status}`,
       );
     }
 
     // Only requester can cancel
     if (record.requestedBy !== args.cancelledBy) {
-      throw new Error("Only the requester can cancel an approval request");
+      throw new Error('Only the requester can cancel an approval request');
     }
 
     // Update approval record
     await ctx.db.patch(args.approvalId, {
-      status: "CANCELLED",
+      status: 'CANCELLED',
     });
 
     // Write change record
-    await ctx.db.insert("changeRecords", {
+    await ctx.db.insert('changeRecords', {
       tenantId: record.tenantId,
-      type: "APPROVAL_CANCELLED",
-      targetEntity: "approvalRecord",
+      type: 'APPROVAL_CANCELLED',
+      targetEntity: 'approvalRecord',
       targetId: args.approvalId,
       operatorId: args.cancelledBy,
       payload: {
@@ -232,13 +230,13 @@ export const cancel = mutation({
  */
 export const getPendingCount = query({
   args: {
-    tenantId: v.id("tenants"),
+    tenantId: v.id('tenants'),
   },
   handler: async (ctx, args) => {
     const pending = await ctx.db
-      .query("approvalRecords")
-      .withIndex("by_tenant", (q) => q.eq("tenantId", args.tenantId))
-      .filter((q) => q.eq(q.field("status"), "PENDING"))
+      .query('approvalRecords')
+      .withIndex('by_tenant', (q) => q.eq('tenantId', args.tenantId))
+      .filter((q) => q.eq(q.field('status'), 'PENDING'))
       .collect();
 
     return pending.length;

@@ -1,5 +1,5 @@
-import { defineSchema, defineTable } from "convex/server";
-import { v } from "convex/values";
+import { defineSchema, defineTable } from 'convex/server';
+import { v } from 'convex/values';
 
 export default defineSchema({
   // Core Registry
@@ -7,17 +7,17 @@ export default defineSchema({
     name: v.string(),
     slug: v.string(),
     settings: v.optional(v.any()),
-  }).index("by_slug", ["slug"]),
+  }).index('by_slug', ['slug']),
 
   environments: defineTable({
-    tenantId: v.id("tenants"),
+    tenantId: v.id('tenants'),
     name: v.string(),
     slug: v.string(),
     config: v.optional(v.any()),
-  }).index("by_tenant", ["tenantId"]),
+  }).index('by_tenant', ['tenantId']),
 
   operators: defineTable({
-    tenantId: v.id("tenants"),
+    tenantId: v.id('tenants'),
     authIdentity: v.string(),
     email: v.string(), // Stored securely, access controlled, masked in responses
     name: v.string(),
@@ -26,31 +26,31 @@ export default defineSchema({
     consentGiven: v.optional(v.boolean()),
     consentTimestamp: v.optional(v.number()),
     dataRetentionDays: v.optional(v.number()), // Custom retention period
-  }).index("by_tenant", ["tenantId"])
-    .index("by_auth", ["authIdentity"]),
+  }).index('by_tenant', ['tenantId'])
+    .index('by_auth', ['authIdentity']),
 
   providers: defineTable({
-    tenantId: v.id("tenants"),
+    tenantId: v.id('tenants'),
     name: v.string(),
-    type: v.union(v.literal("local"), v.literal("federated")),
+    type: v.union(v.literal('local'), v.literal('federated')),
     federationConfig: v.optional(v.any()),
     healthEndpoint: v.optional(v.string()),
     metadata: v.optional(v.any()),
-  }).index("by_tenant", ["tenantId"])
-    .index("by_name", ["tenantId", "name"]),
+  }).index('by_tenant', ['tenantId'])
+    .index('by_name', ['tenantId', 'name']),
 
   agentTemplates: defineTable({
-    tenantId: v.id("tenants"),
+    tenantId: v.id('tenants'),
     name: v.string(),
     description: v.optional(v.string()),
     owners: v.array(v.string()),
     tags: v.array(v.string()),
-  }).index("by_tenant", ["tenantId"])
-    .index("by_name", ["tenantId", "name"]),
+  }).index('by_tenant', ['tenantId'])
+    .index('by_name', ['tenantId', 'name']),
 
   agentVersions: defineTable({
-    templateId: v.id("agentTemplates"),
-    tenantId: v.id("tenants"),
+    templateId: v.id('agentTemplates'),
+    tenantId: v.id('tenants'),
     versionLabel: v.string(),
     genome: v.object({
       modelConfig: v.any(),
@@ -60,86 +60,86 @@ export default defineSchema({
     }),
     genomeHash: v.string(),
     lifecycleState: v.union(
-      v.literal("DRAFT"),
-      v.literal("TESTING"),
-      v.literal("CANDIDATE"),
-      v.literal("APPROVED"),
-      v.literal("DEPRECATED"),
-      v.literal("RETIRED")
+      v.literal('DRAFT'),
+      v.literal('TESTING'),
+      v.literal('CANDIDATE'),
+      v.literal('APPROVED'),
+      v.literal('DEPRECATED'),
+      v.literal('RETIRED'),
     ),
     evalStatus: v.union(
-      v.literal("NOT_RUN"),
-      v.literal("RUNNING"),
-      v.literal("PASS"),
-      v.literal("FAIL")
+      v.literal('NOT_RUN'),
+      v.literal('RUNNING'),
+      v.literal('PASS'),
+      v.literal('FAIL'),
     ),
-    parentVersionId: v.optional(v.id("agentVersions")),
-  }).index("by_tenant", ["tenantId"])
-    .index("by_template", ["templateId"])
-    .index("by_state", ["tenantId", "lifecycleState"])
-    .index("by_hash", ["genomeHash"]),
+    parentVersionId: v.optional(v.id('agentVersions')),
+  }).index('by_tenant', ['tenantId'])
+    .index('by_template', ['templateId'])
+    .index('by_state', ['tenantId', 'lifecycleState'])
+    .index('by_hash', ['genomeHash']),
 
   agentInstances: defineTable({
-    versionId: v.id("agentVersions"),
-    tenantId: v.id("tenants"),
-    environmentId: v.id("environments"),
-    providerId: v.id("providers"),
+    versionId: v.id('agentVersions'),
+    tenantId: v.id('tenants'),
+    environmentId: v.id('environments'),
+    providerId: v.id('providers'),
     state: v.union(
-      v.literal("PROVISIONING"),
-      v.literal("ACTIVE"),
-      v.literal("PAUSED"),
-      v.literal("READONLY"),
-      v.literal("DRAINING"),
-      v.literal("QUARANTINED"),
-      v.literal("RETIRED")
+      v.literal('PROVISIONING'),
+      v.literal('ACTIVE'),
+      v.literal('PAUSED'),
+      v.literal('READONLY'),
+      v.literal('DRAINING'),
+      v.literal('QUARANTINED'),
+      v.literal('RETIRED'),
     ),
     identityPrincipal: v.optional(v.string()),
     secretRef: v.optional(v.string()),
     policyEnvelopeId: v.optional(v.string()),
     heartbeatAt: v.optional(v.number()),
     metadata: v.optional(v.any()),
-  }).index("by_tenant", ["tenantId"])
-    .index("by_version", ["versionId"])
-    .index("by_environment", ["tenantId", "environmentId"])
-    .index("by_state", ["tenantId", "state"]),
+  }).index('by_tenant', ['tenantId'])
+    .index('by_version', ['versionId'])
+    .index('by_environment', ['tenantId', 'environmentId'])
+    .index('by_state', ['tenantId', 'state']),
 
   changeRecords: defineTable({
-    tenantId: v.id("tenants"),
+    tenantId: v.id('tenants'),
     type: v.string(),
     targetEntity: v.string(),
     targetId: v.string(),
-    operatorId: v.optional(v.id("operators")),
+    operatorId: v.optional(v.id('operators')),
     payload: v.any(),
     timestamp: v.number(),
-  }).index("by_tenant", ["tenantId"])
-    .index("by_target", ["targetEntity", "targetId"])
-    .index("by_type", ["tenantId", "type"])
-    .index("by_timestamp", ["tenantId", "timestamp"]) // Performance: time-range queries
-    .index("by_operator_time", ["operatorId", "timestamp"]), // Performance: operator audit trail
+  }).index('by_tenant', ['tenantId'])
+    .index('by_target', ['targetEntity', 'targetId'])
+    .index('by_type', ['tenantId', 'type'])
+    .index('by_timestamp', ['tenantId', 'timestamp']) // Performance: time-range queries
+    .index('by_operator_time', ['operatorId', 'timestamp']), // Performance: operator audit trail
 
   // P1.2 Schema (placeholders)
   policyEnvelopes: defineTable({
-    tenantId: v.id("tenants"),
+    tenantId: v.id('tenants'),
     name: v.string(),
     autonomyTier: v.number(),
     allowedTools: v.array(v.string()),
     costLimits: v.optional(v.any()),
-  }).index("by_tenant", ["tenantId"]),
+  }).index('by_tenant', ['tenantId']),
 
   approvalRecords: defineTable({
-    tenantId: v.id("tenants"),
+    tenantId: v.id('tenants'),
     requestType: v.string(),
     targetId: v.string(),
     status: v.string(),
-    requestedBy: v.id("operators"),
-    decidedBy: v.optional(v.id("operators")),
-  }).index("by_tenant", ["tenantId"])
-    .index("by_status", ["tenantId", "status"]) // Performance: filter by status
-    .index("by_requester", ["requestedBy"]), // Performance: user's approval requests
+    requestedBy: v.id('operators'),
+    decidedBy: v.optional(v.id('operators')),
+  }).index('by_tenant', ['tenantId'])
+    .index('by_status', ['tenantId', 'status']) // Performance: filter by status
+    .index('by_requester', ['requestedBy']), // Performance: user's approval requests
 
   // P2.0 Schema: Evaluation Orchestration
   evaluationSuites: defineTable({
-    tenantId: v.id("tenants"),
+    tenantId: v.id('tenants'),
     name: v.string(),
     description: v.optional(v.string()),
     testCases: v.array(v.object({
@@ -150,36 +150,36 @@ export default defineSchema({
       expectedOutput: v.any(),
       scoringCriteria: v.optional(v.object({
         type: v.union(
-          v.literal("exact_match"),
-          v.literal("contains"),
-          v.literal("similarity"),
-          v.literal("custom")
+          v.literal('exact_match'),
+          v.literal('contains'),
+          v.literal('similarity'),
+          v.literal('custom'),
         ),
         threshold: v.optional(v.number()),
         config: v.optional(v.any()),
       })),
     })),
-    createdBy: v.id("operators"),
+    createdBy: v.id('operators'),
     tags: v.optional(v.array(v.string())),
-  }).index("by_tenant", ["tenantId"])
-    .index("by_name", ["tenantId", "name"]),
+  }).index('by_tenant', ['tenantId'])
+    .index('by_name', ['tenantId', 'name']),
 
   evaluationRuns: defineTable({
-    tenantId: v.id("tenants"),
-    suiteId: v.id("evaluationSuites"),
-    versionId: v.id("agentVersions"),
+    tenantId: v.id('tenants'),
+    suiteId: v.id('evaluationSuites'),
+    versionId: v.id('agentVersions'),
     previousEvalStatus: v.optional(v.union(
-      v.literal("NOT_RUN"),
-      v.literal("RUNNING"),
-      v.literal("PASS"),
-      v.literal("FAIL")
+      v.literal('NOT_RUN'),
+      v.literal('RUNNING'),
+      v.literal('PASS'),
+      v.literal('FAIL'),
     )),
     status: v.union(
-      v.literal("PENDING"),
-      v.literal("RUNNING"),
-      v.literal("COMPLETED"),
-      v.literal("FAILED"),
-      v.literal("CANCELLED")
+      v.literal('PENDING'),
+      v.literal('RUNNING'),
+      v.literal('COMPLETED'),
+      v.literal('FAILED'),
+      v.literal('CANCELLED'),
     ),
     results: v.optional(v.array(v.object({
       testCaseId: v.string(),
@@ -193,49 +193,49 @@ export default defineSchema({
     passRate: v.optional(v.number()),
     startedAt: v.optional(v.number()),
     completedAt: v.optional(v.number()),
-    triggeredBy: v.optional(v.id("operators")),
-  }).index("by_tenant", ["tenantId"])
-    .index("by_version", ["versionId"])
-    .index("by_suite", ["suiteId"])
-    .index("by_status", ["tenantId", "status"]),
+    triggeredBy: v.optional(v.id('operators')),
+  }).index('by_tenant', ['tenantId'])
+    .index('by_version', ['versionId'])
+    .index('by_suite', ['suiteId'])
+    .index('by_status', ['tenantId', 'status']),
 
   // P3.0 Schema: RBAC (Role-Based Access Control)
   roles: defineTable({
-    tenantId: v.id("tenants"),
+    tenantId: v.id('tenants'),
     name: v.string(),
     description: v.optional(v.string()),
     permissions: v.array(v.string()),
     isSystem: v.boolean(),
-    createdBy: v.id("operators"),
+    createdBy: v.id('operators'),
     createdAt: v.number(),
     updatedAt: v.number(),
-  }).index("by_tenant", ["tenantId"])
-    .index("by_name", ["tenantId", "name"])
-    .index("by_system", ["isSystem"]),
+  }).index('by_tenant', ['tenantId'])
+    .index('by_name', ['tenantId', 'name'])
+    .index('by_system', ['isSystem']),
 
   roleAssignments: defineTable({
-    tenantId: v.id("tenants"),
-    operatorId: v.id("operators"),
-    roleId: v.id("roles"),
-    assignedBy: v.id("operators"),
+    tenantId: v.id('tenants'),
+    operatorId: v.id('operators'),
+    roleId: v.id('roles'),
+    assignedBy: v.id('operators'),
     assignedAt: v.number(),
     expiresAt: v.optional(v.number()),
-  }).index("by_operator", ["operatorId"])
-    .index("by_role", ["roleId"])
-    .index("by_tenant", ["tenantId"]),
+  }).index('by_operator', ['operatorId'])
+    .index('by_role', ['roleId'])
+    .index('by_tenant', ['tenantId']),
 
   permissions: defineTable({
     resource: v.string(),
     action: v.string(),
     description: v.string(),
     category: v.string(),
-  }).index("by_resource", ["resource"])
-    .index("by_category", ["category"]),
+  }).index('by_resource', ['resource'])
+    .index('by_category', ['category']),
 
   // P3.0 Schema: Audit Logging
   auditLogs: defineTable({
-    tenantId: v.id("tenants"),
-    operatorId: v.optional(v.id("operators")),
+    tenantId: v.id('tenants'),
+    operatorId: v.optional(v.id('operators')),
     action: v.string(),
     resource: v.string(),
     // Details can contain various fields depending on the action
@@ -244,21 +244,21 @@ export default defineSchema({
     details: v.any(),
     timestamp: v.number(),
     severity: v.union(
-      v.literal("INFO"),
-      v.literal("WARNING"),
-      v.literal("ERROR")
+      v.literal('INFO'),
+      v.literal('WARNING'),
+      v.literal('ERROR'),
     ),
-  }).index("by_tenant", ["tenantId"])
-    .index("by_operator", ["operatorId"])
-    .index("by_timestamp", ["timestamp"])
-    .index("by_severity", ["tenantId", "severity"]),
+  }).index('by_tenant', ['tenantId'])
+    .index('by_operator', ['operatorId'])
+    .index('by_timestamp', ['timestamp'])
+    .index('by_severity', ['tenantId', 'severity']),
 
   // P3.0 Schema: Analytics
   evaluationMetrics: defineTable({
-    tenantId: v.id("tenants"),
-    versionId: v.id("agentVersions"),
-    suiteId: v.id("evaluationSuites"),
-    runId: v.id("evaluationRuns"),
+    tenantId: v.id('tenants'),
+    versionId: v.id('agentVersions'),
+    suiteId: v.id('evaluationSuites'),
+    runId: v.id('evaluationRuns'),
     timestamp: v.number(),
     metrics: v.object({
       overallScore: v.number(),
@@ -269,21 +269,21 @@ export default defineSchema({
       failedCount: v.number(),
     }),
     period: v.string(),
-  }).index("by_tenant", ["tenantId"])
-    .index("by_version", ["versionId"])
-    .index("by_suite", ["suiteId"])
-    .index("by_timestamp", ["tenantId", "timestamp"]),
+  }).index('by_tenant', ['tenantId'])
+    .index('by_version', ['versionId'])
+    .index('by_suite', ['suiteId'])
+    .index('by_timestamp', ['tenantId', 'timestamp']),
 
   // P3.0 Schema: Custom Scoring Functions
   customScoringFunctions: defineTable({
-    tenantId: v.id("tenants"),
+    tenantId: v.id('tenants'),
     name: v.string(),
     description: v.string(),
     code: v.string(),
     language: v.string(),
     version: v.number(),
     isActive: v.boolean(),
-    createdBy: v.id("operators"),
+    createdBy: v.id('operators'),
     createdAt: v.number(),
     updatedAt: v.number(),
     metadata: v.object({
@@ -301,82 +301,82 @@ export default defineSchema({
         score: v.number(),
       })),
     }),
-  }).index("by_tenant", ["tenantId"])
-    .index("by_name", ["tenantId", "name"])
-    .index("by_active", ["tenantId", "isActive"]),
+  }).index('by_tenant', ['tenantId'])
+    .index('by_name', ['tenantId', 'name'])
+    .index('by_active', ['tenantId', 'isActive']),
 
   // P3.0 Schema: Notifications
   notificationEvents: defineTable({
-    tenantId: v.id("tenants"),
+    tenantId: v.id('tenants'),
     type: v.string(),
     resourceType: v.string(),
     resourceId: v.string(),
     payload: v.any(),
     timestamp: v.number(),
     processed: v.boolean(),
-  }).index("by_tenant", ["tenantId"])
-    .index("by_type", ["type"])
-    .index("by_processed", ["processed"])
-    .index("by_tenant_processed", ["tenantId", "processed"]) // Performance: unprocessed events
-    .index("by_timestamp", ["timestamp"]), // Performance: time-based cleanup
+  }).index('by_tenant', ['tenantId'])
+    .index('by_type', ['type'])
+    .index('by_processed', ['processed'])
+    .index('by_tenant_processed', ['tenantId', 'processed']) // Performance: unprocessed events
+    .index('by_timestamp', ['timestamp']), // Performance: time-based cleanup
 
   notifications: defineTable({
-    tenantId: v.id("tenants"),
-    operatorId: v.id("operators"),
-    eventId: v.id("notificationEvents"),
+    tenantId: v.id('tenants'),
+    operatorId: v.id('operators'),
+    eventId: v.id('notificationEvents'),
     title: v.string(),
     message: v.string(),
     severity: v.union(
-      v.literal("INFO"),
-      v.literal("SUCCESS"),
-      v.literal("WARNING"),
-      v.literal("ERROR")
+      v.literal('INFO'),
+      v.literal('SUCCESS'),
+      v.literal('WARNING'),
+      v.literal('ERROR'),
     ),
     read: v.boolean(),
     readAt: v.optional(v.number()),
     createdAt: v.number(),
     expiresAt: v.optional(v.number()),
-  }).index("by_operator", ["operatorId"])
-    .index("by_read", ["operatorId", "read"])
-    .index("by_created", ["operatorId", "createdAt"]),
+  }).index('by_operator', ['operatorId'])
+    .index('by_read', ['operatorId', 'read'])
+    .index('by_created', ['operatorId', 'createdAt']),
 
   notificationPreferences: defineTable({
-    operatorId: v.id("operators"),
+    operatorId: v.id('operators'),
     eventType: v.string(),
     enabled: v.boolean(),
     channels: v.array(v.string()),
     frequency: v.string(),
-  }).index("by_operator", ["operatorId"])
-    .index("by_event", ["operatorId", "eventType"]),
+  }).index('by_operator', ['operatorId'])
+    .index('by_event', ['operatorId', 'eventType']),
 
   // P5.0 Schema: Feature Flags & A/B Testing
   featureFlags: defineTable({
-    tenantId: v.id("tenants"),
+    tenantId: v.id('tenants'),
     key: v.string(),
     name: v.string(),
     description: v.optional(v.string()),
     enabled: v.boolean(),
     rolloutPercentage: v.number(), // 0-100
-    targetOperators: v.optional(v.array(v.id("operators"))),
+    targetOperators: v.optional(v.array(v.id('operators'))),
     targetEnvironments: v.optional(v.array(v.string())),
     metadata: v.optional(v.any()),
-    createdBy: v.id("operators"),
+    createdBy: v.id('operators'),
     createdAt: v.number(),
     updatedAt: v.number(),
-  }).index("by_tenant", ["tenantId"])
-    .index("by_key", ["tenantId", "key"])
-    .index("by_enabled", ["tenantId", "enabled"]),
+  }).index('by_tenant', ['tenantId'])
+    .index('by_key', ['tenantId', 'key'])
+    .index('by_enabled', ['tenantId', 'enabled']),
 
   experiments: defineTable({
-    tenantId: v.id("tenants"),
+    tenantId: v.id('tenants'),
     key: v.string(),
     name: v.string(),
     description: v.optional(v.string()),
     status: v.union(
-      v.literal("DRAFT"),
-      v.literal("RUNNING"),
-      v.literal("PAUSED"),
-      v.literal("COMPLETED")
+      v.literal('DRAFT'),
+      v.literal('RUNNING'),
+      v.literal('PAUSED'),
+      v.literal('COMPLETED'),
     ),
     variants: v.array(v.object({
       id: v.string(),
@@ -388,47 +388,47 @@ export default defineSchema({
     endDate: v.optional(v.number()),
     metrics: v.optional(v.array(v.object({
       name: v.string(),
-      type: v.union(v.literal("conversion"), v.literal("engagement"), v.literal("custom")),
+      type: v.union(v.literal('conversion'), v.literal('engagement'), v.literal('custom')),
     }))),
-    createdBy: v.id("operators"),
+    createdBy: v.id('operators'),
     createdAt: v.number(),
     updatedAt: v.number(),
-  }).index("by_tenant", ["tenantId"])
-    .index("by_key", ["tenantId", "key"])
-    .index("by_status", ["tenantId", "status"]),
+  }).index('by_tenant', ['tenantId'])
+    .index('by_key', ['tenantId', 'key'])
+    .index('by_status', ['tenantId', 'status']),
 
   experimentAssignments: defineTable({
-    experimentId: v.id("experiments"),
-    operatorId: v.id("operators"),
+    experimentId: v.id('experiments'),
+    operatorId: v.id('operators'),
     variantId: v.string(),
     assignedAt: v.number(),
-  }).index("by_experiment", ["experimentId"])
-    .index("by_operator", ["operatorId"])
-    .index("by_experiment_operator", ["experimentId", "operatorId"]),
+  }).index('by_experiment', ['experimentId'])
+    .index('by_operator', ['operatorId'])
+    .index('by_experiment_operator', ['experimentId', 'operatorId']),
 
   experimentEvents: defineTable({
-    experimentId: v.id("experiments"),
-    operatorId: v.id("operators"),
+    experimentId: v.id('experiments'),
+    operatorId: v.id('operators'),
     variantId: v.string(),
     eventType: v.string(),
     payload: v.optional(v.any()),
     timestamp: v.number(),
-  }).index("by_experiment", ["experimentId"])
-    .index("by_timestamp", ["experimentId", "timestamp"]),
+  }).index('by_experiment', ['experimentId'])
+    .index('by_timestamp', ['experimentId', 'timestamp']),
 
   // Cost Ledger - token usage and cost tracking
   costLedger: defineTable({
-    tenantId: v.id("tenants"),
-    versionId: v.optional(v.id("agentVersions")),
-    instanceId: v.optional(v.id("agentInstances")),
-    policyId: v.optional(v.id("policyEnvelopes")),
+    tenantId: v.id('tenants'),
+    versionId: v.optional(v.id('agentVersions')),
+    instanceId: v.optional(v.id('agentInstances')),
+    policyId: v.optional(v.id('policyEnvelopes')),
     tokensUsed: v.number(),
     estimatedCost: v.number(), // USD
     source: v.string(), // e.g. "evaluation", "inference", "manual"
     metadata: v.optional(v.any()),
     timestamp: v.number(),
-  }).index("by_tenant", ["tenantId"])
-    .index("by_tenant_time", ["tenantId", "timestamp"])
-    .index("by_version", ["versionId"])
-    .index("by_instance", ["instanceId"]),
+  }).index('by_tenant', ['tenantId'])
+    .index('by_tenant_time', ['tenantId', 'timestamp'])
+    .index('by_version', ['versionId'])
+    .index('by_instance', ['instanceId']),
 });

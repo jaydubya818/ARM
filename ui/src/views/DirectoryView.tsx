@@ -1,89 +1,83 @@
-import { useState, useMemo } from 'react'
-import { useQuery } from 'convex/react'
-import { useTenant } from '../contexts/TenantContext'
-import { api } from '../convex/_generated/api'
-import { Id, type Doc } from '../convex/_generated/dataModel'
-import { VersionDrawer } from '../components/VersionDrawer'
-import { CreateTemplateModal } from '../components/CreateTemplateModal'
-import { CreateVersionModal } from '../components/CreateVersionModal'
-import { CreateInstanceModal } from '../components/CreateInstanceModal'
-import { StatusChip } from '../components/StatusChip'
+import { useState, useMemo } from 'react';
+import { useQuery } from 'convex/react';
+import { api } from 'agent-resources-platform/convex/_generated/api';
+import { Id, type Doc } from 'agent-resources-platform/convex/_generated/dataModel';
+import { useTenant } from '../contexts/TenantContext';
+import { VersionDrawer } from '../components/VersionDrawer';
+import { CreateTemplateModal } from '../components/CreateTemplateModal';
+import { CreateVersionModal } from '../components/CreateVersionModal';
+import { CreateInstanceModal } from '../components/CreateInstanceModal';
+import { StatusChip } from '../components/StatusChip';
 
 type Tab = 'templates' | 'versions' | 'instances'
 
 export function DirectoryView() {
-  const [activeTab, setActiveTab] = useState<Tab>('templates')
-  const [selectedVersionId, setSelectedVersionId] = useState<Id<'agentVersions'> | null>(null)
-  const [isCreatingTemplate, setIsCreatingTemplate] = useState(false)
-  const [isCreatingVersion, setIsCreatingVersion] = useState(false)
-  const [isCreatingInstance, setIsCreatingInstance] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('ALL')
-  
-  const { tenantId } = useTenant()
-  
+  const [activeTab, setActiveTab] = useState<Tab>('templates');
+  const [selectedVersionId, setSelectedVersionId] = useState<Id<'agentVersions'> | null>(null);
+  const [isCreatingTemplate, setIsCreatingTemplate] = useState(false);
+  const [isCreatingVersion, setIsCreatingVersion] = useState(false);
+  const [isCreatingInstance, setIsCreatingInstance] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('ALL');
+
+  const { tenantId } = useTenant();
+
   const templates = useQuery(
     api.agentTemplates.list,
-    tenantId ? { tenantId } : 'skip'
-  ) as Doc<'agentTemplates'>[] | undefined
-  
+    tenantId ? { tenantId } : 'skip',
+  ) as Doc<'agentTemplates'>[] | undefined;
+
   const versions = useQuery(
     api.agentVersions.list,
-    tenantId ? { tenantId } : 'skip'
-  ) as Doc<'agentVersions'>[] | undefined
-  
+    tenantId ? { tenantId } : 'skip',
+  ) as Doc<'agentVersions'>[] | undefined;
+
   const instances = useQuery(
     api.agentInstances.list,
-    tenantId ? { tenantId } : 'skip'
-  ) as Doc<'agentInstances'>[] | undefined
+    tenantId ? { tenantId } : 'skip',
+  ) as Doc<'agentInstances'>[] | undefined;
 
   // Filter and search logic
   const filteredTemplates = useMemo(() => {
-    if (!templates) return []
-    return templates.filter((t) =>
-      t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.description?.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  }, [templates, searchQuery])
+    if (!templates) return [];
+    return templates.filter((t) => t.name.toLowerCase().includes(searchQuery.toLowerCase())
+      || t.description?.toLowerCase().includes(searchQuery.toLowerCase()));
+  }, [templates, searchQuery]);
 
   const filteredVersions = useMemo(() => {
-    if (!versions) return []
-    let filtered = versions
-    
+    if (!versions) return [];
+    let filtered = versions;
+
     // Status filter
     if (statusFilter !== 'ALL') {
-      filtered = filtered.filter((v) => v.lifecycleState === statusFilter)
+      filtered = filtered.filter((v) => v.lifecycleState === statusFilter);
     }
-    
+
     // Search filter
     if (searchQuery) {
-      filtered = filtered.filter((v) =>
-        v.versionLabel.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        v.genomeHash.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      filtered = filtered.filter((v) => v.versionLabel.toLowerCase().includes(searchQuery.toLowerCase())
+        || v.genomeHash.toLowerCase().includes(searchQuery.toLowerCase()));
     }
-    
-    return filtered
-  }, [versions, searchQuery, statusFilter])
+
+    return filtered;
+  }, [versions, searchQuery, statusFilter]);
 
   const filteredInstances = useMemo(() => {
-    if (!instances) return []
-    let filtered = instances
-    
+    if (!instances) return [];
+    let filtered = instances;
+
     // Status filter
     if (statusFilter !== 'ALL') {
-      filtered = filtered.filter((i) => i.state === statusFilter)
+      filtered = filtered.filter((i) => i.state === statusFilter);
     }
-    
+
     // Search filter
     if (searchQuery) {
-      filtered = filtered.filter((i) =>
-        i._id.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      filtered = filtered.filter((i) => i._id.toLowerCase().includes(searchQuery.toLowerCase()));
     }
-    
-    return filtered
-  }, [instances, searchQuery, statusFilter])
+
+    return filtered;
+  }, [instances, searchQuery, statusFilter]);
 
   return (
     <div className="p-6">
@@ -253,7 +247,8 @@ export function DirectoryView() {
                         <StatusChip status={version.evalStatus} type="eval" />
                       </td>
                       <td className="p-4 text-arm-textMuted text-xs font-mono">
-                        {version.genomeHash.substring(0, 16)}...
+                        {version.genomeHash.substring(0, 16)}
+                        ...
                       </td>
                       <td className="p-4">
                         <button
@@ -295,7 +290,8 @@ export function DirectoryView() {
                   {filteredInstances.map((instance) => (
                     <tr key={instance._id} className="border-b border-arm-border hover:bg-arm-surface">
                       <td className="p-4 text-arm-text font-mono text-xs">
-                        {instance._id.substring(0, 12)}...
+                        {instance._id.substring(0, 12)}
+                        ...
                       </td>
                       <td className="p-4">
                         <StatusChip status={instance.state} type="instance" />
@@ -322,7 +318,7 @@ export function DirectoryView() {
           </div>
         )}
       </div>
-      
+
       {/* Version Drawer */}
       <VersionDrawer
         versionId={selectedVersionId}
@@ -353,5 +349,5 @@ export function DirectoryView() {
         />
       )}
     </div>
-  )
+  );
 }

@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../convex/_generated/api";
-import type { Id, Doc } from "../convex/_generated/dataModel";
-import { toast } from "../lib/toast";
+import { useState } from 'react';
+import { useQuery, useMutation } from 'convex/react';
+import { api } from 'agent-resources-platform/convex/_generated/api';
+import type { Id, Doc } from 'agent-resources-platform/convex/_generated/dataModel';
+import { toast } from '../lib/toast';
 
 interface CreateInstanceModalProps {
-  tenantId: Id<"tenants">;
+  tenantId: Id<'tenants'>;
   onClose: () => void;
 }
 
@@ -20,12 +20,12 @@ export function CreateInstanceModal({ tenantId, onClose }: CreateInstanceModalPr
     e.preventDefault();
     setIsSubmitting(true);
     const form = e.currentTarget;
-    const versionId = (form.elements.namedItem("versionId") as HTMLSelectElement).value as Id<"agentVersions">;
-    const environmentId = (form.elements.namedItem("environmentId") as HTMLSelectElement).value as Id<"environments">;
-    const providerId = (form.elements.namedItem("providerId") as HTMLSelectElement).value as Id<"providers">;
+    const versionId = (form.elements.namedItem('versionId') as HTMLSelectElement).value as Id<'agentVersions'>;
+    const environmentId = (form.elements.namedItem('environmentId') as HTMLSelectElement).value as Id<'environments'>;
+    const providerId = (form.elements.namedItem('providerId') as HTMLSelectElement).value as Id<'providers'>;
 
     if (!versionId || !environmentId || !providerId) {
-      toast.error("Please select version, environment, and provider");
+      toast.error('Please select version, environment, and provider');
       setIsSubmitting(false);
       return;
     }
@@ -37,10 +37,10 @@ export function CreateInstanceModal({ tenantId, onClose }: CreateInstanceModalPr
         environmentId,
         providerId,
       });
-      toast.success("Instance created (PROVISIONING)");
+      toast.success('Instance created (PROVISIONING)');
       onClose();
     } catch (err) {
-      toast.error("Error: " + (err as Error).message);
+      toast.error(`Error: ${(err as Error).message}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -59,9 +59,11 @@ export function CreateInstanceModal({ tenantId, onClose }: CreateInstanceModalPr
               className="w-full px-3 py-2 border border-arm-border rounded"
             >
               <option value="">Select version</option>
-              {(versions ?? []).map((v: Doc<"agentVersions">) => (
+              {(versions ?? []).map((v: Doc<'agentVersions'>) => (
                 <option key={v._id} value={v._id}>
-                  {v.versionLabel} {v.lifecycleState !== "APPROVED" ? `(${v.lifecycleState})` : ""}
+                  {v.versionLabel}
+                  {' '}
+                  {v.lifecycleState !== 'APPROVED' ? `(${v.lifecycleState})` : ''}
                 </option>
               ))}
             </select>
@@ -74,7 +76,7 @@ export function CreateInstanceModal({ tenantId, onClose }: CreateInstanceModalPr
               className="w-full px-3 py-2 border border-arm-border rounded"
             >
               <option value="">Select environment</option>
-              {(environments ?? []).map((e: Doc<"environments">) => (
+              {(environments ?? []).map((e: Doc<'environments'>) => (
                 <option key={e._id} value={e._id}>{e.name}</option>
               ))}
             </select>
@@ -87,8 +89,14 @@ export function CreateInstanceModal({ tenantId, onClose }: CreateInstanceModalPr
               className="w-full px-3 py-2 border border-arm-border rounded"
             >
               <option value="">Select provider</option>
-              {(providers ?? []).map((p: Doc<"providers">) => (
-                <option key={p._id} value={p._id}>{p.name} ({p.type})</option>
+              {(providers ?? []).map((p: Doc<'providers'>) => (
+                <option key={p._id} value={p._id}>
+                  {p.name}
+                  {' '}
+                  (
+                  {p.type}
+                  )
+                </option>
               ))}
             </select>
           </div>
@@ -101,7 +109,7 @@ export function CreateInstanceModal({ tenantId, onClose }: CreateInstanceModalPr
               disabled={isSubmitting || !versions?.length || !environments?.length || !providers?.length}
               className="px-4 py-2 bg-arm-accent text-white rounded hover:opacity-90 disabled:opacity-50"
             >
-              {isSubmitting ? "Creating..." : "Create"}
+              {isSubmitting ? 'Creating...' : 'Create'}
             </button>
           </div>
         </form>

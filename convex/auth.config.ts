@@ -1,4 +1,4 @@
-import type { AuthConfig } from "convex/server";
+import type { AuthConfig } from 'convex/server';
 
 /**
  * Clerk auth: Set CLERK_JWT_ISSUER_DOMAIN in Convex Dashboard → Settings → Environment Variables.

@@ -1,13 +1,13 @@
 /**
  * SuiteStatistics Component
- * 
+ *
  * Dashboard showing aggregate evaluation metrics and trends.
  */
 
-import { useQuery } from 'convex/react'
-import { api } from '../convex/_generated/api'
-import { Id, type Doc } from '../convex/_generated/dataModel'
-import { normalizeRate } from '../lib/metrics'
+import { useQuery } from 'convex/react';
+import { api } from 'agent-resources-platform/convex/_generated/api';
+import { Id, type Doc } from 'agent-resources-platform/convex/_generated/dataModel';
+import { normalizeRate } from '../lib/metrics';
 
 interface SuiteStatisticsProps {
   tenantId: Id<'tenants'>
@@ -16,65 +16,63 @@ interface SuiteStatisticsProps {
 export function SuiteStatistics({ tenantId }: SuiteStatisticsProps) {
   const suites = useQuery(api.evaluationSuites.list, { tenantId }) as
     | Doc<'evaluationSuites'>[]
-    | undefined
+    | undefined;
   const runs = useQuery(api.evaluationRuns.list, { tenantId }) as
     | Doc<'evaluationRuns'>[]
-    | undefined
+    | undefined;
 
   if (!suites || !runs) {
     return (
       <div className="p-6 bg-arm-bg-secondary rounded-lg border border-arm-border">
         <div className="text-center text-arm-text-secondary">Loading statistics...</div>
       </div>
-    )
+    );
   }
 
   // Calculate statistics
-  const totalSuites = suites.length
-  const totalRuns = runs.length
-  const completedRuns = runs.filter(r => r.status === 'COMPLETED').length
-  const pendingRuns = runs.filter(r => r.status === 'PENDING').length
-  const runningRuns = runs.filter(r => r.status === 'RUNNING').length
-  const failedRuns = runs.filter(r => r.status === 'FAILED').length
-  const cancelledRuns = runs.filter(r => r.status === 'CANCELLED').length
+  const totalSuites = suites.length;
+  const totalRuns = runs.length;
+  const completedRuns = runs.filter((r) => r.status === 'COMPLETED').length;
+  const pendingRuns = runs.filter((r) => r.status === 'PENDING').length;
+  const runningRuns = runs.filter((r) => r.status === 'RUNNING').length;
+  const failedRuns = runs.filter((r) => r.status === 'FAILED').length;
+  const cancelledRuns = runs.filter((r) => r.status === 'CANCELLED').length;
 
-  const completedRunsData = runs.filter(r => r.status === 'COMPLETED' && r.overallScore !== undefined)
-  const avgScore =
-    completedRunsData.length > 0
-      ? completedRunsData.reduce((sum, r) => sum + (r.overallScore || 0), 0) / completedRunsData.length
-      : 0
+  const completedRunsData = runs.filter((r) => r.status === 'COMPLETED' && r.overallScore !== undefined);
+  const avgScore = completedRunsData.length > 0
+    ? completedRunsData.reduce((sum, r) => sum + (r.overallScore || 0), 0) / completedRunsData.length
+    : 0;
 
-  const passedRuns = completedRunsData.filter(r => (normalizeRate(r.passRate) || 0) >= 0.8).length
-  const successRate = completedRuns > 0 ? passedRuns / completedRuns : 0
+  const passedRuns = completedRunsData.filter((r) => (normalizeRate(r.passRate) || 0) >= 0.8).length;
+  const successRate = completedRuns > 0 ? passedRuns / completedRuns : 0;
 
   // Suite-level stats
-  const suiteStats = suites.map(suite => {
-    const suiteRuns = runs.filter(r => r.suiteId === suite._id)
-    const suiteCompleted = suiteRuns.filter(r => r.status === 'COMPLETED')
-    const suiteAvgScore =
-      suiteCompleted.length > 0
-        ? suiteCompleted.reduce((sum, r) => sum + (r.overallScore || 0), 0) / suiteCompleted.length
-        : 0
+  const suiteStats = suites.map((suite) => {
+    const suiteRuns = runs.filter((r) => r.suiteId === suite._id);
+    const suiteCompleted = suiteRuns.filter((r) => r.status === 'COMPLETED');
+    const suiteAvgScore = suiteCompleted.length > 0
+      ? suiteCompleted.reduce((sum, r) => sum + (r.overallScore || 0), 0) / suiteCompleted.length
+      : 0;
 
     return {
       suite,
       totalRuns: suiteRuns.length,
       completedRuns: suiteCompleted.length,
       avgScore: suiteAvgScore,
-    }
-  })
+    };
+  });
 
   const getScoreColor = (score: number) => {
-    if (score >= 0.9) return 'text-arm-success'
-    if (score >= 0.7) return 'text-arm-warning'
-    return 'text-arm-danger'
-  }
+    if (score >= 0.9) return 'text-arm-success';
+    if (score >= 0.7) return 'text-arm-warning';
+    return 'text-arm-danger';
+  };
 
   const getScoreBarColor = (score: number) => {
-    if (score >= 0.9) return 'bg-arm-success'
-    if (score >= 0.7) return 'bg-arm-warning'
-    return 'bg-arm-danger'
-  }
+    if (score >= 0.9) return 'bg-arm-success';
+    if (score >= 0.7) return 'bg-arm-warning';
+    return 'bg-arm-danger';
+  };
 
   return (
     <div className="space-y-6">
@@ -103,17 +101,37 @@ export function SuiteStatistics({ tenantId }: SuiteStatisticsProps) {
           </div>
           <div className="text-2xl font-bold text-arm-text-primary">{totalRuns}</div>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-arm-text-tertiary">
-            <span className="text-arm-success">{completedRuns} completed</span>
+            <span className="text-arm-success">
+              {completedRuns}
+              {' '}
+              completed
+            </span>
             <span>•</span>
-            <span className="text-arm-warning">{runningRuns} running</span>
+            <span className="text-arm-warning">
+              {runningRuns}
+              {' '}
+              running
+            </span>
             <span>•</span>
-            <span className="text-gray-500">{pendingRuns} pending</span>
+            <span className="text-gray-500">
+              {pendingRuns}
+              {' '}
+              pending
+            </span>
             <span>•</span>
-            <span className="text-arm-danger">{failedRuns} failed</span>
+            <span className="text-arm-danger">
+              {failedRuns}
+              {' '}
+              failed
+            </span>
             {cancelledRuns > 0 && (
               <>
                 <span>•</span>
-                <span className="text-gray-500">{cancelledRuns} cancelled</span>
+                <span className="text-gray-500">
+                  {cancelledRuns}
+                  {' '}
+                  cancelled
+                </span>
               </>
             )}
           </div>
@@ -152,7 +170,12 @@ export function SuiteStatistics({ tenantId }: SuiteStatisticsProps) {
             {completedRuns > 0 ? `${(successRate * 100).toFixed(1)}%` : 'N/A'}
           </div>
           <div className="mt-2 text-xs text-arm-text-tertiary">
-            {passedRuns} of {completedRuns} runs passed (≥80%)
+            {passedRuns}
+            {' '}
+            of
+            {completedRuns}
+            {' '}
+            runs passed (≥80%)
           </div>
         </div>
       </div>
@@ -167,7 +190,9 @@ export function SuiteStatistics({ tenantId }: SuiteStatisticsProps) {
           </div>
         ) : (
           <div className="space-y-3">
-            {suiteStats.map(({ suite, totalRuns, completedRuns, avgScore }) => (
+            {suiteStats.map(({
+              suite, totalRuns, completedRuns, avgScore,
+            }) => (
               <div
                 key={suite._id}
                 className="p-4 bg-arm-bg-primary rounded-lg border border-arm-border hover:border-arm-accent/50 transition-colors"
@@ -176,7 +201,15 @@ export function SuiteStatistics({ tenantId }: SuiteStatisticsProps) {
                   <div className="flex-1">
                     <h4 className="font-medium text-arm-text-primary">{suite.name}</h4>
                     <p className="text-sm text-arm-text-tertiary mt-1">
-                      {suite.testCases.length} test cases • {totalRuns} total runs • {completedRuns} completed
+                      {suite.testCases.length}
+                      {' '}
+                      test cases •
+                      {totalRuns}
+                      {' '}
+                      total runs •
+                      {completedRuns}
+                      {' '}
+                      completed
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
@@ -196,16 +229,16 @@ export function SuiteStatistics({ tenantId }: SuiteStatisticsProps) {
                 </div>
 
                 {suite.tags && suite.tags.length > 0 && (
-                  <div className="flex items-center gap-2 mt-2">
-                    {suite.tags.map((tag: string) => (
-                      <span
-                        key={tag}
-                        className="px-2 py-1 bg-arm-accent/20 text-arm-accent rounded text-xs"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
+                <div className="flex items-center gap-2 mt-2">
+                  {suite.tags.map((tag: string) => (
+                    <span
+                      key={tag}
+                      className="px-2 py-1 bg-arm-accent/20 text-arm-accent rounded text-xs"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
                 )}
               </div>
             ))}
@@ -225,18 +258,17 @@ export function SuiteStatistics({ tenantId }: SuiteStatisticsProps) {
           <div className="space-y-2">
             {runs
               .slice(0, 5)
-              .map(run => {
-                const suite = suites.find(s => s._id === run.suiteId)
-                const statusColor =
-                  run.status === 'COMPLETED'
-                    ? 'text-arm-success'
-                    : run.status === 'RUNNING'
+              .map((run) => {
+                const suite = suites.find((s) => s._id === run.suiteId);
+                const statusColor = run.status === 'COMPLETED'
+                  ? 'text-arm-success'
+                  : run.status === 'RUNNING'
                     ? 'text-arm-warning'
                     : run.status === 'FAILED'
-                    ? 'text-arm-danger'
-                    : run.status === 'CANCELLED'
-                    ? 'text-gray-500'
-                    : 'text-arm-text-tertiary'
+                      ? 'text-arm-danger'
+                      : run.status === 'CANCELLED'
+                        ? 'text-gray-500'
+                        : 'text-arm-text-tertiary';
 
                 return (
                   <div
@@ -251,8 +283,8 @@ export function SuiteStatistics({ tenantId }: SuiteStatisticsProps) {
                           {run.completedAt
                             ? new Date(run.completedAt).toLocaleString()
                             : run.startedAt
-                            ? `Started ${new Date(run.startedAt).toLocaleString()}`
-                            : 'Pending'}
+                              ? `Started ${new Date(run.startedAt).toLocaleString()}`
+                              : 'Pending'}
                         </div>
                       </div>
                     </div>
@@ -260,16 +292,17 @@ export function SuiteStatistics({ tenantId }: SuiteStatisticsProps) {
                       <span className={`text-sm font-medium ${statusColor}`}>{run.status}</span>
                       {run.overallScore !== undefined && (
                         <span className={`text-sm font-semibold ${getScoreColor(run.overallScore)}`}>
-                          {(run.overallScore * 100).toFixed(1)}%
+                          {(run.overallScore * 100).toFixed(1)}
+                          %
                         </span>
                       )}
                     </div>
                   </div>
-                )
+                );
               })}
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }

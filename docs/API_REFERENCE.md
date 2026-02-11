@@ -571,6 +571,8 @@ Array<{
 - Evaluates the tool call against the policy (allowed tools, cost limits).
 - When decision is ALLOW and `estimatedCost` or `tokensUsed` is provided, records an entry in the cost ledger with source `"policy_eval"`.
 
+**Integration:** See [AGENT_RUNTIME_POLICY_COST.md](./AGENT_RUNTIME_POLICY_COST.md) and [examples/agent-runtime-policy-cost/](../examples/agent-runtime-policy-cost/) for usage and runnable scripts.
+
 ---
 
 ## Approval Records

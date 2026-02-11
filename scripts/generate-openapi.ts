@@ -5,16 +5,16 @@
  * an OpenAPI-compatible documentation.
  */
 
-import { readFileSync, writeFileSync } from "fs";
-import { join } from "path";
+import { readFileSync, writeFileSync } from 'fs';
+import { join } from 'path';
 
-const CONVEX_DIR = join(process.cwd(), "convex");
-const DOCS_DIR = join(process.cwd(), "docs");
+const CONVEX_DIR = join(process.cwd(), 'convex');
+const DOCS_DIR = join(process.cwd(), 'docs');
 
 interface FunctionSpec {
   module: string;
   name: string;
-  type: "query" | "mutation" | "action";
+  type: 'query' | 'mutation' | 'action';
   args?: Record<string, unknown>;
 }
 
@@ -23,12 +23,12 @@ interface FunctionSpec {
  */
 function extractFunctions(): FunctionSpec[] {
   const functions: FunctionSpec[] = [];
-  const apiPath = join(process.cwd(), "convex", "_generated", "api.d.ts");
+  const apiPath = join(process.cwd(), 'convex', '_generated', 'api.d.ts');
 
   try {
-    const content = readFileSync(apiPath, "utf-8");
+    const content = readFileSync(apiPath, 'utf-8');
     const moduleMatch = content.matchAll(
-      /(\w+):\s*\{\s*([^}]+)\}/gs
+      /(\w+):\s*\{\s*([^}]+)\}/gs,
     );
     for (const match of moduleMatch) {
       const moduleName = match[1];
@@ -38,39 +38,39 @@ function extractFunctions(): FunctionSpec[] {
         functions.push({
           module: moduleName,
           name: fm[1],
-          type: "query",
+          type: 'query',
         });
       }
     }
   } catch {
     // Fallback: manual list from known modules
     const modules = [
-      "tenants",
-      "environments",
-      "operators",
-      "providers",
-      "agentTemplates",
-      "agentVersions",
-      "agentInstances",
-      "policyEnvelopes",
-      "approvalRecords",
-      "changeRecords",
-      "evaluationSuites",
-      "evaluationRuns",
-      "roles",
-      "roleAssignments",
-      "permissions",
-      "auditLogs",
-      "analytics",
-      "customScoringFunctions",
-      "notifications",
-      "featureFlags",
-      "experiments",
+      'tenants',
+      'environments',
+      'operators',
+      'providers',
+      'agentTemplates',
+      'agentVersions',
+      'agentInstances',
+      'policyEnvelopes',
+      'approvalRecords',
+      'changeRecords',
+      'evaluationSuites',
+      'evaluationRuns',
+      'roles',
+      'roleAssignments',
+      'permissions',
+      'auditLogs',
+      'analytics',
+      'customScoringFunctions',
+      'notifications',
+      'featureFlags',
+      'experiments',
     ];
     for (const mod of modules) {
-      functions.push({ module: mod, name: "list", type: "query" });
-      functions.push({ module: mod, name: "get", type: "query" });
-      functions.push({ module: mod, name: "create", type: "mutation" });
+      functions.push({ module: mod, name: 'list', type: 'query' });
+      functions.push({ module: mod, name: 'get', type: 'query' });
+      functions.push({ module: mod, name: 'create', type: 'mutation' });
     }
   }
 
@@ -84,7 +84,7 @@ function generatePaths(functions: FunctionSpec[]): string {
   const paths: string[] = [];
   for (const fn of functions) {
     const path = `/api/${fn.module}/${fn.name}`;
-    const method = fn.type === "query" ? "get" : "post";
+    const method = fn.type === 'query' ? 'get' : 'post';
     paths.push(`  "${path}":
     ${method}:
       summary: ${fn.module}.${fn.name}
@@ -95,7 +95,7 @@ function generatePaths(functions: FunctionSpec[]): string {
           description: Success
 `);
   }
-  return paths.join("\n");
+  return paths.join('\n');
 }
 
 /**
@@ -117,7 +117,7 @@ paths:
 ${pathsYaml}
 `;
 
-  writeFileSync(join(DOCS_DIR, "openapi.generated.yaml"), spec);
+  writeFileSync(join(DOCS_DIR, 'openapi.generated.yaml'), spec);
   console.log(`Generated OpenAPI spec with ${functions.length} functions`);
 }
 

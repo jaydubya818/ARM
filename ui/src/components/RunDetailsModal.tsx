@@ -1,14 +1,14 @@
 /**
  * RunDetailsModal Component
- * 
+ *
  * Modal for viewing detailed evaluation run results with scoring breakdown.
  */
 
-import { useQuery } from 'convex/react'
-import { api } from '../convex/_generated/api'
-import { Id, type Doc } from '../convex/_generated/dataModel'
-import { normalizeRate } from '../lib/metrics'
-import type { TestCaseResult } from '../../../packages/shared/src/types/evaluation'
+import { useQuery } from 'convex/react';
+import { api } from 'agent-resources-platform/convex/_generated/api';
+import { Id, type Doc } from 'agent-resources-platform/convex/_generated/dataModel';
+import type { TestCaseResult } from '@arm/shared/src/types/evaluation';
+import { normalizeRate } from '../lib/metrics';
 
 interface RunDetailsModalProps {
   runId: Id<'evaluationRuns'>
@@ -24,11 +24,11 @@ export function RunDetailsModal({ runId, onClose }: RunDetailsModalProps) {
         suite: Doc<'evaluationSuites'> | null
         version: Doc<'agentVersions'> | null
       }
-    | undefined
+    | undefined;
 
-  const run = runData?.run
-  const suite = runData?.suite
-  const version = runData?.version
+  const run = runData?.run;
+  const suite = runData?.suite;
+  const version = runData?.version;
 
   if (!run) {
     return (
@@ -37,30 +37,29 @@ export function RunDetailsModal({ runId, onClose }: RunDetailsModalProps) {
           <div className="text-center text-arm-text-secondary">Loading...</div>
         </div>
       </div>
-    )
+    );
   }
 
   const getScoreColor = (score: number) => {
-    if (score >= 0.9) return 'text-arm-success'
-    if (score >= 0.7) return 'text-arm-warning'
-    return 'text-arm-danger'
-  }
+    if (score >= 0.9) return 'text-arm-success';
+    if (score >= 0.7) return 'text-arm-warning';
+    return 'text-arm-danger';
+  };
 
   const getScoreBarColor = (score: number) => {
-    if (score >= 0.9) return 'bg-arm-success'
-    if (score >= 0.7) return 'bg-arm-warning'
-    return 'bg-arm-danger'
-  }
+    if (score >= 0.9) return 'bg-arm-success';
+    if (score >= 0.7) return 'bg-arm-warning';
+    return 'bg-arm-danger';
+  };
 
   const formatDuration = (ms: number) => {
-    if (ms < 1000) return `${ms}ms`
-    if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`
-    return `${(ms / 60000).toFixed(1)}m`
-  }
+    if (ms < 1000) return `${ms}ms`;
+    if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
+    return `${(ms / 60000).toFixed(1)}m`;
+  };
 
-  const duration =
-    run.startedAt && run.completedAt ? run.completedAt - run.startedAt : undefined
-  const normalizedPassRate = normalizeRate(run.passRate)
+  const duration = run.startedAt && run.completedAt ? run.completedAt - run.startedAt : undefined;
+  const normalizedPassRate = normalizeRate(run.passRate);
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -71,7 +70,10 @@ export function RunDetailsModal({ runId, onClose }: RunDetailsModalProps) {
             <div>
               <h2 className="text-xl font-semibold text-arm-text-primary">Evaluation Run Details</h2>
               <p className="text-sm text-arm-text-secondary mt-1">
-                {suite?.name} • {version?.versionLabel}
+                {suite?.name}
+                {' '}
+                •
+                {version?.versionLabel}
               </p>
             </div>
             <button
@@ -161,8 +163,8 @@ export function RunDetailsModal({ runId, onClose }: RunDetailsModalProps) {
           {run.status === 'COMPLETED' && run.results && (
             <div className="space-y-4">
               {(run.results as TestCaseResult[]).map((result: TestCaseResult, index: number) => {
-                const testCase = suite?.testCases.find((tc: SuiteTestCase) => tc.id === result.testCaseId)
-                const score = result.score ?? (result.passed ? 1 : 0)
+                const testCase = suite?.testCases.find((tc: SuiteTestCase) => tc.id === result.testCaseId);
+                const score = result.score ?? (result.passed ? 1 : 0);
 
                 return (
                   <div
@@ -173,7 +175,9 @@ export function RunDetailsModal({ runId, onClose }: RunDetailsModalProps) {
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
                         <span className="text-sm font-medium text-arm-text-primary">
-                          Test Case {index + 1}
+                          Test Case
+                          {' '}
+                          {index + 1}
                         </span>
                         {result.passed ? (
                           <span className="px-2 py-1 bg-arm-success/20 text-arm-success rounded text-xs font-medium">
@@ -187,7 +191,8 @@ export function RunDetailsModal({ runId, onClose }: RunDetailsModalProps) {
                       </div>
                       <div className="flex items-center gap-2">
                         <span className={`text-sm font-semibold ${getScoreColor(score)}`}>
-                          {(score * 100).toFixed(1)}%
+                          {(score * 100).toFixed(1)}
+                          %
                         </span>
                         <div className="w-24 h-2 bg-arm-bg-secondary rounded-full overflow-hidden">
                           <div
@@ -224,21 +229,29 @@ export function RunDetailsModal({ runId, onClose }: RunDetailsModalProps) {
 
                       <div className="flex items-center gap-4 text-xs text-arm-text-tertiary">
                         <span>
-                          📊 Scoring: {testCase?.scoringCriteria?.type || 'N/A'}
+                          📊 Scoring:
+                          {' '}
+                          {testCase?.scoringCriteria?.type || 'N/A'}
                         </span>
-                        {testCase?.scoringCriteria?.type === 'similarity' &&
-                          testCase.scoringCriteria.threshold !== undefined && (
+                        {testCase?.scoringCriteria?.type === 'similarity'
+                          && testCase.scoringCriteria.threshold !== undefined && (
                           <span>
-                            🎯 Threshold: {(testCase.scoringCriteria.threshold * 100).toFixed(0)}%
+                            🎯 Threshold:
+                            {' '}
+                            {(testCase.scoringCriteria.threshold * 100).toFixed(0)}
+                            %
                           </span>
                         )}
                         {result.executionTime !== undefined && (
-                          <span>⏱️ {formatDuration(result.executionTime)}</span>
+                          <span>
+                            ⏱️
+                            {formatDuration(result.executionTime)}
+                          </span>
                         )}
                       </div>
                     </div>
                   </div>
-                )
+                );
               })}
             </div>
           )}
@@ -248,10 +261,16 @@ export function RunDetailsModal({ runId, onClose }: RunDetailsModalProps) {
         <div className="px-6 py-4 border-t border-arm-border flex items-center justify-between">
           <div className="text-xs text-arm-text-tertiary">
             {run.startedAt && (
-              <span>Started: {new Date(run.startedAt).toLocaleString()}</span>
+              <span>
+                Started:
+                {new Date(run.startedAt).toLocaleString()}
+              </span>
             )}
             {run.completedAt && (
-              <span className="ml-4">Completed: {new Date(run.completedAt).toLocaleString()}</span>
+              <span className="ml-4">
+                Completed:
+                {new Date(run.completedAt).toLocaleString()}
+              </span>
             )}
           </div>
           <button
@@ -263,5 +282,5 @@ export function RunDetailsModal({ runId, onClose }: RunDetailsModalProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

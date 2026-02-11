@@ -1,12 +1,12 @@
 /**
  * Query Optimization Utilities
- * 
+ *
  * Provides utilities for optimizing Convex queries,
  * preventing N+1 problems, and improving performance.
  */
 
-import { GenericQueryCtx } from "convex/server";
-import { DataModel } from "../_generated/dataModel";
+import { GenericQueryCtx } from 'convex/server';
+import { DataModel } from '../_generated/dataModel';
 
 /**
  * Batch load related entities to prevent N+1 queries
@@ -14,14 +14,14 @@ import { DataModel } from "../_generated/dataModel";
 export async function batchLoad<T extends { _id: any }>(
   ctx: GenericQueryCtx<DataModel>,
   tableName: keyof DataModel,
-  ids: any[]
+  ids: any[],
 ): Promise<Map<string, T>> {
   const uniqueIds = [...new Set(ids)];
   const results = new Map<string, T>();
 
   // Fetch all entities in parallel
   const entities = await Promise.all(
-    uniqueIds.map(id => ctx.db.get(id))
+    uniqueIds.map((id) => ctx.db.get(id)),
   );
 
   entities.forEach((entity, index) => {
@@ -53,7 +53,7 @@ export interface PaginatedResult<T> {
  */
 export function paginate<T extends { _id: any }>(
   items: T[],
-  options: PaginationOptions = {}
+  options: PaginationOptions = {},
 ): PaginatedResult<T> {
   const limit = options.limit || 50;
   const cursorIndex = options.cursor ? parseInt(options.cursor, 10) : 0;
@@ -83,9 +83,9 @@ export interface QueryOptimizationHints {
  * Batch fetch with deduplication
  */
 export async function batchFetch<T>(
-  fetchers: Array<() => Promise<T>>
+  fetchers: Array<() => Promise<T>>,
 ): Promise<T[]> {
-  return Promise.all(fetchers.map(f => f()));
+  return Promise.all(fetchers.map((f) => f()));
 }
 
 /**
@@ -96,7 +96,7 @@ const memoCache = new Map<string, { value: any; timestamp: number }>();
 export function memoize<T>(
   key: string,
   fn: () => T,
-  ttl: number = 60000
+  ttl = 60000,
 ): T {
   const cached = memoCache.get(key);
   const now = Date.now();
@@ -113,9 +113,10 @@ export function memoize<T>(
 /**
  * Debounce function calls
  */
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends(
+...args: any[]) => any>(
   fn: T,
-  delayMs: number
+  delayMs: number,
 ): (...args: Parameters<T>) => void {
   let timeoutId: NodeJS.Timeout;
 
@@ -128,9 +129,10 @@ export function debounce<T extends (...args: any[]) => any>(
 /**
  * Throttle function calls
  */
-export function throttle<T extends (...args: any[]) => any>(
+export function throttle<T extends(
+...args: any[]) => any>(
   fn: T,
-  limitMs: number
+  limitMs: number,
 ): (...args: Parameters<T>) => void {
   let lastCall = 0;
 
@@ -152,7 +154,7 @@ export const ArrayOps = {
    */
   uniqueById<T extends { _id: any }>(items: T[]): T[] {
     const seen = new Set<string>();
-    return items.filter(item => {
+    return items.filter((item) => {
       const id = String(item._id);
       if (seen.has(id)) return false;
       seen.add(id);
@@ -165,7 +167,7 @@ export const ArrayOps = {
    */
   groupBy<T>(items: T[], keyFn: (item: T) => string): Map<string, T[]> {
     const groups = new Map<string, T[]>();
-    items.forEach(item => {
+    items.forEach((item) => {
       const key = keyFn(item);
       const group = groups.get(key) || [];
       group.push(item);
@@ -179,7 +181,7 @@ export const ArrayOps = {
    */
   indexById<T extends { _id: any }>(items: T[]): Map<string, T> {
     const index = new Map<string, T>();
-    items.forEach(item => {
+    items.forEach((item) => {
       index.set(String(item._id), item);
     });
     return index;
@@ -244,7 +246,7 @@ export const globalProfiler = new QueryProfiler();
  */
 export async function profileQuery<T>(
   queryName: string,
-  fn: () => Promise<T>
+  fn: () => Promise<T>,
 ): Promise<T> {
   const end = globalProfiler.start(queryName);
   try {

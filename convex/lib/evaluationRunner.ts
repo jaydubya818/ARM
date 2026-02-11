@@ -1,13 +1,13 @@
 /**
  * Evaluation Runner
- * 
+ *
  * Logic for executing test cases and scoring results.
- * 
+ *
  * Note: This is a stub implementation for P2.0.
  * In production, this would integrate with actual agent execution infrastructure.
  */
 
-import { Id } from "../_generated/dataModel";
+import { Id } from '../_generated/dataModel';
 
 /**
  * Test case from evaluation suite
@@ -19,7 +19,7 @@ interface TestCase {
   input: any;
   expectedOutput: any;
   scoringCriteria?: {
-    type: "exact_match" | "contains" | "similarity" | "custom";
+    type: 'exact_match' | 'contains' | 'similarity' | 'custom';
     threshold?: number;
     config?: any;
   };
@@ -39,14 +39,14 @@ export interface TestCaseResult {
 
 /**
  * Execute a single test case
- * 
+ *
  * @param testCase - Test case to execute
  * @param versionId - Agent version to test
  * @returns Test case result
  */
 export async function executeTestCase(
   testCase: TestCase,
-  versionId: Id<"agentVersions">
+  versionId: Id<'agentVersions'>,
 ): Promise<TestCaseResult> {
   const startTime = Date.now();
 
@@ -56,15 +56,15 @@ export async function executeTestCase(
     // 2. Execute the agent with testCase.input
     // 3. Capture the agent's output
     // 4. Score the output against testCase.expectedOutput
-    
+
     // For now, simulate execution with mock output
     const output = await simulateAgentExecution(testCase.input, versionId);
-    
+
     // Score the output
     const { passed, score } = scoreOutput(
       output,
       testCase.expectedOutput,
-      testCase.scoringCriteria
+      testCase.scoringCriteria,
     );
 
     const executionTime = Date.now() - startTime;
@@ -83,7 +83,7 @@ export async function executeTestCase(
       testCaseId: testCase.id,
       passed: false,
       output: null,
-      error: error.message || "Unknown error",
+      error: error.message || 'Unknown error',
       executionTime,
     };
   }
@@ -91,20 +91,20 @@ export async function executeTestCase(
 
 /**
  * Simulate agent execution (stub)
- * 
+ *
  * In production, this would call the actual agent infrastructure.
  */
 async function simulateAgentExecution(
   input: any,
-  versionId: Id<"agentVersions">
+  versionId: Id<'agentVersions'>,
 ): Promise<any> {
   // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 100 + Math.random() * 400));
+  await new Promise((resolve) => setTimeout(resolve, 100 + Math.random() * 400));
 
   // STUB: Return mock output
   // In production, this would execute the actual agent
   return {
-    response: "Mock agent response",
+    response: 'Mock agent response',
     metadata: {
       versionId,
       timestamp: Date.now(),
@@ -118,29 +118,29 @@ async function simulateAgentExecution(
 function scoreOutput(
   actualOutput: any,
   expectedOutput: any,
-  scoringCriteria?: TestCase["scoringCriteria"]
+  scoringCriteria?: TestCase['scoringCriteria'],
 ): { passed: boolean; score?: number } {
-  const type = scoringCriteria?.type || "exact_match";
+  const type = scoringCriteria?.type || 'exact_match';
 
   switch (type) {
-    case "exact_match":
+    case 'exact_match':
       return scoreExactMatch(actualOutput, expectedOutput);
 
-    case "contains":
+    case 'contains':
       return scoreContains(actualOutput, expectedOutput);
 
-    case "similarity":
+    case 'similarity':
       return scoreSimilarity(
         actualOutput,
         expectedOutput,
-        scoringCriteria?.threshold || 0.8
+        scoringCriteria?.threshold || 0.8,
       );
 
-    case "custom":
+    case 'custom':
       return scoreCustom(
         actualOutput,
         expectedOutput,
-        scoringCriteria?.config
+        scoringCriteria?.config,
       );
 
     default:
@@ -153,7 +153,7 @@ function scoreOutput(
  */
 function scoreExactMatch(
   actual: any,
-  expected: any
+  expected: any,
 ): { passed: boolean; score?: number } {
   const actualStr = JSON.stringify(actual);
   const expectedStr = JSON.stringify(expected);
@@ -167,7 +167,7 @@ function scoreExactMatch(
  */
 function scoreContains(
   actual: any,
-  expected: any
+  expected: any,
 ): { passed: boolean; score?: number } {
   const actualStr = String(actual).toLowerCase();
   const expectedStr = String(expected).toLowerCase();
@@ -178,18 +178,18 @@ function scoreContains(
 
 /**
  * Similarity scoring (semantic similarity)
- * 
+ *
  * STUB: In production, this would use embeddings or other similarity metrics
  */
 function scoreSimilarity(
   actual: any,
   expected: any,
-  threshold: number
+  threshold: number,
 ): { passed: boolean; score?: number } {
   // STUB: Simple Levenshtein-based similarity
   const actualStr = String(actual);
   const expectedStr = String(expected);
-  
+
   const similarity = calculateLevenshteinSimilarity(actualStr, expectedStr);
   const passed = similarity >= threshold;
 
@@ -198,13 +198,13 @@ function scoreSimilarity(
 
 /**
  * Custom scoring (user-defined logic)
- * 
+ *
  * STUB: In production, this would execute custom scoring functions
  */
 function scoreCustom(
   actual: any,
   expected: any,
-  config?: any
+  config?: any,
 ): { passed: boolean; score?: number } {
   // STUB: Default to exact match
   return scoreExactMatch(actual, expected);
@@ -216,9 +216,9 @@ function scoreCustom(
 function calculateLevenshteinSimilarity(str1: string, str2: string): number {
   const distance = levenshteinDistance(str1, str2);
   const maxLength = Math.max(str1.length, str2.length);
-  
+
   if (maxLength === 0) return 1.0;
-  
+
   return 1 - (distance / maxLength);
 }
 
@@ -244,9 +244,9 @@ function levenshteinDistance(str1: string, str2: string): number {
         dp[i][j] = dp[i - 1][j - 1];
       } else {
         dp[i][j] = Math.min(
-          dp[i - 1][j] + 1,    // deletion
-          dp[i][j - 1] + 1,    // insertion
-          dp[i - 1][j - 1] + 1 // substitution
+          dp[i - 1][j] + 1, // deletion
+          dp[i][j - 1] + 1, // insertion
+          dp[i - 1][j - 1] + 1, // substitution
         );
       }
     }
@@ -260,7 +260,7 @@ function levenshteinDistance(str1: string, str2: string): number {
  */
 export async function executeTestSuite(
   testCases: TestCase[],
-  versionId: Id<"agentVersions">
+  versionId: Id<'agentVersions'>,
 ): Promise<TestCaseResult[]> {
   const results: TestCaseResult[] = [];
 
@@ -286,19 +286,19 @@ export function calculateMetrics(results: TestCaseResult[]): {
   avgExecutionTime: number;
 } {
   const totalTests = results.length;
-  const passedTests = results.filter(r => r.passed).length;
+  const passedTests = results.filter((r) => r.passed).length;
   const failedTests = totalTests - passedTests;
   const passRate = totalTests > 0 ? passedTests / totalTests : 0;
 
   // Calculate average score (only for tests with scores)
-  const testsWithScores = results.filter(r => r.score !== undefined);
+  const testsWithScores = results.filter((r) => r.score !== undefined);
   const overallScore = testsWithScores.length > 0
     ? testsWithScores.reduce((sum, r) => sum + (r.score || 0), 0) / testsWithScores.length
     : 0;
 
   const times = results
-    .map(r => r.executionTime)
-    .filter((t): t is number => typeof t === "number");
+    .map((r) => r.executionTime)
+    .filter((t): t is number => typeof t === 'number');
   const avgExecutionTime = times.length > 0
     ? times.reduce((sum, t) => sum + t, 0) / times.length
     : 0;

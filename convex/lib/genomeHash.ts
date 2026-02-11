@@ -62,7 +62,7 @@ export async function computeGenomeHash(genome: Genome): Promise<string> {
   const data = encoder.encode(canonical);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
   return hashHex;
 }
 
@@ -72,7 +72,7 @@ export async function computeGenomeHash(genome: Genome): Promise<string> {
  */
 export async function verifyGenomeIntegrity(
   genome: Genome,
-  storedHash: string
+  storedHash: string,
 ): Promise<boolean> {
   const computedHash = await computeGenomeHash(genome);
   return computedHash === storedHash;

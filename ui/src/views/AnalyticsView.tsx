@@ -1,14 +1,14 @@
 /**
  * Analytics View
- * 
+ *
  * Main view for analytics dashboard.
  */
 
-import { AnalyticsDashboard } from "../components/AnalyticsDashboard";
-import { Id } from "../convex/_generated/dataModel";
+import { Id } from 'agent-resources-platform/convex/_generated/dataModel';
+import { AnalyticsDashboard } from '../components/AnalyticsDashboard';
 
 interface AnalyticsViewProps {
-  tenantId: Id<"tenants">;
+  tenantId: Id<'tenants'>;
 }
 
 export function AnalyticsView({ tenantId }: AnalyticsViewProps) {

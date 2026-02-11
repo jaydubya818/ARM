@@ -1,30 +1,30 @@
 /**
  * Notifications System
- * 
+ *
  * Event-driven notifications with preferences and delivery channels.
  */
 
-import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
-import { internal } from "./_generated/api";
+import { v } from 'convex/values';
+import { query, mutation } from './_generated/server';
+import { internal } from './_generated/api';
 
 /**
  * List notifications for an operator
  */
 export const list = query({
   args: {
-    operatorId: v.id("operators"),
+    operatorId: v.id('operators'),
     unreadOnly: v.optional(v.boolean()),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     let query = ctx.db
-      .query("notifications")
-      .withIndex("by_operator", (q) => q.eq("operatorId", args.operatorId))
-      .order("desc");
+      .query('notifications')
+      .withIndex('by_operator', (q) => q.eq('operatorId', args.operatorId))
+      .order('desc');
 
     if (args.unreadOnly) {
-      query = query.filter((q) => q.eq(q.field("read"), false));
+      query = query.filter((q) => q.eq(q.field('read'), false));
     }
 
     if (args.limit) {
@@ -40,14 +40,12 @@ export const list = query({
  */
 export const getUnreadCount = query({
   args: {
-    operatorId: v.id("operators"),
+    operatorId: v.id('operators'),
   },
   handler: async (ctx, args) => {
     const unread = await ctx.db
-      .query("notifications")
-      .withIndex("by_read", (q) =>
-        q.eq("operatorId", args.operatorId).eq("read", false)
-      )
+      .query('notifications')
+      .withIndex('by_read', (q) => q.eq('operatorId', args.operatorId).eq('read', false))
       .collect();
 
     return unread.length;
@@ -59,12 +57,12 @@ export const getUnreadCount = query({
  */
 export const markAsRead = mutation({
   args: {
-    notificationId: v.id("notifications"),
+    notificationId: v.id('notifications'),
   },
   handler: async (ctx, args) => {
     const notification = await ctx.db.get(args.notificationId);
     if (!notification) {
-      throw new Error("Notification not found");
+      throw new Error('Notification not found');
     }
 
     await ctx.db.patch(args.notificationId, {
@@ -81,14 +79,12 @@ export const markAsRead = mutation({
  */
 export const markAllAsRead = mutation({
   args: {
-    operatorId: v.id("operators"),
+    operatorId: v.id('operators'),
   },
   handler: async (ctx, args) => {
     const unread = await ctx.db
-      .query("notifications")
-      .withIndex("by_read", (q) =>
-        q.eq("operatorId", args.operatorId).eq("read", false)
-      )
+      .query('notifications')
+      .withIndex('by_read', (q) => q.eq('operatorId', args.operatorId).eq('read', false))
       .collect();
 
     const now = Date.now();
@@ -108,7 +104,7 @@ export const markAllAsRead = mutation({
  */
 export const remove = mutation({
   args: {
-    notificationId: v.id("notifications"),
+    notificationId: v.id('notifications'),
   },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.notificationId);
@@ -121,14 +117,12 @@ export const remove = mutation({
  */
 export const getPreferences = query({
   args: {
-    operatorId: v.id("operators"),
+    operatorId: v.id('operators'),
   },
-  handler: async (ctx, args) => {
-    return await ctx.db
-      .query("notificationPreferences")
-      .withIndex("by_operator", (q) => q.eq("operatorId", args.operatorId))
-      .collect();
-  },
+  handler: async (ctx, args) => await ctx.db
+    .query('notificationPreferences')
+    .withIndex('by_operator', (q) => q.eq('operatorId', args.operatorId))
+    .collect(),
 });
 
 /**
@@ -136,7 +130,7 @@ export const getPreferences = query({
  */
 export const updatePreferences = mutation({
   args: {
-    operatorId: v.id("operators"),
+    operatorId: v.id('operators'),
     eventType: v.string(),
     enabled: v.boolean(),
     channels: v.array(v.string()),
@@ -145,10 +139,8 @@ export const updatePreferences = mutation({
   handler: async (ctx, args) => {
     // Check if preference exists
     const existing = await ctx.db
-      .query("notificationPreferences")
-      .withIndex("by_event", (q) =>
-        q.eq("operatorId", args.operatorId).eq("eventType", args.eventType)
-      )
+      .query('notificationPreferences')
+      .withIndex('by_event', (q) => q.eq('operatorId', args.operatorId).eq('eventType', args.eventType))
       .first();
 
     if (existing) {
@@ -159,16 +151,15 @@ export const updatePreferences = mutation({
         frequency: args.frequency,
       });
       return existing._id;
-    } else {
-      // Create new
-      return await ctx.db.insert("notificationPreferences", {
-        operatorId: args.operatorId,
-        eventType: args.eventType,
-        enabled: args.enabled,
-        channels: args.channels,
-        frequency: args.frequency,
-      });
     }
+    // Create new
+    return await ctx.db.insert('notificationPreferences', {
+      operatorId: args.operatorId,
+      eventType: args.eventType,
+      enabled: args.enabled,
+      channels: args.channels,
+      frequency: args.frequency,
+    });
   },
 });
 
@@ -177,14 +168,14 @@ export const updatePreferences = mutation({
  */
 export const createEvent = mutation({
   args: {
-    tenantId: v.id("tenants"),
+    tenantId: v.id('tenants'),
     type: v.string(),
     resourceType: v.string(),
     resourceId: v.string(),
     payload: v.any(),
   },
   handler: async (ctx, args) => {
-    const eventId = await ctx.db.insert("notificationEvents", {
+    const eventId = await ctx.db.insert('notificationEvents', {
       tenantId: args.tenantId,
       type: args.type,
       resourceType: args.resourceType,
@@ -211,10 +202,10 @@ export const getPendingEvents = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    let query = ctx.db
-      .query("notificationEvents")
-      .withIndex("by_processed", (q) => q.eq("processed", false))
-      .order("asc");
+    const query = ctx.db
+      .query('notificationEvents')
+      .withIndex('by_processed', (q) => q.eq('processed', false))
+      .order('asc');
 
     if (args.limit) {
       return await query.take(args.limit);
@@ -229,7 +220,7 @@ export const getPendingEvents = query({
  */
 export const markEventProcessed = mutation({
   args: {
-    eventId: v.id("notificationEvents"),
+    eventId: v.id('notificationEvents'),
   },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.eventId, {

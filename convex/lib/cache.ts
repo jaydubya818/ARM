@@ -1,6 +1,6 @@
 /**
  * Query Result Caching
- * 
+ *
  * Implements in-memory caching for frequently accessed queries
  * to reduce database load and improve response times.
  */
@@ -21,7 +21,9 @@ export interface CacheOptions {
  */
 export class QueryCache {
   private cache: Map<string, CacheEntry<any>>;
+
   private readonly defaultTTL: number;
+
   private readonly maxSize: number;
 
   constructor(options: CacheOptions = {}) {
@@ -35,7 +37,7 @@ export class QueryCache {
    */
   get<T>(key: string): T | null {
     const entry = this.cache.get(key);
-    
+
     if (!entry) {
       return null;
     }
@@ -102,7 +104,7 @@ export class QueryCache {
     size: number;
     maxSize: number;
     hitRate: number;
-  } {
+    } {
     return {
       size: this.cache.size,
       maxSize: this.maxSize,
@@ -128,7 +130,7 @@ export async function withCache<T>(
   options?: {
     ttl?: number;
     skipCache?: boolean;
-  }
+  },
 ): Promise<T> {
   // Skip cache if requested
   if (options?.skipCache) {
@@ -152,11 +154,11 @@ export async function withCache<T>(
  */
 export function generateCacheKey(
   queryName: string,
-  args: Record<string, any>
+  args: Record<string, any>,
 ): string {
   const sortedArgs = Object.keys(args)
     .sort()
-    .map(key => `${key}:${JSON.stringify(args[key])}`)
+    .map((key) => `${key}:${JSON.stringify(args[key])}`)
     .join('|');
   return `${queryName}:${sortedArgs}`;
 }
@@ -166,7 +168,7 @@ export function generateCacheKey(
  */
 export function invalidateResource(
   resource: string,
-  id?: string
+  id?: string,
 ): void {
   if (id) {
     globalCache.invalidatePattern(new RegExp(`${resource}.*${id}`));
@@ -182,7 +184,7 @@ export function cached(ttl?: number) {
   return function (
     target: any,
     propertyKey: string,
-    descriptor: PropertyDescriptor
+    descriptor: PropertyDescriptor,
   ) {
     const originalMethod = descriptor.value;
 

@@ -1,17 +1,17 @@
 /**
  * Custom Function Editor Component
- * 
+ *
  * Create, edit, test, and manage custom scoring functions.
  */
 
-import { useState } from "react";
-import { useQuery, useMutation, useAction } from "convex/react";
-import { api } from "../convex/_generated/api";
-import { Id, type Doc } from "../convex/_generated/dataModel";
+import { useState } from 'react';
+import { useQuery, useMutation, useAction } from 'convex/react';
+import { api } from 'agent-resources-platform/convex/_generated/api';
+import { Id, type Doc } from 'agent-resources-platform/convex/_generated/dataModel';
 
 interface CustomFunctionEditorProps {
-  tenantId: Id<"tenants">;
-  currentOperatorId: Id<"operators">;
+  tenantId: Id<'tenants'>;
+  currentOperatorId: Id<'operators'>;
 }
 
 type FunctionParam = {
@@ -32,13 +32,13 @@ export function CustomFunctionEditor({
   tenantId,
   currentOperatorId,
 }: CustomFunctionEditorProps) {
-  const [selectedFunction, setSelectedFunction] = useState<Id<"customScoringFunctions"> | null>(null);
+  const [selectedFunction, setSelectedFunction] = useState<Id<'customScoringFunctions'> | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   // Form state
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [code, setCode] = useState(`function score(input, expectedOutput, actualOutput) {
   // Your custom scoring logic here
   // Must return a number between 0 and 1
@@ -55,7 +55,7 @@ export function CustomFunctionEditor({
   const functions = useQuery(api.customScoringFunctions.list, {
     tenantId,
     activeOnly: false,
-  }) as Doc<"customScoringFunctions">[] | undefined;
+  }) as Doc<'customScoringFunctions'>[] | undefined;
 
   // Mutations
   const createFunction = useMutation(api.customScoringFunctions.create);
@@ -78,17 +78,17 @@ export function CustomFunctionEditor({
         createdBy: currentOperatorId,
         metadata: {
           parameters: [
-            { name: "input", type: "any", required: true },
-            { name: "expectedOutput", type: "any", required: true },
-            { name: "actualOutput", type: "any", required: true },
+            { name: 'input', type: 'any', required: true },
+            { name: 'expectedOutput', type: 'any', required: true },
+            { name: 'actualOutput', type: 'any', required: true },
           ],
-          returnType: "number",
+          returnType: 'number',
           examples: [],
         },
       });
       setShowCreateModal(false);
-      setName("");
-      setDescription("");
+      setName('');
+      setDescription('');
       setCode(`function score(input, expectedOutput, actualOutput) {
   // Your custom scoring logic here
   return 0.0;
@@ -105,8 +105,8 @@ export function CustomFunctionEditor({
       const result = await testFunction({ functionId: selectedFunction });
       alert(
         `Test Results:\n\nTotal Tests: ${result.totalTests}\nPassed: ${result.passed}\nFailed: ${result.failed}\n\n${
-          result.allPassed ? "✅ All tests passed!" : "❌ Some tests failed"
-        }`
+          result.allPassed ? '✅ All tests passed!' : '❌ Some tests failed'
+        }`,
       );
     } catch (error) {
       alert(`Error testing function: ${(error as Error).message}`);
@@ -136,7 +136,9 @@ export function CustomFunctionEditor({
         {/* Functions List */}
         <div className="lg:col-span-1 space-y-3">
           <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
-            Functions ({functions?.length || 0})
+            Functions (
+            {functions?.length || 0}
+            )
           </h3>
 
           {functions?.map((func) => (
@@ -148,8 +150,8 @@ export function CustomFunctionEditor({
               }}
               className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
                 selectedFunction === func._id
-                  ? "border-blue-600 bg-blue-50"
-                  : "border-gray-200 hover:border-gray-300 bg-white"
+                  ? 'border-blue-600 bg-blue-50'
+                  : 'border-gray-200 hover:border-gray-300 bg-white'
               }`}
             >
               <div className="flex items-start justify-between">
@@ -159,17 +161,20 @@ export function CustomFunctionEditor({
                     <span
                       className={`px-2 py-0.5 text-xs font-medium rounded ${
                         func.isActive
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-gray-600"
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-gray-100 text-gray-600'
                       }`}
                     >
-                      {func.isActive ? "Active" : "Inactive"}
+                      {func.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </div>
                   <p className="text-sm text-gray-600 mt-1 line-clamp-2">
                     {func.description}
                   </p>
-                  <p className="text-xs text-gray-500 mt-2">v{func.version}</p>
+                  <p className="text-xs text-gray-500 mt-2">
+                    v
+                    {func.version}
+                  </p>
                 </div>
               </div>
             </div>
@@ -196,7 +201,9 @@ export function CustomFunctionEditor({
                   <p className="text-gray-600 mt-1">{selectedFunctionData.description}</p>
                   <div className="flex items-center gap-3 mt-2">
                     <span className="text-sm text-gray-500">
-                      Version {selectedFunctionData.version}
+                      Version
+                      {' '}
+                      {selectedFunctionData.version}
                     </span>
                     <span className="text-sm text-gray-500">
                       {selectedFunctionData.language}
@@ -204,11 +211,11 @@ export function CustomFunctionEditor({
                     <span
                       className={`px-2 py-0.5 text-xs font-medium rounded ${
                         selectedFunctionData.isActive
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-gray-600"
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-gray-100 text-gray-600'
                       }`}
                     >
-                      {selectedFunctionData.isActive ? "Active" : "Inactive"}
+                      {selectedFunctionData.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </div>
                 </div>
@@ -224,13 +231,13 @@ export function CustomFunctionEditor({
                     onClick={() => setIsEditing(!isEditing)}
                     className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                   >
-                    {isEditing ? "Cancel" : "Edit"}
+                    {isEditing ? 'Cancel' : 'Edit'}
                   </button>
                   <button
                     onClick={async () => {
                       if (
                         confirm(
-                          `Are you sure you want to delete "${selectedFunctionData.name}"?`
+                          `Are you sure you want to delete "${selectedFunctionData.name}"?`,
                         )
                       ) {
                         await deleteFunction({ functionId: selectedFunctionData._id });
@@ -254,7 +261,7 @@ export function CustomFunctionEditor({
                     value={selectedFunctionData.code}
                     readOnly={!isEditing}
                     className={`w-full h-64 px-4 py-3 font-mono text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      !isEditing ? "bg-gray-50" : ""
+                      !isEditing ? 'bg-gray-50' : ''
                     }`}
                     spellCheck={false}
                   />
@@ -279,7 +286,11 @@ export function CustomFunctionEditor({
                     >
                       <div>
                         <span className="font-medium text-gray-900">{param.name}</span>
-                        <span className="text-sm text-gray-500 ml-2">({param.type})</span>
+                        <span className="text-sm text-gray-500 ml-2">
+                          (
+                          {param.type}
+                          )
+                        </span>
                       </div>
                       {param.required && (
                         <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded">
@@ -295,7 +306,9 @@ export function CustomFunctionEditor({
               {selectedFunctionData.metadata.examples.length > 0 && (
                 <div>
                   <h4 className="text-sm font-semibold text-gray-900 mb-3">
-                    Examples ({selectedFunctionData.metadata.examples.length})
+                    Examples (
+                    {selectedFunctionData.metadata.examples.length}
+                    )
                   </h4>
                   <div className="space-y-3">
                     {selectedFunctionData.metadata.examples.map((example: FunctionExample, index: number) => (
@@ -325,7 +338,8 @@ export function CustomFunctionEditor({
                           <div>
                             <p className="font-medium text-gray-700 mb-1">Expected Score:</p>
                             <p className="text-lg font-bold text-gray-900">
-                              {(example.score * 100).toFixed(1)}%
+                              {(example.score * 100).toFixed(1)}
+                              %
                             </p>
                           </div>
                         </div>
@@ -338,7 +352,9 @@ export function CustomFunctionEditor({
               {isEditing && (
                 <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <p className="text-sm text-yellow-800">
-                    <strong>Note:</strong> Full editing functionality requires additional form
+                    <strong>Note:</strong>
+                    {' '}
+                    Full editing functionality requires additional form
                     components. For now, use the Convex dashboard to update functions.
                   </p>
                 </div>

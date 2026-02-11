@@ -1,17 +1,17 @@
 /**
  * Analytics Dashboard Component
- * 
+ *
  * Displays evaluation metrics, trends, and comparisons.
  */
 
-import { useState } from "react";
-import { useQuery } from "convex/react";
-import { api } from "../convex/_generated/api";
-import { Id, type Doc } from "../convex/_generated/dataModel";
-import { normalizeRate } from "../lib/metrics";
+import { useState } from 'react';
+import { useQuery } from 'convex/react';
+import { api } from 'agent-resources-platform/convex/_generated/api';
+import { Id, type Doc } from 'agent-resources-platform/convex/_generated/dataModel';
+import { normalizeRate } from '../lib/metrics';
 
 interface AnalyticsDashboardProps {
-  tenantId: Id<"tenants">;
+  tenantId: Id<'tenants'>;
 }
 
 type MetricAverages = {
@@ -30,8 +30,8 @@ type TrendPoint = {
 };
 
 type ComparisonData = {
-  version1: { id: Id<"agentVersions">; metrics: MetricAverages; sampleSize: number };
-  version2: { id: Id<"agentVersions">; metrics: MetricAverages; sampleSize: number };
+  version1: { id: Id<'agentVersions'>; metrics: MetricAverages; sampleSize: number };
+  version2: { id: Id<'agentVersions'>; metrics: MetricAverages; sampleSize: number };
   deltas: { overallScore: number; passRate: number; avgExecutionTime: number };
   improvement: { score: boolean; passRate: boolean; speed: boolean };
 };
@@ -46,16 +46,16 @@ type TenantStats = {
 };
 
 export function AnalyticsDashboard({ tenantId }: AnalyticsDashboardProps) {
-  const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d">("30d");
-  const [selectedVersion, setSelectedVersion] = useState<Id<"agentVersions"> | null>(null);
-  const [compareVersion, setCompareVersion] = useState<Id<"agentVersions"> | null>(null);
+  const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('30d');
+  const [selectedVersion, setSelectedVersion] = useState<Id<'agentVersions'> | null>(null);
+  const [compareVersion, setCompareVersion] = useState<Id<'agentVersions'> | null>(null);
 
   // Calculate time range
   const now = Date.now();
   const timeRanges = {
-    "7d": 7 * 24 * 60 * 60 * 1000,
-    "30d": 30 * 24 * 60 * 60 * 1000,
-    "90d": 90 * 24 * 60 * 60 * 1000,
+    '7d': 7 * 24 * 60 * 60 * 1000,
+    '30d': 30 * 24 * 60 * 60 * 1000,
+    '90d': 90 * 24 * 60 * 60 * 1000,
   };
   const startTime = now - timeRanges[timeRange];
 
@@ -67,28 +67,28 @@ export function AnalyticsDashboard({ tenantId }: AnalyticsDashboardProps) {
   }) as TenantStats | undefined;
 
   const versions = useQuery(api.agentVersions.list, { tenantId }) as
-    | Doc<"agentVersions">[]
+    | Doc<'agentVersions'>[]
     | undefined;
 
   const versionTrend = useQuery(
     api.analytics.getTrend,
     selectedVersion
       ? {
-          versionId: selectedVersion,
-          period: "daily",
-          limit: 30,
-        }
-      : "skip"
+        versionId: selectedVersion,
+        period: 'daily',
+        limit: 30,
+      }
+      : 'skip',
   ) as TrendPoint[] | undefined;
 
   const comparison = useQuery(
     api.analytics.compareVersions,
     selectedVersion && compareVersion
       ? {
-          version1Id: selectedVersion,
-          version2Id: compareVersion,
-        }
-      : "skip"
+        version1Id: selectedVersion,
+        version2Id: compareVersion,
+      }
+      : 'skip',
   ) as ComparisonData | undefined;
 
   const formatScore = (score: number) => (score * 100).toFixed(1);
@@ -108,17 +108,17 @@ export function AnalyticsDashboard({ tenantId }: AnalyticsDashboardProps) {
 
         {/* Time Range Selector */}
         <div className="flex gap-2">
-          {(["7d", "30d", "90d"] as const).map((range) => (
+          {(['7d', '30d', '90d'] as const).map((range) => (
             <button
               key={range}
               onClick={() => setTimeRange(range)}
               className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                 timeRange === range
-                  ? "bg-blue-600 text-white"
-                  : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
               }`}
             >
-              {range === "7d" ? "7 Days" : range === "30d" ? "30 Days" : "90 Days"}
+              {range === '7d' ? '7 Days' : range === '30d' ? '30 Days' : '90 Days'}
             </button>
           ))}
         </div>
@@ -158,7 +158,8 @@ export function AnalyticsDashboard({ tenantId }: AnalyticsDashboardProps) {
               <div>
                 <p className="text-sm font-medium text-gray-600">Avg Score</p>
                 <p className="text-3xl font-bold text-gray-900 mt-2">
-                  {formatScore(tenantStats.averages.overallScore)}%
+                  {formatScore(tenantStats.averages.overallScore)}
+                  %
                 </p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -184,7 +185,8 @@ export function AnalyticsDashboard({ tenantId }: AnalyticsDashboardProps) {
               <div>
                 <p className="text-sm font-medium text-gray-600">Pass Rate</p>
                 <p className="text-3xl font-bold text-gray-900 mt-2">
-                  {formatRate(tenantStats.averages.passRate)}%
+                  {formatRate(tenantStats.averages.passRate)}
+                  %
                 </p>
               </div>
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -242,9 +244,9 @@ export function AnalyticsDashboard({ tenantId }: AnalyticsDashboardProps) {
               Primary Version
             </label>
             <select
-              value={selectedVersion || ""}
+              value={selectedVersion || ''}
               onChange={(e) => {
-                const value = e.target.value as Id<"agentVersions">;
+                const value = e.target.value as Id<'agentVersions'>;
                 setSelectedVersion(value || null);
               }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -252,7 +254,10 @@ export function AnalyticsDashboard({ tenantId }: AnalyticsDashboardProps) {
               <option value="">Select a version...</option>
               {versions?.map((version) => (
                 <option key={version._id} value={version._id}>
-                  {version.versionLabel} - {version.lifecycleState}
+                  {version.versionLabel}
+                  {' '}
+                  -
+                  {version.lifecycleState}
                 </option>
               ))}
             </select>
@@ -263,9 +268,9 @@ export function AnalyticsDashboard({ tenantId }: AnalyticsDashboardProps) {
               Compare With (Optional)
             </label>
             <select
-              value={compareVersion || ""}
+              value={compareVersion || ''}
               onChange={(e) => {
-                const value = e.target.value as Id<"agentVersions">;
+                const value = e.target.value as Id<'agentVersions'>;
                 setCompareVersion(value || null);
               }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -276,7 +281,10 @@ export function AnalyticsDashboard({ tenantId }: AnalyticsDashboardProps) {
                 ?.filter((v) => v._id !== selectedVersion)
                 .map((version) => (
                   <option key={version._id} value={version._id}>
-                    {version.versionLabel} - {version.lifecycleState}
+                    {version.versionLabel}
+                    {' '}
+                    -
+                    {version.lifecycleState}
                   </option>
                 ))}
             </select>
@@ -298,13 +306,15 @@ export function AnalyticsDashboard({ tenantId }: AnalyticsDashboardProps) {
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Score:</span>
                   <span className="text-sm font-medium">
-                    {formatScore(comparison.version1.metrics.overallScore)}%
+                    {formatScore(comparison.version1.metrics.overallScore)}
+                    %
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Pass Rate:</span>
                   <span className="text-sm font-medium">
-                    {formatRate(comparison.version1.metrics.passRate)}%
+                    {formatRate(comparison.version1.metrics.passRate)}
+                    %
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -330,37 +340,39 @@ export function AnalyticsDashboard({ tenantId }: AnalyticsDashboardProps) {
                   <div
                     className={`text-lg font-bold ${
                       comparison.deltas.overallScore > 0
-                        ? "text-green-600"
+                        ? 'text-green-600'
                         : comparison.deltas.overallScore < 0
-                        ? "text-red-600"
-                        : "text-gray-600"
+                          ? 'text-red-600'
+                          : 'text-gray-600'
                     }`}
                   >
-                    {comparison.deltas.overallScore > 0 ? "+" : ""}
-                    {formatScore(comparison.deltas.overallScore)}%
+                    {comparison.deltas.overallScore > 0 ? '+' : ''}
+                    {formatScore(comparison.deltas.overallScore)}
+                    %
                   </div>
                   <div
                     className={`text-lg font-bold ${
                       comparison.deltas.passRate > 0
-                        ? "text-green-600"
+                        ? 'text-green-600'
                         : comparison.deltas.passRate < 0
-                        ? "text-red-600"
-                        : "text-gray-600"
+                          ? 'text-red-600'
+                          : 'text-gray-600'
                     }`}
                   >
-                    {comparison.deltas.passRate > 0 ? "+" : ""}
-                    {formatRate(comparison.deltas.passRate)}%
+                    {comparison.deltas.passRate > 0 ? '+' : ''}
+                    {formatRate(comparison.deltas.passRate)}
+                    %
                   </div>
                   <div
                     className={`text-lg font-bold ${
                       comparison.deltas.avgExecutionTime < 0
-                        ? "text-green-600"
+                        ? 'text-green-600'
                         : comparison.deltas.avgExecutionTime > 0
-                        ? "text-red-600"
-                        : "text-gray-600"
+                          ? 'text-red-600'
+                          : 'text-gray-600'
                     }`}
                   >
-                    {comparison.deltas.avgExecutionTime > 0 ? "+" : ""}
+                    {comparison.deltas.avgExecutionTime > 0 ? '+' : ''}
                     {formatTime(comparison.deltas.avgExecutionTime)}
                   </div>
                   <div className="text-sm text-gray-400">-</div>
@@ -375,13 +387,15 @@ export function AnalyticsDashboard({ tenantId }: AnalyticsDashboardProps) {
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Score:</span>
                   <span className="text-sm font-medium">
-                    {formatScore(comparison.version2.metrics.overallScore)}%
+                    {formatScore(comparison.version2.metrics.overallScore)}
+                    %
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Pass Rate:</span>
                   <span className="text-sm font-medium">
-                    {formatRate(comparison.version2.metrics.passRate)}%
+                    {formatRate(comparison.version2.metrics.passRate)}
+                    %
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -413,11 +427,11 @@ export function AnalyticsDashboard({ tenantId }: AnalyticsDashboardProps) {
               {comparison.improvement.speed && (
                 <li className="text-sm text-green-600">✓ Execution time improved</li>
               )}
-              {!comparison.improvement.score &&
-                !comparison.improvement.passRate &&
-                !comparison.improvement.speed && (
+              {!comparison.improvement.score
+                && !comparison.improvement.passRate
+                && !comparison.improvement.speed && (
                   <li className="text-sm text-gray-600">No improvements detected</li>
-                )}
+              )}
             </ul>
           </div>
         </div>
@@ -444,12 +458,15 @@ export function AnalyticsDashboard({ tenantId }: AnalyticsDashboardProps) {
                       />
                     </div>
                     <span className="text-sm font-medium text-gray-900 w-12">
-                      {formatScore(point.metrics.overallScore)}%
+                      {formatScore(point.metrics.overallScore)}
+                      %
                     </span>
                   </div>
                 </div>
                 <div className="text-xs text-gray-500 w-16 text-right">
-                  {point.sampleSize} runs
+                  {point.sampleSize}
+                  {' '}
+                  runs
                 </div>
               </div>
             ))}
@@ -473,28 +490,33 @@ export function AnalyticsDashboard({ tenantId }: AnalyticsDashboardProps) {
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
                       index === 0
-                        ? "bg-yellow-100 text-yellow-700"
+                        ? 'bg-yellow-100 text-yellow-700'
                         : index === 1
-                        ? "bg-gray-200 text-gray-700"
-                        : index === 2
-                        ? "bg-orange-100 text-orange-700"
-                        : "bg-blue-100 text-blue-700"
+                          ? 'bg-gray-200 text-gray-700'
+                          : index === 2
+                            ? 'bg-orange-100 text-orange-700'
+                            : 'bg-blue-100 text-blue-700'
                     }`}
                   >
                     {index + 1}
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-900">
-                      Version {version.versionId}
+                      Version
+                      {' '}
+                      {version.versionId}
                     </p>
                     <p className="text-xs text-gray-500">
-                      {version.runCount} evaluation runs
+                      {version.runCount}
+                      {' '}
+                      evaluation runs
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="text-lg font-bold text-gray-900">
-                    {formatScore(version.avgScore)}%
+                    {formatScore(version.avgScore)}
+                    %
                   </p>
                   <p className="text-xs text-gray-500">avg score</p>
                 </div>

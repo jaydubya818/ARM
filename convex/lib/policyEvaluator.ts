@@ -1,13 +1,13 @@
 /**
  * Policy Evaluation Engine
- * 
+ *
  * Evaluates tool calls and actions against policy envelopes to determine
  * if they should be ALLOWED, DENIED, or require APPROVAL.
  */
 
-export type PolicyDecision = "ALLOW" | "DENY" | "NEEDS_APPROVAL";
+export type PolicyDecision = 'ALLOW' | 'DENY' | 'NEEDS_APPROVAL';
 
-export type RiskLevel = "low" | "medium" | "high" | "critical";
+export type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
 
 export interface PolicyEvaluationRequest {
   toolId: string;
@@ -38,18 +38,18 @@ export interface PolicyEnvelope {
  */
 export function evaluatePolicy(
   request: PolicyEvaluationRequest,
-  policy: PolicyEnvelope
+  policy: PolicyEnvelope,
 ): PolicyEvaluationResult {
   const violations: string[] = [];
-  let riskLevel: RiskLevel = "low";
+  let riskLevel: RiskLevel = 'low';
 
   // 1. Check if tool is in allowed list
   if (!policy.allowedTools.includes(request.toolId)) {
     violations.push(`Tool '${request.toolId}' not in allowed tools list`);
-    riskLevel = "high";
-    
+    riskLevel = 'high';
+
     return {
-      decision: "DENY",
+      decision: 'DENY',
       reason: `Tool '${request.toolId}' is not allowed by policy`,
       riskLevel,
       violations,
@@ -60,20 +60,20 @@ export function evaluatePolicy(
   if (policy.costLimits) {
     // Daily token limit
     if (
-      policy.costLimits.dailyTokens !== undefined &&
-      request.dailyTokensUsed !== undefined &&
-      request.estimatedCost !== undefined
+      policy.costLimits.dailyTokens !== undefined
+      && request.dailyTokensUsed !== undefined
+      && request.estimatedCost !== undefined
     ) {
       const projectedTokens = request.dailyTokensUsed + request.estimatedCost;
       if (projectedTokens > policy.costLimits.dailyTokens) {
         violations.push(
-          `Daily token limit exceeded: ${projectedTokens} > ${policy.costLimits.dailyTokens}`
+          `Daily token limit exceeded: ${projectedTokens} > ${policy.costLimits.dailyTokens}`,
         );
-        riskLevel = "medium";
-        
+        riskLevel = 'medium';
+
         return {
-          decision: "DENY",
-          reason: "Daily token limit would be exceeded",
+          decision: 'DENY',
+          reason: 'Daily token limit would be exceeded',
           riskLevel,
           violations,
         };
@@ -82,20 +82,20 @@ export function evaluatePolicy(
 
     // Monthly cost limit
     if (
-      policy.costLimits.monthlyCost !== undefined &&
-      request.monthlyCostUsed !== undefined &&
-      request.estimatedCost !== undefined
+      policy.costLimits.monthlyCost !== undefined
+      && request.monthlyCostUsed !== undefined
+      && request.estimatedCost !== undefined
     ) {
       const projectedCost = request.monthlyCostUsed + request.estimatedCost;
       if (projectedCost > policy.costLimits.monthlyCost) {
         violations.push(
-          `Monthly cost limit exceeded: $${projectedCost} > $${policy.costLimits.monthlyCost}`
+          `Monthly cost limit exceeded: $${projectedCost} > $${policy.costLimits.monthlyCost}`,
         );
-        riskLevel = "medium";
-        
+        riskLevel = 'medium';
+
         return {
-          decision: "DENY",
-          reason: "Monthly cost limit would be exceeded",
+          decision: 'DENY',
+          reason: 'Monthly cost limit would be exceeded',
           riskLevel,
           violations,
         };
@@ -111,7 +111,7 @@ export function evaluatePolicy(
 
   if (needsApproval) {
     return {
-      decision: "NEEDS_APPROVAL",
+      decision: 'NEEDS_APPROVAL',
       reason: `Autonomy tier ${policy.autonomyTier} requires approval for ${riskLevel} risk actions`,
       riskLevel,
       violations: [],
@@ -120,8 +120,8 @@ export function evaluatePolicy(
 
   // 5. Allow if all checks pass
   return {
-    decision: "ALLOW",
-    reason: "All policy checks passed",
+    decision: 'ALLOW',
+    reason: 'All policy checks passed',
     riskLevel,
     violations: [],
   };
@@ -133,52 +133,52 @@ export function evaluatePolicy(
 function classifyRisk(toolId: string, toolParams?: any): RiskLevel {
   // Critical risk tools (require highest autonomy)
   const criticalTools = [
-    "database_write",
-    "database_delete",
-    "file_delete",
-    "system_command",
-    "payment_process",
-    "user_delete",
+    'database_write',
+    'database_delete',
+    'file_delete',
+    'system_command',
+    'payment_process',
+    'user_delete',
   ];
 
   if (criticalTools.some((tool) => toolId.includes(tool))) {
-    return "critical";
+    return 'critical';
   }
 
   // High risk tools (write operations, external APIs)
   const highRiskTools = [
-    "database_update",
-    "file_write",
-    "email_send",
-    "slack_post",
-    "api_post",
-    "api_put",
-    "api_delete",
+    'database_update',
+    'file_write',
+    'email_send',
+    'slack_post',
+    'api_post',
+    'api_put',
+    'api_delete',
   ];
 
   if (highRiskTools.some((tool) => toolId.includes(tool))) {
-    return "high";
+    return 'high';
   }
 
   // Medium risk tools (read operations with sensitive data)
   const mediumRiskTools = [
-    "database_read",
-    "file_read",
-    "user_info",
-    "api_get",
+    'database_read',
+    'file_read',
+    'user_info',
+    'api_get',
   ];
 
   if (mediumRiskTools.some((tool) => toolId.includes(tool))) {
-    return "medium";
+    return 'medium';
   }
 
   // Low risk tools (search, lookup, non-sensitive reads)
-  return "low";
+  return 'low';
 }
 
 /**
  * Determine if approval is required based on autonomy tier and risk level
- * 
+ *
  * Autonomy Tiers:
  * 0 - No autonomy (all actions require approval)
  * 1 - Minimal autonomy (critical/high risk require approval)
@@ -189,7 +189,7 @@ function classifyRisk(toolId: string, toolParams?: any): RiskLevel {
  */
 function shouldRequireApproval(
   autonomyTier: number,
-  riskLevel: RiskLevel
+  riskLevel: RiskLevel,
 ): boolean {
   switch (autonomyTier) {
     case 0:
@@ -198,11 +198,11 @@ function shouldRequireApproval(
 
     case 1:
       // Minimal autonomy - critical and high risk require approval
-      return riskLevel === "critical" || riskLevel === "high";
+      return riskLevel === 'critical' || riskLevel === 'high';
 
     case 2:
       // Low autonomy - only critical requires approval
-      return riskLevel === "critical";
+      return riskLevel === 'critical';
 
     case 3:
     case 4:
@@ -221,7 +221,7 @@ function shouldRequireApproval(
  */
 export function evaluatePolicyBatch(
   requests: PolicyEvaluationRequest[],
-  policy: PolicyEnvelope
+  policy: PolicyEnvelope,
 ): PolicyEvaluationResult[] {
   return requests.map((request) => evaluatePolicy(request, policy));
 }
@@ -230,14 +230,14 @@ export function evaluatePolicyBatch(
  * Check if any evaluation results require approval
  */
 export function requiresApproval(results: PolicyEvaluationResult[]): boolean {
-  return results.some((result) => result.decision === "NEEDS_APPROVAL");
+  return results.some((result) => result.decision === 'NEEDS_APPROVAL');
 }
 
 /**
  * Check if any evaluation results are denied
  */
 export function hasDenials(results: PolicyEvaluationResult[]): boolean {
-  return results.some((result) => result.decision === "DENY");
+  return results.some((result) => result.decision === 'DENY');
 }
 
 /**

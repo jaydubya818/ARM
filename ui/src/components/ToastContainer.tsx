@@ -1,29 +1,29 @@
-import { useEffect, useState } from 'react'
-import { toast, Toast } from '../lib/toast'
+import { useEffect, useState } from 'react';
+import { toast, Toast } from '../lib/toast';
 
 export function ToastContainer() {
-  const [toasts, setToasts] = useState<Toast[]>([])
+  const [toasts, setToasts] = useState<Toast[]>([]);
 
   useEffect(() => {
     const unsubscribe = toast.subscribe((newToast) => {
-      setToasts((prev) => [...prev, newToast])
+      setToasts((prev) => [...prev, newToast]);
 
       // Auto-dismiss after duration
       if (newToast.duration) {
         setTimeout(() => {
-          setToasts((prev) => prev.filter((t) => t.id !== newToast.id))
-        }, newToast.duration)
+          setToasts((prev) => prev.filter((t) => t.id !== newToast.id));
+        }, newToast.duration);
       }
-    })
+    });
 
-    return unsubscribe
-  }, [])
+    return unsubscribe;
+  }, []);
 
   const handleDismiss = (id: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id))
-  }
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  };
 
-  if (toasts.length === 0) return null
+  if (toasts.length === 0) return null;
 
   return (
     <div className="fixed top-4 right-4 z-50 space-y-2">
@@ -34,10 +34,10 @@ export function ToastContainer() {
             t.type === 'success'
               ? 'bg-arm-success border-green-600'
               : t.type === 'error'
-              ? 'bg-arm-danger border-red-600'
-              : t.type === 'warning'
-              ? 'bg-arm-warning border-yellow-600'
-              : 'bg-arm-blue border-blue-600'
+                ? 'bg-arm-danger border-red-600'
+                : t.type === 'warning'
+                  ? 'bg-arm-warning border-yellow-600'
+                  : 'bg-arm-blue border-blue-600'
           }`}
         >
           {/* Icon */}
@@ -61,5 +61,5 @@ export function ToastContainer() {
         </div>
       ))}
     </div>
-  )
+  );
 }

@@ -1,9 +1,9 @@
-import { FeatureFlagManagement } from "../components/FeatureFlagManagement";
-import type { Id } from "../convex/_generated/dataModel";
+import type { Id } from 'agent-resources-platform/convex/_generated/dataModel';
+import { FeatureFlagManagement } from '../components/FeatureFlagManagement';
 
 interface FeatureFlagsViewProps {
-  tenantId: Id<"tenants">;
-  currentOperatorId: Id<"operators">;
+  tenantId: Id<'tenants'>;
+  currentOperatorId: Id<'operators'>;
 }
 
 export function FeatureFlagsView({

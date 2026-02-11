@@ -1,15 +1,15 @@
 /**
  * Roles View
- * 
+ *
  * Main view for role management.
  */
 
-import { RoleManagement } from "../components/RoleManagement";
-import { Id } from "../convex/_generated/dataModel";
+import { Id } from 'agent-resources-platform/convex/_generated/dataModel';
+import { RoleManagement } from '../components/RoleManagement';
 
 interface RolesViewProps {
-  tenantId: Id<"tenants">;
-  currentOperatorId: Id<"operators">;
+  tenantId: Id<'tenants'>;
+  currentOperatorId: Id<'operators'>;
 }
 
 export function RolesView({ tenantId, currentOperatorId }: RolesViewProps) {

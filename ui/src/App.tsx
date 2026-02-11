@@ -1,60 +1,62 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { Authenticated, Unauthenticated, AuthLoading } from 'convex/react'
-import { UserButton } from '@clerk/clerk-react'
-import { Sidebar } from './components/Sidebar'
-import { DirectoryView } from './views/DirectoryView'
-import { PoliciesView } from './views/PoliciesView'
-import { ApprovalsView } from './views/ApprovalsView'
-import { EvaluationsView } from './views/EvaluationsView'
-import { AnalyticsView } from './views/AnalyticsView'
-import { RolesView } from './views/RolesView'
-import { AuditView } from './views/AuditView'
-import { CustomFunctionsView } from './views/CustomFunctionsView'
-import { FeatureFlagsView } from './views/FeatureFlagsView'
-import { ExperimentsView } from './views/ExperimentsView'
-import { MonitoringView } from './views/MonitoringView'
-import { IncidentsView } from './views/IncidentsView'
-import { CostView } from './views/CostView'
-import { FederationView } from './views/FederationView'
-import { ToastContainer } from './components/ToastContainer'
-import { NotificationCenter } from './components/NotificationCenter'
-import { TenantProvider, useTenant } from './contexts/TenantContext'
-import { TenantSwitcher } from './components/TenantSwitcher'
-import { LoginPage } from './pages/LoginPage'
-import { useQuery, useMutation } from 'convex/react'
-import { api } from './convex/_generated/api'
-import { useEffect } from 'react'
+import {
+  BrowserRouter, Routes, Route, Navigate,
+} from 'react-router-dom';
+import {
+  Authenticated, Unauthenticated, AuthLoading, useQuery, useMutation,
+} from 'convex/react';
+import { UserButton } from '@clerk/clerk-react';
+import { useEffect } from 'react';
+import { api } from 'agent-resources-platform/convex/_generated/api';
+import { Sidebar } from './components/Sidebar';
+import { DirectoryView } from './views/DirectoryView';
+import { PoliciesView } from './views/PoliciesView';
+import { ApprovalsView } from './views/ApprovalsView';
+import { EvaluationsView } from './views/EvaluationsView';
+import { AnalyticsView } from './views/AnalyticsView';
+import { RolesView } from './views/RolesView';
+import { AuditView } from './views/AuditView';
+import { CustomFunctionsView } from './views/CustomFunctionsView';
+import { FeatureFlagsView } from './views/FeatureFlagsView';
+import { ExperimentsView } from './views/ExperimentsView';
+import { MonitoringView } from './views/MonitoringView';
+import { IncidentsView } from './views/IncidentsView';
+import { CostView } from './views/CostView';
+import { FederationView } from './views/FederationView';
+import { ToastContainer } from './components/ToastContainer';
+import { NotificationCenter } from './components/NotificationCenter';
+import { TenantProvider, useTenant } from './contexts/TenantContext';
+import { TenantSwitcher } from './components/TenantSwitcher';
+import { LoginPage } from './pages/LoginPage';
 
-const clerkKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
+const clerkKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 function AppContentInner() {
-  const ensureOperator = useMutation(api.auth.ensureOperator)
+  const ensureOperator = useMutation(api.auth.ensureOperator);
   const currentOperator = useQuery(
     api.auth.getCurrentOperator,
-    clerkKey ? {} : "skip"
-  )
-  const { tenantId } = useTenant()
+    clerkKey ? {} : 'skip',
+  );
+  const { tenantId } = useTenant();
   const operators = useQuery(
     api.operators.list,
-    tenantId ? { tenantId } : "skip"
-  )
+    tenantId ? { tenantId } : 'skip',
+  );
   const operatorId = clerkKey
     ? currentOperator?._id
-    : operators?.[0]?._id
+    : operators?.[0]?._id;
 
   useEffect(() => {
     if (
-      !clerkKey ||
-      currentOperator === undefined ||
-      currentOperator !== null ||
-      !tenantId
-    )
-      return
-    ensureOperator().catch(() => {})
-  }, [clerkKey, currentOperator, tenantId, ensureOperator])
+      !clerkKey
+      || currentOperator === undefined
+      || currentOperator !== null
+      || !tenantId
+    ) return;
+    ensureOperator().catch(() => {});
+  }, [clerkKey, currentOperator, tenantId, ensureOperator]);
 
   return (
-    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <BrowserRouter>
       <div className="flex h-screen bg-arm-surface">
         <Sidebar />
         <main className="flex-1 overflow-auto">
@@ -142,7 +144,7 @@ function AppContentInner() {
         <ToastContainer />
       </div>
     </BrowserRouter>
-  )
+  );
 }
 
 function AppContent() {
@@ -150,12 +152,12 @@ function AppContent() {
     <TenantProvider>
       <AppContentInner />
     </TenantProvider>
-  )
+  );
 }
 
 export default function App() {
   if (!clerkKey) {
-    return <AppContent />
+    return <AppContent />;
   }
 
   return (
@@ -172,5 +174,5 @@ export default function App() {
         </div>
       </AuthLoading>
     </>
-  )
+  );
 }

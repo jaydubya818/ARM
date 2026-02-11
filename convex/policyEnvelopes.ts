@@ -1,14 +1,14 @@
-import { query, mutation, action } from "./_generated/server";
-import { v } from "convex/values";
-import { api } from "./_generated/api";
-import { evaluatePolicy } from "./lib/policyEvaluator";
+import { v } from 'convex/values';
+import { query, mutation, action } from './_generated/server';
+import { api } from './_generated/api';
+import { evaluatePolicy } from './lib/policyEvaluator';
 
 /**
  * Create a new policy envelope
  */
 export const create = mutation({
   args: {
-    tenantId: v.id("tenants"),
+    tenantId: v.id('tenants'),
     name: v.string(),
     autonomyTier: v.number(),
     allowedTools: v.array(v.string()),
@@ -20,22 +20,22 @@ export const create = mutation({
   handler: async (ctx, args) => {
     // Validate autonomy tier (0-5)
     if (args.autonomyTier < 0 || args.autonomyTier > 5) {
-      throw new Error("Autonomy tier must be between 0 and 5");
+      throw new Error('Autonomy tier must be between 0 and 5');
     }
 
     // Check for duplicate name
     const existing = await ctx.db
-      .query("policyEnvelopes")
-      .withIndex("by_tenant", (q) => q.eq("tenantId", args.tenantId))
-      .filter((q) => q.eq(q.field("name"), args.name))
+      .query('policyEnvelopes')
+      .withIndex('by_tenant', (q) => q.eq('tenantId', args.tenantId))
+      .filter((q) => q.eq(q.field('name'), args.name))
       .first();
 
     if (existing) {
-      throw new Error("Policy name must be unique within tenant");
+      throw new Error('Policy name must be unique within tenant');
     }
 
     // Insert policy
-    const policyId = await ctx.db.insert("policyEnvelopes", {
+    const policyId = await ctx.db.insert('policyEnvelopes', {
       tenantId: args.tenantId,
       name: args.name,
       autonomyTier: args.autonomyTier,
@@ -44,10 +44,10 @@ export const create = mutation({
     });
 
     // Write change record
-    await ctx.db.insert("changeRecords", {
+    await ctx.db.insert('changeRecords', {
       tenantId: args.tenantId,
-      type: "POLICY_CREATED",
-      targetEntity: "policyEnvelope",
+      type: 'POLICY_CREATED',
+      targetEntity: 'policyEnvelope',
       targetId: policyId,
       payload: {
         name: args.name,
@@ -66,14 +66,12 @@ export const create = mutation({
  */
 export const list = query({
   args: {
-    tenantId: v.id("tenants"),
+    tenantId: v.id('tenants'),
   },
-  handler: async (ctx, args) => {
-    return await ctx.db
-      .query("policyEnvelopes")
-      .withIndex("by_tenant", (q) => q.eq("tenantId", args.tenantId))
-      .collect();
-  },
+  handler: async (ctx, args) => await ctx.db
+    .query('policyEnvelopes')
+    .withIndex('by_tenant', (q) => q.eq('tenantId', args.tenantId))
+    .collect(),
 });
 
 /**
@@ -81,11 +79,11 @@ export const list = query({
  */
 export const get = query({
   args: {
-    policyId: v.id("policyEnvelopes"),
+    policyId: v.id('policyEnvelopes'),
   },
   handler: async (ctx, args) => {
     const policy = await ctx.db.get(args.policyId);
-    
+
     if (!policy) {
       return null;
     }
@@ -99,7 +97,7 @@ export const get = query({
  */
 export const update = mutation({
   args: {
-    policyId: v.id("policyEnvelopes"),
+    policyId: v.id('policyEnvelopes'),
     name: v.optional(v.string()),
     autonomyTier: v.optional(v.number()),
     allowedTools: v.optional(v.array(v.string())),
@@ -110,26 +108,26 @@ export const update = mutation({
   },
   handler: async (ctx, args) => {
     const policy = await ctx.db.get(args.policyId);
-    
+
     if (!policy) {
-      throw new Error("Policy not found");
+      throw new Error('Policy not found');
     }
 
     // Validate autonomy tier if provided
     if (args.autonomyTier !== undefined && (args.autonomyTier < 0 || args.autonomyTier > 5)) {
-      throw new Error("Autonomy tier must be between 0 and 5");
+      throw new Error('Autonomy tier must be between 0 and 5');
     }
 
     // Check for duplicate name if changing name
     if (args.name && args.name !== policy.name) {
       const existing = await ctx.db
-        .query("policyEnvelopes")
-        .withIndex("by_tenant", (q) => q.eq("tenantId", policy.tenantId))
-        .filter((q) => q.eq(q.field("name"), args.name))
+        .query('policyEnvelopes')
+        .withIndex('by_tenant', (q) => q.eq('tenantId', policy.tenantId))
+        .filter((q) => q.eq(q.field('name'), args.name))
         .first();
 
       if (existing) {
-        throw new Error("Policy name must be unique within tenant");
+        throw new Error('Policy name must be unique within tenant');
       }
     }
 
@@ -144,10 +142,10 @@ export const update = mutation({
     await ctx.db.patch(args.policyId, updates);
 
     // Write change record
-    await ctx.db.insert("changeRecords", {
+    await ctx.db.insert('changeRecords', {
       tenantId: policy.tenantId,
-      type: "POLICY_UPDATED",
-      targetEntity: "policyEnvelope",
+      type: 'POLICY_UPDATED',
+      targetEntity: 'policyEnvelope',
       targetId: args.policyId,
       payload: {
         changes: Object.keys(updates),
@@ -164,20 +162,20 @@ export const update = mutation({
  */
 export const remove = mutation({
   args: {
-    policyId: v.id("policyEnvelopes"),
+    policyId: v.id('policyEnvelopes'),
   },
   handler: async (ctx, args) => {
     const policy = await ctx.db.get(args.policyId);
-    
+
     if (!policy) {
-      throw new Error("Policy not found");
+      throw new Error('Policy not found');
     }
 
     // Check if policy is attached to any instances
     const attachedInstances = await ctx.db
-      .query("agentInstances")
-      .withIndex("by_tenant", (q) => q.eq("tenantId", policy.tenantId))
-      .filter((q) => q.eq(q.field("policyEnvelopeId"), args.policyId))
+      .query('agentInstances')
+      .withIndex('by_tenant', (q) => q.eq('tenantId', policy.tenantId))
+      .filter((q) => q.eq(q.field('policyEnvelopeId'), args.policyId))
       .collect();
 
     if (attachedInstances.length > 0) {
@@ -188,10 +186,10 @@ export const remove = mutation({
     await ctx.db.delete(args.policyId);
 
     // Write change record
-    await ctx.db.insert("changeRecords", {
+    await ctx.db.insert('changeRecords', {
       tenantId: policy.tenantId,
-      type: "POLICY_DELETED",
-      targetEntity: "policyEnvelope",
+      type: 'POLICY_DELETED',
+      targetEntity: 'policyEnvelope',
       targetId: args.policyId,
       payload: {
         name: policy.name,
@@ -209,21 +207,21 @@ export const remove = mutation({
  */
 export const evaluateAndRecordCost = action({
   args: {
-    policyId: v.id("policyEnvelopes"),
+    policyId: v.id('policyEnvelopes'),
     toolId: v.string(),
     toolParams: v.optional(v.any()),
     estimatedCost: v.optional(v.number()),
     tokensUsed: v.optional(v.number()),
     dailyTokensUsed: v.optional(v.number()),
     monthlyCostUsed: v.optional(v.number()),
-    versionId: v.optional(v.id("agentVersions")),
-    instanceId: v.optional(v.id("agentInstances")),
+    versionId: v.optional(v.id('agentVersions')),
+    instanceId: v.optional(v.id('agentInstances')),
   },
   handler: async (ctx, args) => {
     const policy = await ctx.runQuery(api.policyEnvelopes.get, {
       policyId: args.policyId,
     });
-    if (!policy) throw new Error("Policy not found");
+    if (!policy) throw new Error('Policy not found');
 
     const policyEnv = {
       autonomyTier: policy.autonomyTier,
@@ -238,10 +236,10 @@ export const evaluateAndRecordCost = action({
         dailyTokensUsed: args.dailyTokensUsed,
         monthlyCostUsed: args.monthlyCostUsed,
       },
-      policyEnv
+      policyEnv,
     );
 
-    if (result.decision === "ALLOW" && (args.estimatedCost ?? args.tokensUsed) != null) {
+    if (result.decision === 'ALLOW' && (args.estimatedCost ?? args.tokensUsed) != null) {
       const tokens = args.tokensUsed ?? (args.estimatedCost ? Math.round(args.estimatedCost * 500_000) : 0);
       const cost = args.estimatedCost ?? (args.tokensUsed ? (args.tokensUsed / 1000) * 0.002 : 0);
       await ctx.runMutation(api.costLedger.record, {
@@ -251,7 +249,7 @@ export const evaluateAndRecordCost = action({
         instanceId: args.instanceId,
         tokensUsed: tokens,
         estimatedCost: cost,
-        source: "policy_eval",
+        source: 'policy_eval',
         metadata: { toolId: args.toolId },
       });
     }

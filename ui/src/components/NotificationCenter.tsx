@@ -1,28 +1,28 @@
 /**
  * Notification Center Component
- * 
+ *
  * Displays notifications with bell icon, unread count, and dropdown list.
  */
 
-import { useState } from "react";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../convex/_generated/api";
-import { Id, type Doc } from "../convex/_generated/dataModel";
+import { useState } from 'react';
+import { useQuery, useMutation } from 'convex/react';
+import { api } from 'agent-resources-platform/convex/_generated/api';
+import { Id, type Doc } from 'agent-resources-platform/convex/_generated/dataModel';
 
 interface NotificationCenterProps {
-  operatorId: Id<"operators">;
+  operatorId: Id<'operators'>;
 }
 
 export function NotificationCenter({ operatorId }: NotificationCenterProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [filter, setFilter] = useState<"all" | "unread">("unread");
+  const [filter, setFilter] = useState<'all' | 'unread'>('unread');
 
   // Queries
   const notifications = useQuery(api.notifications.list, {
     operatorId,
-    unreadOnly: filter === "unread",
+    unreadOnly: filter === 'unread',
     limit: 50,
-  }) as Doc<"notifications">[] | undefined;
+  }) as Doc<'notifications'>[] | undefined;
 
   const unreadCount = useQuery(api.notifications.getUnreadCount, {
     operatorId,
@@ -33,7 +33,7 @@ export function NotificationCenter({ operatorId }: NotificationCenterProps) {
   const markAllAsRead = useMutation(api.notifications.markAllAsRead);
   const removeNotification = useMutation(api.notifications.remove);
 
-  const handleMarkAsRead = async (notificationId: Id<"notifications">) => {
+  const handleMarkAsRead = async (notificationId: Id<'notifications'>) => {
     await markAsRead({ notificationId });
   };
 
@@ -41,33 +41,33 @@ export function NotificationCenter({ operatorId }: NotificationCenterProps) {
     await markAllAsRead({ operatorId });
   };
 
-  const handleRemove = async (notificationId: Id<"notifications">) => {
+  const handleRemove = async (notificationId: Id<'notifications'>) => {
     await removeNotification({ notificationId });
   };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case "SUCCESS":
-        return "text-green-600 bg-green-50";
-      case "WARNING":
-        return "text-yellow-600 bg-yellow-50";
-      case "ERROR":
-        return "text-red-600 bg-red-50";
+      case 'SUCCESS':
+        return 'text-green-600 bg-green-50';
+      case 'WARNING':
+        return 'text-yellow-600 bg-yellow-50';
+      case 'ERROR':
+        return 'text-red-600 bg-red-50';
       default:
-        return "text-blue-600 bg-blue-50";
+        return 'text-blue-600 bg-blue-50';
     }
   };
 
   const getSeverityIcon = (severity: string) => {
     switch (severity) {
-      case "SUCCESS":
-        return "✓";
-      case "WARNING":
-        return "⚠";
-      case "ERROR":
-        return "✕";
+      case 'SUCCESS':
+        return '✓';
+      case 'WARNING':
+        return '⚠';
+      case 'ERROR':
+        return '✕';
       default:
-        return "ℹ";
+        return 'ℹ';
     }
   };
 
@@ -79,7 +79,7 @@ export function NotificationCenter({ operatorId }: NotificationCenterProps) {
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
 
-    if (minutes < 1) return "Just now";
+    if (minutes < 1) return 'Just now';
     if (minutes < 60) return `${minutes}m ago`;
     if (hours < 24) return `${hours}h ago`;
     if (days < 7) return `${days}d ago`;
@@ -109,7 +109,7 @@ export function NotificationCenter({ operatorId }: NotificationCenterProps) {
         </svg>
         {unreadCount !== undefined && unreadCount > 0 && (
           <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
-            {unreadCount > 99 ? "99+" : unreadCount}
+            {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
       </button>
@@ -144,21 +144,23 @@ export function NotificationCenter({ operatorId }: NotificationCenterProps) {
               {/* Filter Tabs */}
               <div className="flex gap-2">
                 <button
-                  onClick={() => setFilter("unread")}
+                  onClick={() => setFilter('unread')}
                   className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
-                    filter === "unread"
-                      ? "bg-blue-100 text-blue-700"
-                      : "text-gray-600 hover:bg-gray-100"
+                    filter === 'unread'
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'text-gray-600 hover:bg-gray-100'
                   }`}
                 >
-                  Unread {unreadCount !== undefined && unreadCount > 0 && `(${unreadCount})`}
+                  Unread
+                  {' '}
+                  {unreadCount !== undefined && unreadCount > 0 && `(${unreadCount})`}
                 </button>
                 <button
-                  onClick={() => setFilter("all")}
+                  onClick={() => setFilter('all')}
                   className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
-                    filter === "all"
-                      ? "bg-blue-100 text-blue-700"
-                      : "text-gray-600 hover:bg-gray-100"
+                    filter === 'all'
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'text-gray-600 hover:bg-gray-100'
                   }`}
                 >
                   All
@@ -185,9 +187,9 @@ export function NotificationCenter({ operatorId }: NotificationCenterProps) {
                   </svg>
                   <p className="font-medium">No notifications</p>
                   <p className="text-sm mt-1">
-                    {filter === "unread"
+                    {filter === 'unread'
                       ? "You're all caught up!"
-                      : "Notifications will appear here"}
+                      : 'Notifications will appear here'}
                   </p>
                 </div>
               ) : (
@@ -196,14 +198,14 @@ export function NotificationCenter({ operatorId }: NotificationCenterProps) {
                     <div
                       key={notification._id}
                       className={`p-4 hover:bg-gray-50 transition-colors ${
-                        !notification.read ? "bg-blue-50" : ""
+                        !notification.read ? 'bg-blue-50' : ''
                       }`}
                     >
                       <div className="flex items-start gap-3">
                         {/* Severity Icon */}
                         <div
                           className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${getSeverityColor(
-                            notification.severity
+                            notification.severity,
                           )}`}
                         >
                           {getSeverityIcon(notification.severity)}

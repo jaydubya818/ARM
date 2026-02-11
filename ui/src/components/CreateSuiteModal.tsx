@@ -1,15 +1,15 @@
 /**
  * CreateSuiteModal Component
- * 
+ *
  * Modal for creating new evaluation suites with test cases.
  */
 
-import { useState } from 'react'
-import { useMutation } from 'convex/react'
-import { api } from '../convex/_generated/api'
-import { Id } from '../convex/_generated/dataModel'
-import { toast } from '../lib/toast'
-import type { TestCase, ScoringCriteria, ScoringCriteriaType } from '../../../packages/shared/src/types/evaluation'
+import { useState } from 'react';
+import { useMutation } from 'convex/react';
+import { api } from 'agent-resources-platform/convex/_generated/api';
+import { Id } from 'agent-resources-platform/convex/_generated/dataModel';
+import type { TestCase, ScoringCriteria, ScoringCriteriaType } from '@arm/shared/src/types/evaluation';
+import { toast } from '../lib/toast';
 
 interface CreateSuiteModalProps {
   tenantId: Id<'tenants'>
@@ -18,8 +18,10 @@ interface CreateSuiteModalProps {
   onSuccess?: () => void
 }
 
-export function CreateSuiteModal({ tenantId, operatorId, onClose, onSuccess }: CreateSuiteModalProps) {
-  const createSuite = useMutation(api.evaluationSuites.create)
+export function CreateSuiteModal({
+  tenantId, operatorId, onClose, onSuccess,
+}: CreateSuiteModalProps) {
+  const createSuite = useMutation(api.evaluationSuites.create);
 
   type TestCaseForm = Omit<TestCase, 'scoringCriteria'> & { scoringCriteria: ScoringCriteria }
   const buildTestCase = (id: string): TestCaseForm => ({
@@ -30,60 +32,60 @@ export function CreateSuiteModal({ tenantId, operatorId, onClose, onSuccess }: C
     scoringCriteria: {
       type: 'exact_match',
     },
-  })
+  });
 
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const [tags, setTags] = useState<string[]>([])
-  const [tagInput, setTagInput] = useState('')
-  const [testCases, setTestCases] = useState<TestCaseForm[]>([buildTestCase('1')])
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
+  const [testCases, setTestCases] = useState<TestCaseForm[]>([buildTestCase('1')]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const addTestCase = () => {
-    const newId = (Math.max(...testCases.map(tc => parseInt(tc.id)), 0) + 1).toString()
-    setTestCases([...testCases, buildTestCase(newId)])
-  }
+    const newId = (Math.max(...testCases.map((tc) => parseInt(tc.id)), 0) + 1).toString();
+    setTestCases([...testCases, buildTestCase(newId)]);
+  };
 
   const removeTestCase = (id: string) => {
     if (testCases.length === 1) {
-      toast.error('Suite must have at least one test case')
-      return
+      toast.error('Suite must have at least one test case');
+      return;
     }
-    setTestCases(testCases.filter(tc => tc.id !== id))
-  }
+    setTestCases(testCases.filter((tc) => tc.id !== id));
+  };
 
   const updateTestCase = (id: string, updates: Partial<TestCaseForm>) => {
-    setTestCases(testCases.map(tc => (tc.id === id ? { ...tc, ...updates } : tc)))
-  }
+    setTestCases(testCases.map((tc) => (tc.id === id ? { ...tc, ...updates } : tc)));
+  };
 
   const addTag = () => {
-    const trimmed = tagInput.trim()
+    const trimmed = tagInput.trim();
     if (trimmed && !tags.includes(trimmed)) {
-      setTags([...tags, trimmed])
-      setTagInput('')
+      setTags([...tags, trimmed]);
+      setTagInput('');
     }
-  }
+  };
 
   const removeTag = (tag: string) => {
-    setTags(tags.filter(t => t !== tag))
-  }
+    setTags(tags.filter((t) => t !== tag));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     // Validation
     if (!name.trim()) {
-      toast.error('Suite name is required')
-      return
+      toast.error('Suite name is required');
+      return;
     }
 
-    const invalidTestCases = testCases.filter(tc => !tc.input.trim() || !tc.expectedOutput.trim())
+    const invalidTestCases = testCases.filter((tc) => !tc.input.trim() || !tc.expectedOutput.trim());
     if (invalidTestCases.length > 0) {
-      toast.error('All test cases must have input and expected output')
-      return
+      toast.error('All test cases must have input and expected output');
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     try {
       await createSuite({
@@ -93,18 +95,18 @@ export function CreateSuiteModal({ tenantId, operatorId, onClose, onSuccess }: C
         testCases,
         createdBy: operatorId,
         tags: tags.length > 0 ? tags : undefined,
-      })
+      });
 
-      toast.success(`Suite "${name}" created successfully`)
-      onSuccess?.()
-      onClose()
+      toast.success(`Suite "${name}" created successfully`);
+      onSuccess?.();
+      onClose();
     } catch (error) {
-      console.error('Failed to create suite:', error)
-      toast.error((error as Error).message || 'Failed to create suite')
+      console.error('Failed to create suite:', error);
+      toast.error((error as Error).message || 'Failed to create suite');
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -130,12 +132,14 @@ export function CreateSuiteModal({ tenantId, operatorId, onClose, onSuccess }: C
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-arm-text-primary mb-1">
-                  Suite Name <span className="text-arm-danger">*</span>
+                  Suite Name
+                  {' '}
+                  <span className="text-arm-danger">*</span>
                 </label>
                 <input
                   type="text"
                   value={name}
-                  onChange={e => setName(e.target.value)}
+                  onChange={(e) => setName(e.target.value)}
                   className="w-full px-3 py-2 bg-arm-bg-primary border border-arm-border rounded-lg text-arm-text-primary placeholder-arm-text-tertiary focus:outline-none focus:ring-2 focus:ring-arm-accent focus:border-transparent"
                   placeholder="e.g., Standard Agent Tests"
                   disabled={isSubmitting}
@@ -146,7 +150,7 @@ export function CreateSuiteModal({ tenantId, operatorId, onClose, onSuccess }: C
                 <label className="block text-sm font-medium text-arm-text-primary mb-1">Description</label>
                 <textarea
                   value={description}
-                  onChange={e => setDescription(e.target.value)}
+                  onChange={(e) => setDescription(e.target.value)}
                   className="w-full px-3 py-2 bg-arm-bg-primary border border-arm-border rounded-lg text-arm-text-primary placeholder-arm-text-tertiary focus:outline-none focus:ring-2 focus:ring-arm-accent focus:border-transparent resize-none"
                   rows={2}
                   placeholder="Describe what this suite tests..."
@@ -160,11 +164,11 @@ export function CreateSuiteModal({ tenantId, operatorId, onClose, onSuccess }: C
                   <input
                     type="text"
                     value={tagInput}
-                    onChange={e => setTagInput(e.target.value)}
-                    onKeyDown={e => {
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyDown={(e) => {
                       if (e.key === 'Enter') {
-                        e.preventDefault()
-                        addTag()
+                        e.preventDefault();
+                        addTag();
                       }
                     }}
                     className="flex-1 px-3 py-2 bg-arm-bg-primary border border-arm-border rounded-lg text-arm-text-primary placeholder-arm-text-tertiary focus:outline-none focus:ring-2 focus:ring-arm-accent focus:border-transparent"
@@ -182,7 +186,7 @@ export function CreateSuiteModal({ tenantId, operatorId, onClose, onSuccess }: C
                 </div>
                 {tags.length > 0 && (
                   <div className="flex flex-wrap gap-2">
-                    {tags.map(tag => (
+                    {tags.map((tag) => (
                       <span
                         key={tag}
                         className="px-3 py-1 bg-arm-accent/20 text-arm-accent rounded-full text-sm flex items-center gap-2"
@@ -207,7 +211,9 @@ export function CreateSuiteModal({ tenantId, operatorId, onClose, onSuccess }: C
             <div>
               <div className="flex items-center justify-between mb-4">
                 <label className="block text-sm font-medium text-arm-text-primary">
-                  Test Cases <span className="text-arm-danger">*</span>
+                  Test Cases
+                  {' '}
+                  <span className="text-arm-danger">*</span>
                 </label>
                 <button
                   type="button"
@@ -223,7 +229,10 @@ export function CreateSuiteModal({ tenantId, operatorId, onClose, onSuccess }: C
                 {testCases.map((testCase, index) => (
                   <div key={testCase.id} className="p-4 bg-arm-bg-primary border border-arm-border rounded-lg">
                     <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-medium text-arm-text-primary">Test Case {index + 1}</h4>
+                      <h4 className="font-medium text-arm-text-primary">
+                        Test Case
+                        {index + 1}
+                      </h4>
                       {testCases.length > 1 && (
                         <button
                           type="button"
@@ -239,11 +248,13 @@ export function CreateSuiteModal({ tenantId, operatorId, onClose, onSuccess }: C
                     <div className="space-y-3">
                       <div>
                         <label className="block text-xs font-medium text-arm-text-secondary mb-1">
-                          Input <span className="text-arm-danger">*</span>
+                          Input
+                          {' '}
+                          <span className="text-arm-danger">*</span>
                         </label>
                         <textarea
                           value={testCase.input}
-                          onChange={e => updateTestCase(testCase.id, { input: e.target.value })}
+                          onChange={(e) => updateTestCase(testCase.id, { input: e.target.value })}
                           className="w-full px-3 py-2 bg-arm-bg-secondary border border-arm-border rounded-lg text-arm-text-primary placeholder-arm-text-tertiary focus:outline-none focus:ring-2 focus:ring-arm-accent focus:border-transparent resize-none text-sm"
                           rows={2}
                           placeholder="Enter test input..."
@@ -253,11 +264,13 @@ export function CreateSuiteModal({ tenantId, operatorId, onClose, onSuccess }: C
 
                       <div>
                         <label className="block text-xs font-medium text-arm-text-secondary mb-1">
-                          Expected Output <span className="text-arm-danger">*</span>
+                          Expected Output
+                          {' '}
+                          <span className="text-arm-danger">*</span>
                         </label>
                         <textarea
                           value={testCase.expectedOutput}
-                          onChange={e => updateTestCase(testCase.id, { expectedOutput: e.target.value })}
+                          onChange={(e) => updateTestCase(testCase.id, { expectedOutput: e.target.value })}
                           className="w-full px-3 py-2 bg-arm-bg-secondary border border-arm-border rounded-lg text-arm-text-primary placeholder-arm-text-tertiary focus:outline-none focus:ring-2 focus:ring-arm-accent focus:border-transparent resize-none text-sm"
                           rows={2}
                           placeholder="Enter expected output..."
@@ -271,11 +284,9 @@ export function CreateSuiteModal({ tenantId, operatorId, onClose, onSuccess }: C
                         </label>
                         <select
                           value={testCase.scoringCriteria.type}
-                          onChange={e =>
-                            updateTestCase(testCase.id, {
-                              scoringCriteria: { type: e.target.value as ScoringCriteriaType },
-                            })
-                          }
+                          onChange={(e) => updateTestCase(testCase.id, {
+                            scoringCriteria: { type: e.target.value as ScoringCriteriaType },
+                          })}
                           className="w-full px-3 py-2 bg-arm-bg-secondary border border-arm-border rounded-lg text-arm-text-primary focus:outline-none focus:ring-2 focus:ring-arm-accent focus:border-transparent text-sm"
                           disabled={isSubmitting}
                         >
@@ -297,14 +308,12 @@ export function CreateSuiteModal({ tenantId, operatorId, onClose, onSuccess }: C
                             max="1"
                             step="0.01"
                             value={testCase.scoringCriteria.threshold || 0.8}
-                            onChange={e =>
-                              updateTestCase(testCase.id, {
-                                scoringCriteria: {
-                                  ...testCase.scoringCriteria,
-                                  threshold: parseFloat(e.target.value),
-                                },
-                              })
-                            }
+                            onChange={(e) => updateTestCase(testCase.id, {
+                              scoringCriteria: {
+                                ...testCase.scoringCriteria,
+                                threshold: parseFloat(e.target.value),
+                              },
+                            })}
                             className="w-full px-3 py-2 bg-arm-bg-secondary border border-arm-border rounded-lg text-arm-text-primary focus:outline-none focus:ring-2 focus:ring-arm-accent focus:border-transparent text-sm"
                             disabled={isSubmitting}
                           />
@@ -352,5 +361,5 @@ export function CreateSuiteModal({ tenantId, operatorId, onClose, onSuccess }: C
         </form>
       </div>
     </div>
-  )
+  );
 }

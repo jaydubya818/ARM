@@ -1,5 +1,5 @@
-import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
+import { v } from 'convex/values';
+import { mutation, query } from './_generated/server';
 
 export const create = mutation({
   args: {
@@ -7,7 +7,7 @@ export const create = mutation({
     slug: v.string(),
   },
   handler: async (ctx, args) => {
-    const tenantId = await ctx.db.insert("tenants", {
+    const tenantId = await ctx.db.insert('tenants', {
       name: args.name,
       slug: args.slug,
       settings: {},
@@ -17,17 +17,13 @@ export const create = mutation({
 });
 
 export const list = query({
-  handler: async (ctx) => {
-    return await ctx.db.query("tenants").collect();
-  },
+  handler: async (ctx) => await ctx.db.query('tenants').collect(),
 });
 
 export const getBySlug = query({
   args: { slug: v.string() },
-  handler: async (ctx, args) => {
-    return await ctx.db
-      .query("tenants")
-      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
-      .first();
-  },
+  handler: async (ctx, args) => await ctx.db
+    .query('tenants')
+    .withIndex('by_slug', (q) => q.eq('slug', args.slug))
+    .first(),
 });

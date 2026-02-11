@@ -1,15 +1,15 @@
 /**
  * Custom Functions View
- * 
+ *
  * Main view for custom scoring function editor.
  */
 
-import { CustomFunctionEditor } from "../components/CustomFunctionEditor";
-import { Id } from "../convex/_generated/dataModel";
+import { Id } from 'agent-resources-platform/convex/_generated/dataModel';
+import { CustomFunctionEditor } from '../components/CustomFunctionEditor';
 
 interface CustomFunctionsViewProps {
-  tenantId: Id<"tenants">;
-  currentOperatorId: Id<"operators">;
+  tenantId: Id<'tenants'>;
+  currentOperatorId: Id<'operators'>;
 }
 
 export function CustomFunctionsView({

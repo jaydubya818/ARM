@@ -1,6 +1,6 @@
 ARM - Development Progress Tracker
-Last Updated: February 10, 2026 - 4:30 PM PST
-Current Phase: Phase 2.0 In Progress 🚀 (Evaluation Orchestration)
+Last Updated: February 10, 2026
+Current Phase: Production Readiness Complete ✅
 
 ================================================================================
 PHASE 1.1: WALKING SKELETON ✅ COMPLETE
@@ -501,6 +501,50 @@ Status: ✅ COMPLETE
 - ui/hooks: useFeatureFlag, useFeatureFlags, useExperiment
 - Admin UI: FeatureFlagsView, ExperimentsView
 - Routes: /feature-flags, /experiments
+
+================================================================================
+POST-PHASE 5.0: PRODUCTION READINESS - COMPLETE ✅
+================================================================================
+Date: February 10, 2026
+
+1. Tailwind Build Fix ✅
+- Downgraded tailwindcss to v3.4 (v4 required PostCSS plugin change)
+- UI build passes
+
+2. Clerk Auth Production Setup ✅
+- docs/AUTH_SETUP.md: Step 4 updated with production auth.config.ts
+- Requires CLERK_JWT_ISSUER_DOMAIN in Convex Dashboard first
+
+3. Deploy Workflow & Secrets ✅
+- docs/DEPLOY_SECRETS.md: Checklist for CONVEX_DEPLOY_KEY, CONVEX_URL, VERCEL_TOKEN
+- .github/workflows/deploy.yml: Vercel step skips when token not set; verify step when DEPLOYED_FRONTEND_URL var set
+
+4. Smoke Test ✅
+- scripts/verify-deploy.sh: Curl-based smoke test for deployed frontend
+- Post-deployment: ./scripts/verify-deploy.sh https://your-app.vercel.app
+
+5. Agent Runtime Integration ✅
+- examples/agent-runtime-policy-cost/: Runnable Node.js scripts
+- evaluate-and-record-cost.js: Policy eval + cost recording
+- record-cost-direct.js: Direct costLedger.record
+- docs/AGENT_RUNTIME_POLICY_COST.md: Full integration guide
+
+6. Tenant Switcher + Create Tenant ✅
+- TenantContext, TenantSwitcher, CreateTenantModal
+- Add tenant button in header; dropdown when 2+ tenants
+
+7. Sentry, Provider Health, Policy Cost Action ✅
+- Sentry: VITE_SENTRY_DSN in .env
+- FederationView: Provider health status (healthy/unhealthy/unreachable)
+- policyEnvelopes.evaluateAndRecordCost action
+
+================================================================================
+NEXT SESSION CHECKLIST
+================================================================================
+- [ ] Configure GitHub secrets (CONVEX_DEPLOY_KEY, CONVEX_URL, optional VERCEL_TOKEN)
+- [ ] First production deploy: push to main or run workflow manually
+- [ ] Set CLERK_JWT_ISSUER_DOMAIN + update auth.config.ts for prod auth
+- [ ] Integrate with real agent runtime using examples/agent-runtime-policy-cost/
 
 ================================================================================
 END OF PROGRESS TRACKER

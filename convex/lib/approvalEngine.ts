@@ -1,6 +1,6 @@
 /**
  * Approval Workflow Engine
- * 
+ *
  * Determines when approvals are required and manages approval workflows.
  */
 
@@ -17,34 +17,34 @@ export function requiresVersionTransitionApproval(
   fromState: string,
   toState: string,
   autonomyTier: number,
-  evalStatus: string
+  evalStatus: string,
 ): ApprovalRequirement {
   // CANDIDATE → APPROVED always requires approval for low autonomy
-  if (fromState === "CANDIDATE" && toState === "APPROVED") {
+  if (fromState === 'CANDIDATE' && toState === 'APPROVED') {
     if (autonomyTier < 3) {
       return {
         required: true,
         reason: `Autonomy tier ${autonomyTier} requires approval for production promotion`,
-        requestType: "VERSION_PROMOTION",
+        requestType: 'VERSION_PROMOTION',
       };
     }
   }
 
   // Cannot transition to CANDIDATE without passing evaluation
-  if (toState === "CANDIDATE" && evalStatus !== "PASS") {
+  if (toState === 'CANDIDATE' && evalStatus !== 'PASS') {
     return {
       required: false, // Not approval needed, just blocked
-      reason: "Evaluation must pass before promoting to CANDIDATE",
+      reason: 'Evaluation must pass before promoting to CANDIDATE',
     };
   }
 
   // TESTING → CANDIDATE requires approval for tier 0-1
-  if (fromState === "TESTING" && toState === "CANDIDATE") {
+  if (fromState === 'TESTING' && toState === 'CANDIDATE') {
     if (autonomyTier < 2) {
       return {
         required: true,
         reason: `Autonomy tier ${autonomyTier} requires approval for candidate promotion`,
-        requestType: "VERSION_PROMOTION",
+        requestType: 'VERSION_PROMOTION',
       };
     }
   }
@@ -61,23 +61,23 @@ export function requiresVersionTransitionApproval(
 export function requiresInstanceTransitionApproval(
   fromState: string,
   toState: string,
-  autonomyTier: number
+  autonomyTier: number,
 ): ApprovalRequirement {
   // QUARANTINED → ACTIVE requires approval (security concern)
-  if (fromState === "QUARANTINED" && toState === "ACTIVE") {
+  if (fromState === 'QUARANTINED' && toState === 'ACTIVE') {
     return {
       required: true,
-      reason: "Reactivating quarantined instance requires approval",
-      requestType: "INSTANCE_REACTIVATION",
+      reason: 'Reactivating quarantined instance requires approval',
+      requestType: 'INSTANCE_REACTIVATION',
     };
   }
 
   // ACTIVE → QUARANTINED requires approval for high autonomy (unusual)
-  if (fromState === "ACTIVE" && toState === "QUARANTINED" && autonomyTier >= 4) {
+  if (fromState === 'ACTIVE' && toState === 'QUARANTINED' && autonomyTier >= 4) {
     return {
       required: true,
-      reason: "Quarantining high-autonomy instance requires approval",
-      requestType: "INSTANCE_QUARANTINE",
+      reason: 'Quarantining high-autonomy instance requires approval',
+      requestType: 'INSTANCE_QUARANTINE',
     };
   }
 
@@ -92,14 +92,14 @@ export function requiresInstanceTransitionApproval(
  */
 export function requiresPolicyChangeApproval(
   currentAutonomyTier: number,
-  newAutonomyTier: number
+  newAutonomyTier: number,
 ): ApprovalRequirement {
   // Increasing autonomy tier requires approval
   if (newAutonomyTier > currentAutonomyTier) {
     return {
       required: true,
       reason: `Increasing autonomy from tier ${currentAutonomyTier} to ${newAutonomyTier} requires approval`,
-      requestType: "POLICY_AUTONOMY_INCREASE",
+      requestType: 'POLICY_AUTONOMY_INCREASE',
     };
   }
 
@@ -115,23 +115,23 @@ export function requiresPolicyChangeApproval(
 export function requiresToolExecutionApproval(
   toolId: string,
   riskLevel: string,
-  autonomyTier: number
+  autonomyTier: number,
 ): ApprovalRequirement {
   // Critical risk always requires approval for tier < 3
-  if (riskLevel === "critical" && autonomyTier < 3) {
+  if (riskLevel === 'critical' && autonomyTier < 3) {
     return {
       required: true,
       reason: `Critical risk tool '${toolId}' requires approval for autonomy tier ${autonomyTier}`,
-      requestType: "TOOL_EXECUTION",
+      requestType: 'TOOL_EXECUTION',
     };
   }
 
   // High risk requires approval for tier < 2
-  if (riskLevel === "high" && autonomyTier < 2) {
+  if (riskLevel === 'high' && autonomyTier < 2) {
     return {
       required: true,
       reason: `High risk tool '${toolId}' requires approval for autonomy tier ${autonomyTier}`,
-      requestType: "TOOL_EXECUTION",
+      requestType: 'TOOL_EXECUTION',
     };
   }
 
@@ -147,15 +147,15 @@ export function requiresToolExecutionApproval(
 export function validateVersionTransition(
   fromState: string,
   toState: string,
-  evalStatus: string
+  evalStatus: string,
 ): { valid: boolean; error?: string } {
   // Define allowed transitions
   const transitions: Record<string, string[]> = {
-    DRAFT: ["TESTING"],
-    TESTING: ["CANDIDATE", "DRAFT"],
-    CANDIDATE: ["APPROVED", "DRAFT"],
-    APPROVED: ["DEPRECATED"],
-    DEPRECATED: ["RETIRED"],
+    DRAFT: ['TESTING'],
+    TESTING: ['CANDIDATE', 'DRAFT'],
+    CANDIDATE: ['APPROVED', 'DRAFT'],
+    APPROVED: ['DEPRECATED'],
+    DEPRECATED: ['RETIRED'],
     RETIRED: [], // Terminal state
   };
 
@@ -164,15 +164,15 @@ export function validateVersionTransition(
   if (!allowedNextStates.includes(toState)) {
     return {
       valid: false,
-      error: `Cannot transition from ${fromState} to ${toState}. Allowed: ${allowedNextStates.join(", ") || "none"}`,
+      error: `Cannot transition from ${fromState} to ${toState}. Allowed: ${allowedNextStates.join(', ') || 'none'}`,
     };
   }
 
   // Additional guard: TESTING → CANDIDATE requires PASS
-  if (fromState === "TESTING" && toState === "CANDIDATE" && evalStatus !== "PASS") {
+  if (fromState === 'TESTING' && toState === 'CANDIDATE' && evalStatus !== 'PASS') {
     return {
       valid: false,
-      error: "Cannot promote to CANDIDATE without passing evaluation",
+      error: 'Cannot promote to CANDIDATE without passing evaluation',
     };
   }
 
@@ -184,16 +184,16 @@ export function validateVersionTransition(
  */
 export function validateInstanceTransition(
   fromState: string,
-  toState: string
+  toState: string,
 ): { valid: boolean; error?: string } {
   // Define allowed transitions
   const transitions: Record<string, string[]> = {
-    PROVISIONING: ["ACTIVE", "RETIRED"],
-    ACTIVE: ["PAUSED", "READONLY", "DRAINING", "QUARANTINED", "RETIRED"],
-    PAUSED: ["ACTIVE", "RETIRED"],
-    READONLY: ["ACTIVE", "RETIRED"],
-    DRAINING: ["RETIRED"],
-    QUARANTINED: ["ACTIVE", "RETIRED"],
+    PROVISIONING: ['ACTIVE', 'RETIRED'],
+    ACTIVE: ['PAUSED', 'READONLY', 'DRAINING', 'QUARANTINED', 'RETIRED'],
+    PAUSED: ['ACTIVE', 'RETIRED'],
+    READONLY: ['ACTIVE', 'RETIRED'],
+    DRAINING: ['RETIRED'],
+    QUARANTINED: ['ACTIVE', 'RETIRED'],
     RETIRED: [], // Terminal state
   };
 
@@ -201,7 +201,7 @@ export function validateInstanceTransition(
   if (!allowedNextStates.includes(toState)) {
     return {
       valid: false,
-      error: `Cannot transition from ${fromState} to ${toState}. Allowed: ${allowedNextStates.join(", ") || "none"}`,
+      error: `Cannot transition from ${fromState} to ${toState}. Allowed: ${allowedNextStates.join(', ') || 'none'}`,
     };
   }
 
@@ -232,7 +232,7 @@ export function getApprovalTimeout(requestType: string): number {
  */
 export function isApprovalTimedOut(
   createdAt: number,
-  requestType: string
+  requestType: string,
 ): boolean {
   const timeout = getApprovalTimeout(requestType);
   const now = Date.now();

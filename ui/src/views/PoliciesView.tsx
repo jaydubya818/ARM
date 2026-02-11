@@ -1,37 +1,37 @@
-import { useState } from 'react'
-import { useQuery, useMutation } from 'convex/react'
-import { useTenant } from '../contexts/TenantContext'
-import { api } from '../convex/_generated/api'
-import { Id, type Doc } from '../convex/_generated/dataModel'
-import { toast } from '../lib/toast'
+import { useState } from 'react';
+import { useQuery, useMutation } from 'convex/react';
+import { api } from 'agent-resources-platform/convex/_generated/api';
+import { Id, type Doc } from 'agent-resources-platform/convex/_generated/dataModel';
+import { useTenant } from '../contexts/TenantContext';
+import { toast } from '../lib/toast';
 
 export function PoliciesView() {
-  const [isCreating, setIsCreating] = useState(false)
+  const [isCreating, setIsCreating] = useState(false);
 
-  const { tenantId } = useTenant()
+  const { tenantId } = useTenant();
 
   // Fetch policies
   const policies = useQuery(
     api.policyEnvelopes.list,
-    tenantId ? { tenantId } : 'skip'
-  ) as Doc<'policyEnvelopes'>[] | undefined
+    tenantId ? { tenantId } : 'skip',
+  ) as Doc<'policyEnvelopes'>[] | undefined;
 
-  const createPolicy = useMutation(api.policyEnvelopes.create)
-  const deletePolicy = useMutation(api.policyEnvelopes.remove)
+  const createPolicy = useMutation(api.policyEnvelopes.create);
+  const deletePolicy = useMutation(api.policyEnvelopes.remove);
 
   const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    if (!tenantId) return
+    e.preventDefault();
+    if (!tenantId) return;
 
-    const formData = new FormData(e.currentTarget)
-    const name = formData.get('name') as string
-    const autonomyTier = parseInt(formData.get('autonomyTier') as string)
+    const formData = new FormData(e.currentTarget);
+    const name = formData.get('name') as string;
+    const autonomyTier = parseInt(formData.get('autonomyTier') as string);
     const allowedTools = (formData.get('allowedTools') as string)
       .split(',')
       .map((t) => t.trim())
-      .filter(Boolean)
-    const dailyTokens = formData.get('dailyTokens') as string
-    const monthlyCost = formData.get('monthlyCost') as string
+      .filter(Boolean);
+    const dailyTokens = formData.get('dailyTokens') as string;
+    const monthlyCost = formData.get('monthlyCost') as string;
 
     try {
       await createPolicy({
@@ -43,25 +43,25 @@ export function PoliciesView() {
           dailyTokens: dailyTokens ? parseInt(dailyTokens) : undefined,
           monthlyCost: monthlyCost ? parseFloat(monthlyCost) : undefined,
         },
-      })
-      toast.success('Policy created successfully')
-      setIsCreating(false)
-      e.currentTarget.reset()
+      });
+      toast.success('Policy created successfully');
+      setIsCreating(false);
+      e.currentTarget.reset();
     } catch (error) {
-      toast.error('Error creating policy: ' + (error as Error).message)
+      toast.error(`Error creating policy: ${(error as Error).message}`);
     }
-  }
+  };
 
   const handleDelete = async (policyId: Id<'policyEnvelopes'>) => {
-    if (!confirm('Are you sure you want to delete this policy?')) return
+    if (!confirm('Are you sure you want to delete this policy?')) return;
 
     try {
-      await deletePolicy({ policyId })
-      toast.success('Policy deleted successfully')
+      await deletePolicy({ policyId });
+      toast.success('Policy deleted successfully');
     } catch (error) {
-      toast.error('Error deleting policy: ' + (error as Error).message)
+      toast.error(`Error deleting policy: ${(error as Error).message}`);
     }
-  }
+  };
 
   if (!tenantId) {
     return (
@@ -70,7 +70,7 @@ export function PoliciesView() {
           No tenant found. Run seed script first.
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -141,9 +141,12 @@ export function PoliciesView() {
                   className="w-full px-4 py-2 bg-arm-surface border border-arm-border rounded text-arm-text focus:border-arm-accent focus:outline-none"
                 />
                 <p className="text-xs text-arm-textMuted">
-                  0 = No autonomy (all actions require approval)<br />
-                  1 = Minimal (critical/high risk require approval)<br />
-                  2 = Low (critical requires approval)<br />
+                  0 = No autonomy (all actions require approval)
+                  <br />
+                  1 = Minimal (critical/high risk require approval)
+                  <br />
+                  2 = Low (critical requires approval)
+                  <br />
                   3-5 = Medium to full autonomy
                 </p>
               </div>
@@ -254,20 +257,32 @@ export function PoliciesView() {
                   </td>
                   <td className="p-4">
                     <span className="px-3 py-1 rounded-full text-xs font-medium bg-arm-accent text-white">
-                      Tier {policy.autonomyTier}
+                      Tier
+                      {' '}
+                      {policy.autonomyTier}
                     </span>
                   </td>
                   <td className="p-4 text-arm-textMuted text-sm">
-                    {policy.allowedTools.length} tool(s)
+                    {policy.allowedTools.length}
+                    {' '}
+                    tool(s)
                   </td>
                   <td className="p-4 text-arm-textMuted text-sm">
                     {policy.costLimits ? (
                       <div className="space-y-1">
                         {policy.costLimits.dailyTokens && (
-                          <div>Daily: {policy.costLimits.dailyTokens.toLocaleString()} tokens</div>
+                          <div>
+                            Daily:
+                            {policy.costLimits.dailyTokens.toLocaleString()}
+                            {' '}
+                            tokens
+                          </div>
                         )}
                         {policy.costLimits.monthlyCost && (
-                          <div>Monthly: ${policy.costLimits.monthlyCost.toFixed(2)}</div>
+                          <div>
+                            Monthly: $
+                            {policy.costLimits.monthlyCost.toFixed(2)}
+                          </div>
                         )}
                       </div>
                     ) : (
@@ -289,5 +304,5 @@ export function PoliciesView() {
         )}
       </div>
     </div>
-  )
+  );
 }

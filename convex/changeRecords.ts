@@ -1,15 +1,13 @@
-import { query } from "./_generated/server";
-import { v } from "convex/values";
+import { v } from 'convex/values';
+import { query } from './_generated/server';
 
 export const list = query({
-  args: { tenantId: v.id("tenants") },
-  handler: async (ctx, args) => {
-    return await ctx.db
-      .query("changeRecords")
-      .withIndex("by_tenant", (q) => q.eq("tenantId", args.tenantId))
-      .order("desc")
-      .take(100);
-  },
+  args: { tenantId: v.id('tenants') },
+  handler: async (ctx, args) => await ctx.db
+    .query('changeRecords')
+    .withIndex('by_tenant', (q) => q.eq('tenantId', args.tenantId))
+    .order('desc')
+    .take(100),
 });
 
 export const listByTarget = query({
@@ -17,13 +15,9 @@ export const listByTarget = query({
     targetEntity: v.string(),
     targetId: v.string(),
   },
-  handler: async (ctx, args) => {
-    return await ctx.db
-      .query("changeRecords")
-      .withIndex("by_target", (q) =>
-        q.eq("targetEntity", args.targetEntity).eq("targetId", args.targetId)
-      )
-      .order("desc")
-      .collect();
-  },
+  handler: async (ctx, args) => await ctx.db
+    .query('changeRecords')
+    .withIndex('by_target', (q) => q.eq('targetEntity', args.targetEntity).eq('targetId', args.targetId))
+    .order('desc')
+    .collect(),
 });

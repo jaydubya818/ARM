@@ -1,14 +1,14 @@
 /**
  * CreateRunModal Component
- * 
+ *
  * Modal for triggering manual evaluation runs.
  */
 
-import { useState } from 'react'
-import { useMutation, useQuery } from 'convex/react'
-import { api } from '../convex/_generated/api'
-import { Id, type Doc } from '../convex/_generated/dataModel'
-import { toast } from '../lib/toast'
+import { useState } from 'react';
+import { useMutation, useQuery } from 'convex/react';
+import { api } from 'agent-resources-platform/convex/_generated/api';
+import { Id, type Doc } from 'agent-resources-platform/convex/_generated/dataModel';
+import { toast } from '../lib/toast';
 
 interface CreateRunModalProps {
   tenantId: Id<'tenants'>
@@ -17,57 +17,57 @@ interface CreateRunModalProps {
 }
 
 export function CreateRunModal({ tenantId, onClose, onSuccess }: CreateRunModalProps) {
-  const createRun = useMutation(api.evaluationRuns.create)
+  const createRun = useMutation(api.evaluationRuns.create);
   const suites = useQuery(api.evaluationSuites.list, { tenantId }) as
     | Doc<'evaluationSuites'>[]
-    | undefined
+    | undefined;
   const versions = useQuery(api.agentVersions.list, { tenantId }) as
     | Doc<'agentVersions'>[]
-    | undefined
+    | undefined;
 
-  const [suiteId, setSuiteId] = useState<Id<'evaluationSuites'> | ''>('')
-  const [versionId, setVersionId] = useState<Id<'agentVersions'> | ''>('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [suiteId, setSuiteId] = useState<Id<'evaluationSuites'> | ''>('');
+  const [versionId, setVersionId] = useState<Id<'agentVersions'> | ''>('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     // Validation
     if (!suiteId) {
-      toast.error('Please select an evaluation suite')
-      return
+      toast.error('Please select an evaluation suite');
+      return;
     }
 
     if (!versionId) {
-      toast.error('Please select an agent version')
-      return
+      toast.error('Please select an agent version');
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     try {
       await createRun({
         tenantId,
         suiteId: suiteId as Id<'evaluationSuites'>,
         versionId: versionId as Id<'agentVersions'>,
-      })
+      });
 
-      const suite = suites?.find(s => s._id === suiteId)
-      const version = versions?.find(v => v._id === versionId)
+      const suite = suites?.find((s) => s._id === suiteId);
+      const version = versions?.find((v) => v._id === versionId);
 
-      toast.success(`Evaluation run created for "${version?.versionLabel}" with suite "${suite?.name}"`)
-      onSuccess?.()
-      onClose()
+      toast.success(`Evaluation run created for "${version?.versionLabel}" with suite "${suite?.name}"`);
+      onSuccess?.();
+      onClose();
     } catch (error) {
-      console.error('Failed to create run:', error)
-      toast.error((error as Error).message || 'Failed to create evaluation run')
+      console.error('Failed to create run:', error);
+      toast.error((error as Error).message || 'Failed to create evaluation run');
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
-  const selectedSuite = suites?.find(s => s._id === suiteId)
-  const selectedVersion = versions?.find(v => v._id === versionId)
+  const selectedSuite = suites?.find((s) => s._id === suiteId);
+  const selectedVersion = versions?.find((v) => v._id === versionId);
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -92,18 +92,27 @@ export function CreateRunModal({ tenantId, onClose, onSuccess }: CreateRunModalP
             {/* Suite Selection */}
             <div>
               <label className="block text-sm font-medium text-arm-text-primary mb-2">
-                Evaluation Suite <span className="text-arm-danger">*</span>
+                Evaluation Suite
+                {' '}
+                <span className="text-arm-danger">*</span>
               </label>
               <select
                 value={suiteId}
-                onChange={e => setSuiteId(e.target.value as Id<'evaluationSuites'>)}
+                onChange={(e) => setSuiteId(e.target.value as Id<'evaluationSuites'>)}
                 className="w-full px-3 py-2 bg-arm-bg-primary border border-arm-border rounded-lg text-arm-text-primary focus:outline-none focus:ring-2 focus:ring-arm-accent focus:border-transparent"
                 disabled={isSubmitting || !suites}
               >
                 <option value="">Select a suite...</option>
-                {suites?.map(suite => (
+                {suites?.map((suite) => (
                   <option key={suite._id} value={suite._id}>
-                    {suite.name} ({suite.testCases.length} test{suite.testCases.length !== 1 ? 's' : ''})
+                    {suite.name}
+                    {' '}
+                    (
+                    {suite.testCases.length}
+                    {' '}
+                    test
+                    {suite.testCases.length !== 1 ? 's' : ''}
+                    )
                   </option>
                 ))}
               </select>
@@ -112,9 +121,17 @@ export function CreateRunModal({ tenantId, onClose, onSuccess }: CreateRunModalP
                 <div className="mt-2 p-3 bg-arm-bg-primary border border-arm-border rounded-lg">
                   <p className="text-sm text-arm-text-secondary">{selectedSuite.description || 'No description'}</p>
                   <div className="mt-2 flex items-center gap-4 text-xs text-arm-text-tertiary">
-                    <span>📝 {selectedSuite.testCases.length} test cases</span>
+                    <span>
+                      📝
+                      {selectedSuite.testCases.length}
+                      {' '}
+                      test cases
+                    </span>
                     {selectedSuite.tags && selectedSuite.tags.length > 0 && (
-                      <span>🏷️ {selectedSuite.tags.join(', ')}</span>
+                      <span>
+                        🏷️
+                        {selectedSuite.tags.join(', ')}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -124,18 +141,23 @@ export function CreateRunModal({ tenantId, onClose, onSuccess }: CreateRunModalP
             {/* Version Selection */}
             <div>
               <label className="block text-sm font-medium text-arm-text-primary mb-2">
-                Agent Version <span className="text-arm-danger">*</span>
+                Agent Version
+                {' '}
+                <span className="text-arm-danger">*</span>
               </label>
               <select
                 value={versionId}
-                onChange={e => setVersionId(e.target.value as Id<'agentVersions'>)}
+                onChange={(e) => setVersionId(e.target.value as Id<'agentVersions'>)}
                 className="w-full px-3 py-2 bg-arm-bg-primary border border-arm-border rounded-lg text-arm-text-primary focus:outline-none focus:ring-2 focus:ring-arm-accent focus:border-transparent"
                 disabled={isSubmitting || !versions}
               >
                 <option value="">Select a version...</option>
-                {versions?.map(version => (
+                {versions?.map((version) => (
                   <option key={version._id} value={version._id}>
-                    {version.versionLabel} - {version.lifecycleState}
+                    {version.versionLabel}
+                    {' '}
+                    -
+                    {version.lifecycleState}
                   </option>
                 ))}
               </select>
@@ -151,10 +173,16 @@ export function CreateRunModal({ tenantId, onClose, onSuccess }: CreateRunModalP
                     </span>
                   </div>
                   <div className="mt-2 flex items-center gap-4 text-xs text-arm-text-tertiary">
-                    <span>🔐 Hash: {selectedVersion.genomeHash.slice(0, 8)}...</span>
+                    <span>
+                      🔐 Hash:
+                      {selectedVersion.genomeHash.slice(0, 8)}
+                      ...
+                    </span>
                     {selectedVersion.evalStatus && (
                       <span>
-                        📊 Eval: {selectedVersion.evalStatus === 'NOT_RUN' ? 'Not Run' : selectedVersion.evalStatus}
+                        📊 Eval:
+                        {' '}
+                        {selectedVersion.evalStatus === 'NOT_RUN' ? 'Not Run' : selectedVersion.evalStatus}
                       </span>
                     )}
                   </div>
@@ -219,5 +247,5 @@ export function CreateRunModal({ tenantId, onClose, onSuccess }: CreateRunModalP
         </form>
       </div>
     </div>
-  )
+  );
 }

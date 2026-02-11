@@ -1,6 +1,6 @@
 /**
  * useErrorHandler Hook
- * 
+ *
  * React hook for handling errors in components with
  * automatic retry and user notifications.
  */
@@ -43,7 +43,7 @@ export function useErrorHandler(): UseErrorHandlerReturn {
 
   const handleError = useCallback((
     error: unknown,
-    context?: { operation?: string }
+    context?: { operation?: string },
   ) => {
     const message = getUserFriendlyMessage(error);
     const severity = getErrorSeverity(error);
@@ -68,7 +68,7 @@ export function useErrorHandler(): UseErrorHandlerReturn {
     });
   }, []);
 
-  const retry = useCallback(async <T,>(fn: () => Promise<T>): Promise<T> => {
+  const retry = useCallback(async <T, >(fn: () => Promise<T>): Promise<T> => {
     clearError();
     try {
       return await handleWithRetry(fn, {
@@ -102,7 +102,7 @@ export function useAsyncError<T>() {
 
   const execute = useCallback(async (
     fn: () => Promise<T>,
-    context?: { operation?: string }
+    context?: { operation?: string },
   ): Promise<T | null> => {
     setIsLoading(true);
     clearError();
@@ -149,7 +149,7 @@ export function useMutationError<T>() {
       onSuccess?: (data: T) => void;
       onError?: (error: unknown) => void;
       context?: { operation?: string };
-    }
+    },
   ): Promise<T | null> => {
     setIsLoading(true);
     clearError();

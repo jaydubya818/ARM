@@ -1,8 +1,14 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      'agent-resources-platform': path.resolve(process.cwd(), '..'),
+    },
+  },
   server: {
     port: 5173,
   },
@@ -11,7 +17,7 @@ export default defineConfig({
     target: 'esnext',
     minify: 'esbuild',
     cssMinify: true,
-    
+
     // Code splitting
     rollupOptions: {
       output: {
@@ -20,7 +26,7 @@ export default defineConfig({
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
           'vendor-convex': ['convex', 'convex/react'],
           'vendor-ui': ['lucide-react'],
-          
+
           // Feature chunks
           'feature-evaluations': [
             './src/views/EvaluationsView.tsx',
@@ -41,17 +47,17 @@ export default defineConfig({
         },
       },
     },
-    
+
     // Chunk size warnings
     chunkSizeWarningLimit: 500, // KB
-    
+
     // Source maps for production debugging
     sourcemap: true,
   },
-  
+
   // Optimize dependencies
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom', 'convex/react'],
     exclude: [],
   },
-})
+});

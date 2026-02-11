@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState } from 'react';
 
 interface CopyButtonProps {
   text: string
@@ -7,22 +7,22 @@ interface CopyButtonProps {
 }
 
 export function CopyButton({ text, label, size = 'sm' }: CopyButtonProps) {
-  const [copied, setCopied] = useState(false)
+  const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(text)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      console.error('Failed to copy:', error)
+      console.error('Failed to copy:', error);
     }
-  }
+  };
 
   const sizeClasses = {
     sm: 'text-xs px-2 py-1',
     md: 'text-sm px-3 py-1.5',
-  }
+  };
 
   return (
     <button
@@ -32,5 +32,5 @@ export function CopyButton({ text, label, size = 'sm' }: CopyButtonProps) {
     >
       {copied ? '✓ Copied' : label || 'Copy'}
     </button>
-  )
+  );
 }

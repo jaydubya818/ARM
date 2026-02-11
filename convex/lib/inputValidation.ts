@@ -1,6 +1,6 @@
 /**
  * Input Validation and Sanitization
- * 
+ *
  * Provides comprehensive input validation and sanitization
  * to prevent injection attacks and ensure data integrity.
  */
@@ -42,45 +42,34 @@ export const ValidationRules = {
   /**
    * Alphanumeric validation
    */
-  alphanumeric: (value: string): boolean => {
-    return /^[a-zA-Z0-9]+$/.test(value);
-  },
+  alphanumeric: (value: string): boolean => /^[a-zA-Z0-9]+$/.test(value),
 
   /**
    * Slug validation (lowercase, hyphens, numbers)
    */
-  slug: (value: string): boolean => {
-    return /^[a-z0-9-]+$/.test(value);
-  },
+  slug: (value: string): boolean => /^[a-z0-9-]+$/.test(value),
 
   /**
    * Version label validation (semver-like)
    */
-  versionLabel: (value: string): boolean => {
-    return /^v?\d+\.\d+\.\d+(-[a-zA-Z0-9.-]+)?$/.test(value);
-  },
+  versionLabel: (value: string): boolean => /^v?\d+\.\d+\.\d+(-[a-zA-Z0-9.-]+)?$/.test(value),
 
   /**
    * Safe string (no special characters that could cause issues)
    */
-  safeString: (value: string): boolean => {
+  safeString: (value: string): boolean =>
     // Allow letters, numbers, spaces, and basic punctuation
-    return /^[a-zA-Z0-9\s\-_.,!?()]+$/.test(value);
-  },
+    /^[a-zA-Z0-9\s\-_.,!?()]+$/.test(value),
 
   /**
    * Length validation
    */
-  length: (value: string, min: number, max: number): boolean => {
-    return value.length >= min && value.length <= max;
-  },
+  length: (value: string, min: number, max: number): boolean => value.length >= min && value.length <= max,
 
   /**
    * Number range validation
    */
-  range: (value: number, min: number, max: number): boolean => {
-    return value >= min && value <= max;
-  },
+  range: (value: number, min: number, max: number): boolean => value >= min && value <= max,
 };
 
 /**
@@ -90,9 +79,7 @@ export const Sanitize = {
   /**
    * Remove HTML tags
    */
-  stripHtml: (value: string): string => {
-    return value.replace(/<[^>]*>/g, '');
-  },
+  stripHtml: (value: string): string => value.replace(/<[^>]*>/g, ''),
 
   /**
    * Escape HTML entities
@@ -106,46 +93,39 @@ export const Sanitize = {
       "'": '&#x27;',
       '/': '&#x2F;',
     };
-    return value.replace(/[&<>"'/]/g, char => map[char]);
+    return value.replace(/[&<>"'/]/g, (char) => map[char]);
   },
 
   /**
    * Remove SQL injection patterns
    */
-  sanitizeSql: (value: string): string => {
+  sanitizeSql: (value: string): string =>
     // Remove common SQL injection patterns
-    return value
+    value
       .replace(/['";\\]/g, '')
       .replace(/--/g, '')
       .replace(/\/\*/g, '')
-      .replace(/\*\//g, '');
-  },
+      .replace(/\*\//g, ''),
 
   /**
    * Sanitize for use in regex
    */
-  escapeRegex: (value: string): string => {
-    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  },
+  escapeRegex: (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
 
   /**
    * Trim and normalize whitespace
    */
-  normalizeWhitespace: (value: string): string => {
-    return value.trim().replace(/\s+/g, ' ');
-  },
+  normalizeWhitespace: (value: string): string => value.trim().replace(/\s+/g, ' '),
 
   /**
    * Convert to slug
    */
-  toSlug: (value: string): string => {
-    return value
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/[\s_-]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-  },
+  toSlug: (value: string): string => value
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, ''),
 
   /**
    * Sanitize JSON input
@@ -186,9 +166,11 @@ export class ValidationSchema {
     field: string,
     validator: (value: any) => boolean,
     message: string,
-    sanitizer?: (value: any) => any
+    sanitizer?: (value: any) => any,
   ): this {
-    this.rules.push({ field, validator, message, sanitizer });
+    this.rules.push({
+      field, validator, message, sanitizer,
+    });
     return this;
   }
 
@@ -235,7 +217,7 @@ export class ValidationSchema {
     if (!result.valid) {
       throw new ValidationError(
         'Validation failed',
-        { errors: result.errors }
+        { errors: result.errors },
       );
     }
     return result.sanitized;
@@ -254,19 +236,19 @@ export const Schemas = {
       'name',
       (v) => typeof v === 'string' && ValidationRules.length(v, 1, 100),
       'Name must be 1-100 characters',
-      Sanitize.normalizeWhitespace
+      Sanitize.normalizeWhitespace,
     )
     .field(
       'description',
       (v) => v === undefined || (typeof v === 'string' && v.length <= 500),
       'Description must be less than 500 characters',
-      Sanitize.stripHtml
+      Sanitize.stripHtml,
     )
     .field(
       'tags',
-      (v) => Array.isArray(v) && v.every(t => typeof t === 'string'),
+      (v) => Array.isArray(v) && v.every((t) => typeof t === 'string'),
       'Tags must be an array of strings',
-      (v) => v.map(Sanitize.normalizeWhitespace)
+      (v) => v.map(Sanitize.normalizeWhitespace),
     ),
 
   /**
@@ -277,7 +259,7 @@ export const Schemas = {
       'versionLabel',
       (v) => typeof v === 'string' && ValidationRules.versionLabel(v),
       'Version label must be in semver format (e.g., v1.0.0)',
-      Sanitize.normalizeWhitespace
+      Sanitize.normalizeWhitespace,
     ),
 
   /**
@@ -288,13 +270,13 @@ export const Schemas = {
       'email',
       (v) => typeof v === 'string' && ValidationRules.email(v),
       'Must be a valid email address',
-      (v) => v.toLowerCase().trim()
+      (v) => v.toLowerCase().trim(),
     )
     .field(
       'name',
       (v) => typeof v === 'string' && ValidationRules.length(v, 1, 100),
       'Name must be 1-100 characters',
-      Sanitize.normalizeWhitespace
+      Sanitize.normalizeWhitespace,
     ),
 
   /**
@@ -305,12 +287,12 @@ export const Schemas = {
       'name',
       (v) => typeof v === 'string' && ValidationRules.length(v, 1, 100),
       'Name must be 1-100 characters',
-      Sanitize.normalizeWhitespace
+      Sanitize.normalizeWhitespace,
     )
     .field(
       'autonomyTier',
       (v) => typeof v === 'number' && ValidationRules.range(v, 0, 4),
-      'Autonomy tier must be between 0 and 4'
+      'Autonomy tier must be between 0 and 4',
     ),
 };
 
@@ -319,7 +301,7 @@ export const Schemas = {
  */
 export function validateRequired(
   data: Record<string, any>,
-  requiredFields: string[]
+  requiredFields: string[],
 ): void {
   for (const field of requiredFields) {
     if (data[field] === undefined || data[field] === null) {
@@ -333,7 +315,7 @@ export function validateRequired(
  */
 export function validateTypes(
   data: Record<string, any>,
-  schema: Record<string, 'string' | 'number' | 'boolean' | 'object' | 'array'>
+  schema: Record<string, 'string' | 'number' | 'boolean' | 'object' | 'array'>,
 ): void {
   for (const [field, expectedType] of Object.entries(schema)) {
     const value = data[field];
@@ -343,7 +325,7 @@ export function validateTypes(
     if (actualType !== expectedType) {
       throw new InvalidInputError(
         field,
-        `Expected ${expectedType}, got ${actualType}`
+        `Expected ${expectedType}, got ${actualType}`,
       );
     }
   }
@@ -353,7 +335,7 @@ export function validateTypes(
  * Sanitize mutation input
  */
 export function sanitizeMutationInput<T extends Record<string, any>>(
-  input: T
+  input: T,
 ): T {
   const sanitized: Record<string, any> = {};
 
@@ -361,9 +343,7 @@ export function sanitizeMutationInput<T extends Record<string, any>>(
     if (typeof value === 'string') {
       sanitized[key] = Sanitize.stripHtml(value);
     } else if (Array.isArray(value)) {
-      sanitized[key] = value.map(v =>
-        typeof v === 'string' ? Sanitize.stripHtml(v) : v
-      );
+      sanitized[key] = value.map((v) => (typeof v === 'string' ? Sanitize.stripHtml(v) : v));
     } else if (value && typeof value === 'object') {
       sanitized[key] = sanitizeMutationInput(value);
     } else {
@@ -379,7 +359,7 @@ export function sanitizeMutationInput<T extends Record<string, any>>(
  */
 export function validateAndSanitize<T extends Record<string, any>>(
   input: T,
-  schema: ValidationSchema
+  schema: ValidationSchema,
 ): T {
   return schema.validateOrThrow(input) as T;
 }

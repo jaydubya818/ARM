@@ -22,6 +22,8 @@
 
 ## Overview
 
+**Secrets checklist:** See [DEPLOY_SECRETS.md](./DEPLOY_SECRETS.md) for required GitHub Actions secrets.
+
 ARM consists of two main components:
 1. **Backend**: Convex (serverless database + functions)
 2. **Frontend**: React SPA (Vite build)
@@ -210,6 +212,7 @@ vercel link
 # Settings → Environment Variables → Add:
 #   VITE_CONVEX_URL = https://your-project.convex.cloud
 #   VITE_CLERK_PUBLISHABLE_KEY = pk_live_... (if using Clerk)
+#   VITE_SENTRY_DSN = https://...@sentry.io/... (optional; error reporting)
 ```
 
 ### Option 2: Netlify
@@ -282,6 +285,7 @@ This deploys Convex to production and builds the UI. Deploy the `ui/dist/` folde
 
 ### Post-Deployment
 
+- [ ] Smoke test: `./scripts/verify-deploy.sh https://your-app.vercel.app`
 - [ ] Health check passed
 - [ ] Login flow tested
 - [ ] Create template tested
@@ -312,31 +316,13 @@ convex dashboard --prod
 
 ### Frontend Monitoring (Sentry)
 
-#### Install Sentry
+Sentry is integrated when `VITE_SENTRY_DSN` is set. No code changes required.
 
-```bash
-cd ui
-pnpm add @sentry/react @sentry/vite-plugin
-```
-
-#### Configure Sentry
-
-```typescript
-// ui/src/main.tsx
-import * as Sentry from "@sentry/react"
-
-Sentry.init({
-  dsn: "https://your-dsn@sentry.io/project-id",
-  environment: import.meta.env.MODE,
-  integrations: [
-    new Sentry.BrowserTracing(),
-    new Sentry.Replay(),
-  ],
-  tracesSampleRate: 1.0,
-  replaysSessionSampleRate: 0.1,
-  replaysOnErrorSampleRate: 1.0,
-})
-```
+**Setup:**
+1. Create a project at [sentry.io](https://sentry.io)
+2. Copy the DSN from Project Settings → Client Keys
+3. Add to Vercel (or `.env.local`): `VITE_SENTRY_DSN=https://...@sentry.io/...`
+4. Rebuild/redeploy; errors will be reported automatically
 
 ### Custom Monitoring
 

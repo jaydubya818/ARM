@@ -1,56 +1,56 @@
-import { useState } from 'react'
-import { useQuery, useMutation } from 'convex/react'
-import { useTenant } from '../contexts/TenantContext'
-import { api } from '../convex/_generated/api'
-import { Id, type Doc } from '../convex/_generated/dataModel'
-import { toast } from '../lib/toast'
+import { useState } from 'react';
+import { useQuery, useMutation } from 'convex/react';
+import { api } from 'agent-resources-platform/convex/_generated/api';
+import { Id, type Doc } from 'agent-resources-platform/convex/_generated/dataModel';
+import { useTenant } from '../contexts/TenantContext';
+import { toast } from '../lib/toast';
 
 type ApprovalStatus = 'PENDING' | 'APPROVED' | 'DENIED' | 'CANCELLED'
 
 export function ApprovalsView() {
-  const [selectedStatus, setSelectedStatus] = useState<ApprovalStatus | 'ALL'>('PENDING')
-  const [selectedApproval, setSelectedApproval] = useState<Doc<'approvalRecords'> | null>(null)
+  const [selectedStatus, setSelectedStatus] = useState<ApprovalStatus | 'ALL'>('PENDING');
+  const [selectedApproval, setSelectedApproval] = useState<Doc<'approvalRecords'> | null>(null);
 
-  const { tenantId } = useTenant()
+  const { tenantId } = useTenant();
 
   const operators = useQuery(
     api.operators.list,
-    tenantId ? { tenantId } : 'skip'
-  )
-  const operatorId = operators?.[0]?._id
+    tenantId ? { tenantId } : 'skip',
+  );
+  const operatorId = operators?.[0]?._id;
 
   // Fetch approvals
   const approvals = useQuery(
     api.approvalRecords.list,
     tenantId
       ? {
-          tenantId,
-          status: selectedStatus === 'ALL' ? undefined : selectedStatus,
-        }
-      : 'skip'
-  ) as Doc<'approvalRecords'>[] | undefined
+        tenantId,
+        status: selectedStatus === 'ALL' ? undefined : selectedStatus,
+      }
+      : 'skip',
+  ) as Doc<'approvalRecords'>[] | undefined;
 
   const pendingCount = useQuery(
     api.approvalRecords.getPendingCount,
-    tenantId ? { tenantId } : 'skip'
-  )
+    tenantId ? { tenantId } : 'skip',
+  );
 
-  const decideApproval = useMutation(api.approvalRecords.decide)
-  const cancelApproval = useMutation(api.approvalRecords.cancel)
+  const decideApproval = useMutation(api.approvalRecords.decide);
+  const cancelApproval = useMutation(api.approvalRecords.cancel);
 
   const handleDecide = async (
     approvalId: Id<'approvalRecords'>,
-    decision: 'APPROVED' | 'DENIED'
+    decision: 'APPROVED' | 'DENIED',
   ) => {
     if (!operatorId) {
-      toast.error('No operator found')
-      return
+      toast.error('No operator found');
+      return;
     }
 
     const reason = prompt(
-      `${decision === 'APPROVED' ? 'Approve' : 'Deny'} this request? Enter reason (optional):`
-    )
-    if (reason === null) return // User cancelled
+      `${decision === 'APPROVED' ? 'Approve' : 'Deny'} this request? Enter reason (optional):`,
+    );
+    if (reason === null) return; // User cancelled
 
     try {
       await decideApproval({
@@ -58,35 +58,35 @@ export function ApprovalsView() {
         decision,
         decidedBy: operatorId,
         reason: reason || undefined,
-      })
-      toast.success(`Request ${decision.toLowerCase()} successfully`)
-      setSelectedApproval(null)
+      });
+      toast.success(`Request ${decision.toLowerCase()} successfully`);
+      setSelectedApproval(null);
     } catch (error) {
-      toast.error('Error: ' + (error as Error).message)
+      toast.error(`Error: ${(error as Error).message}`);
     }
-  }
+  };
 
   const handleCancel = async (approvalId: Id<'approvalRecords'>) => {
     if (!operatorId) {
-      toast.error('No operator found')
-      return
+      toast.error('No operator found');
+      return;
     }
 
-    const reason = prompt('Cancel this request? Enter reason (optional):')
-    if (reason === null) return
+    const reason = prompt('Cancel this request? Enter reason (optional):');
+    if (reason === null) return;
 
     try {
       await cancelApproval({
         approvalId,
         cancelledBy: operatorId,
         reason: reason || undefined,
-      })
-      toast.success('Request cancelled successfully')
-      setSelectedApproval(null)
+      });
+      toast.success('Request cancelled successfully');
+      setSelectedApproval(null);
     } catch (error) {
-      toast.error('Error: ' + (error as Error).message)
+      toast.error(`Error: ${(error as Error).message}`);
     }
-  }
+  };
 
   if (!tenantId) {
     return (
@@ -95,7 +95,7 @@ export function ApprovalsView() {
           No tenant found. Run seed script first.
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -113,7 +113,9 @@ export function ApprovalsView() {
         {pendingCount !== undefined && pendingCount > 0 && (
           <div className="px-4 py-2 bg-arm-warning rounded-lg">
             <span className="text-sm font-semibold text-white">
-              {pendingCount} Pending
+              {pendingCount}
+              {' '}
+              Pending
             </span>
           </div>
         )}
@@ -145,7 +147,10 @@ export function ApprovalsView() {
         ) : approvals.length === 0 ? (
           <div className="p-8 text-center text-arm-textMuted">
             <p className="mb-2">
-              No {selectedStatus === 'ALL' ? '' : selectedStatus.toLowerCase()}{' '}
+              No
+              {' '}
+              {selectedStatus === 'ALL' ? '' : selectedStatus.toLowerCase()}
+              {' '}
               approvals
             </p>
             <p className="text-sm">
@@ -188,7 +193,8 @@ export function ApprovalsView() {
                     {approval.requestType}
                   </td>
                   <td className="p-4 text-arm-textMuted text-sm font-mono">
-                    {approval.targetId.slice(0, 8)}...
+                    {approval.targetId.slice(0, 8)}
+                    ...
                   </td>
                   <td className="p-4 text-arm-textMuted text-sm">
                     {approval.requesterName}
@@ -199,10 +205,10 @@ export function ApprovalsView() {
                         approval.status === 'PENDING'
                           ? 'bg-arm-warning text-white'
                           : approval.status === 'APPROVED'
-                          ? 'bg-arm-success text-white'
-                          : approval.status === 'DENIED'
-                          ? 'bg-arm-danger text-white'
-                          : 'bg-gray-500 text-white'
+                            ? 'bg-arm-success text-white'
+                            : approval.status === 'DENIED'
+                              ? 'bg-arm-danger text-white'
+                              : 'bg-gray-500 text-white'
                       }`}
                     >
                       {approval.status}
@@ -215,9 +221,7 @@ export function ApprovalsView() {
                     {approval.status === 'PENDING' && (
                       <>
                         <button
-                          onClick={() =>
-                            handleDecide(approval._id, 'APPROVED')
-                          }
+                          onClick={() => handleDecide(approval._id, 'APPROVED')}
                           className="text-arm-success hover:text-green-400 transition-colors text-sm font-medium"
                         >
                           Approve
@@ -268,5 +272,5 @@ export function ApprovalsView() {
         </div>
       )}
     </div>
-  )
+  );
 }
