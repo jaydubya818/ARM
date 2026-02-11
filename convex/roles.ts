@@ -6,7 +6,6 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { Id } from "./_generated/dataModel";
 
 /**
  * List all roles for a tenant
@@ -174,10 +173,11 @@ export const update = mutation({
 
     // Check for duplicate name if changing name
     if (args.name && args.name !== role.name) {
+      const newName = args.name;
       const existing = await ctx.db
         .query("roles")
         .withIndex("by_name", (q) =>
-          q.eq("tenantId", role.tenantId).eq("name", args.name)
+          q.eq("tenantId", role.tenantId).eq("name", newName)
         )
         .first();
 

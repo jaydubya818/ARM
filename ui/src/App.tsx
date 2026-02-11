@@ -17,9 +17,10 @@ import { api } from './convex/_generated/api'
 export default function App() {
   // Get tenant and operator (hardcoded for now, will be from auth later)
   const tenants = useQuery(api.tenants.list)
-  const operators = useQuery(api.operators.list, { 
-    tenantId: tenants?.[0]?._id 
-  })
+  const operators = useQuery(
+    api.operators.list, 
+    tenants?.[0]?._id ? { tenantId: tenants[0]._id } : "skip"
+  )
   
   const tenantId = tenants?.[0]?._id
   const operatorId = operators?.[0]?._id

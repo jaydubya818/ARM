@@ -6,7 +6,7 @@
 
 import { QueryCtx, MutationCtx } from "../_generated/server";
 import { Id } from "../_generated/dataModel";
-import { requirePermission, requireAnyPermission, requireAllPermissions } from "./rbac";
+import { requirePermission, requireAnyPermission } from "./rbac";
 import { getCurrentOperator, getTenantContext } from "./tenantContext";
 
 /**
@@ -22,6 +22,10 @@ export interface AuthResult {
 
 /**
  * Wrap a query with permission check
+ *
+ * Note: Queries cannot write to the database, so audit logging is not
+ * performed here. Use withPermissionMutation for operations that need
+ * audit logging.
  */
 export async function withPermission<T>(
   ctx: QueryCtx,
@@ -29,42 +33,10 @@ export async function withPermission<T>(
   handler: () => Promise<T>
 ): Promise<T> {
   const operator = await getCurrentOperator(ctx);
-  const tenantId = await getTenantContext(ctx);
 
-  try {
-    await requirePermission(ctx, operator._id, permission);
+  await requirePermission(ctx, operator._id, permission);
 
-    // Log successful access
-    await ctx.db.insert("auditLogs", {
-      tenantId,
-      operatorId: operator._id,
-      action: "ACCESS_GRANTED",
-      resource: permission,
-      details: {
-        permission,
-      },
-      timestamp: Date.now(),
-      severity: "INFO",
-    });
-
-    return await handler();
-  } catch (error) {
-    // Log denied access
-    await ctx.db.insert("auditLogs", {
-      tenantId,
-      operatorId: operator._id,
-      action: "ACCESS_DENIED",
-      resource: permission,
-      details: {
-        permission,
-        reason: (error as Error).message,
-      },
-      timestamp: Date.now(),
-      severity: "WARNING",
-    });
-
-    throw error;
-  }
+  return await handler();
 }
 
 /**
@@ -116,6 +88,10 @@ export async function withPermissionMutation<T>(
 
 /**
  * Wrap a query with "any of" permission check
+ *
+ * Note: Queries cannot write to the database, so audit logging is not
+ * performed here. Use withAnyPermissionMutation for operations that need
+ * audit logging.
  */
 export async function withAnyPermission<T>(
   ctx: QueryCtx,
@@ -123,40 +99,10 @@ export async function withAnyPermission<T>(
   handler: () => Promise<T>
 ): Promise<T> {
   const operator = await getCurrentOperator(ctx);
-  const tenantId = await getTenantContext(ctx);
 
-  try {
-    await requireAnyPermission(ctx, operator._id, permissions);
+  await requireAnyPermission(ctx, operator._id, permissions);
 
-    await ctx.db.insert("auditLogs", {
-      tenantId,
-      operatorId: operator._id,
-      action: "ACCESS_GRANTED",
-      resource: permissions.join(", "),
-      details: {
-        permission: permissions.join(", "),
-      },
-      timestamp: Date.now(),
-      severity: "INFO",
-    });
-
-    return await handler();
-  } catch (error) {
-    await ctx.db.insert("auditLogs", {
-      tenantId,
-      operatorId: operator._id,
-      action: "ACCESS_DENIED",
-      resource: permissions.join(", "),
-      details: {
-        permission: permissions.join(", "),
-        reason: (error as Error).message,
-      },
-      timestamp: Date.now(),
-      severity: "WARNING",
-    });
-
-    throw error;
-  }
+  return await handler();
 }
 
 /**

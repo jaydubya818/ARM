@@ -127,9 +127,10 @@ export default mutation({
     // 4. Create operator (P3.0)
     const operatorId = await ctx.db.insert("operators", {
       tenantId,
+      authIdentity: "auth0|admin-dev",
       email: "admin@arm-dev.com",
       name: "Admin User",
-      status: "ACTIVE",
+      role: "admin", // Legacy field, will be replaced by RBAC
     });
     console.log("✅ Created operator:", operatorId);
     

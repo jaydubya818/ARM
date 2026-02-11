@@ -5,7 +5,7 @@
  */
 
 import { internalAction, internalMutation } from "./_generated/server";
-import { internal, api } from "./_generated/api";
+import { api } from "./_generated/api";
 
 /**
  * Process pending evaluation runs for all tenants
@@ -13,15 +13,22 @@ import { internal, api } from "./_generated/api";
  * Called by cron job every 5 minutes.
  * Processes up to 5 pending runs per tenant.
  */
+interface CronTenantResult {
+  tenantId: string;
+  tenantName: string;
+  processed?: number;
+  error?: string;
+}
+
 export const processPendingEvaluations = internalAction({
-  handler: async (ctx) => {
-    console.log("🔄 Processing pending evaluations...");
+  handler: async (ctx): Promise<{ totalProcessed: number; tenants: CronTenantResult[]; timestamp: number }> => {
+    console.log("Processing pending evaluations...");
 
     // Get all tenants
     const tenants = await ctx.runQuery(api.tenants.list);
 
     let totalProcessed = 0;
-    const results = [];
+    const results: CronTenantResult[] = [];
 
     // Process pending runs for each tenant
     for (const tenant of tenants) {
@@ -38,9 +45,9 @@ export const processPendingEvaluations = internalAction({
           processed: result.processed,
         });
 
-        console.log(`✅ Processed ${result.processed} runs for tenant: ${tenant.name}`);
+        console.log(`Processed ${result.processed} runs for tenant: ${tenant.name}`);
       } catch (error) {
-        console.error(`❌ Error processing tenant ${tenant.name}:`, error);
+        console.error(`Error processing tenant ${tenant.name}:`, error);
         results.push({
           tenantId: tenant._id,
           tenantName: tenant.name,
@@ -49,7 +56,7 @@ export const processPendingEvaluations = internalAction({
       }
     }
 
-    console.log(`🎉 Cron complete: ${totalProcessed} total runs processed`);
+    console.log(`Cron complete: ${totalProcessed} total runs processed`);
 
     return {
       totalProcessed,
@@ -65,8 +72,8 @@ export const processPendingEvaluations = internalAction({
  * Archives completed runs older than 90 days.
  */
 export const cleanupOldRuns = internalMutation({
-  handler: async (ctx) => {
-    console.log("🧹 Cleaning up old evaluation runs...");
+  handler: async (ctx): Promise<{ totalArchived: number; timestamp: number }> => {
+    console.log("Cleaning up old evaluation runs...");
 
     const ninetyDaysAgo = Date.now() - (90 * 24 * 60 * 60 * 1000);
 
@@ -90,12 +97,12 @@ export const cleanupOldRuns = internalMutation({
 
       // Archive runs (for now, just log - future: move to archive table)
       for (const run of oldRuns) {
-        console.log(`📦 Would archive run: ${run._id} (completed: ${new Date(run.completedAt || 0).toISOString()})`);
+        console.log(`Would archive run: ${run._id} (completed: ${new Date(run.completedAt || 0).toISOString()})`);
         totalArchived++;
       }
     }
 
-    console.log(`🎉 Cleanup complete: ${totalArchived} runs would be archived`);
+    console.log(`Cleanup complete: ${totalArchived} runs would be archived`);
 
     return {
       totalArchived,
@@ -109,13 +116,21 @@ export const cleanupOldRuns = internalMutation({
  * 
  * Monitors pending runs and alerts if backlog is growing.
  */
+interface HealthCheckResult {
+  tenantId: string;
+  tenantName: string;
+  status: "HEALTHY" | "WARNING";
+  pendingCount: number;
+  runningCount: number;
+}
+
 export const healthCheck = internalAction({
-  handler: async (ctx) => {
-    console.log("🏥 Evaluation system health check...");
+  handler: async (ctx): Promise<{ overall: string; tenants: HealthCheckResult[]; timestamp: number }> => {
+    console.log("Evaluation system health check...");
 
     const tenants = await ctx.runQuery(api.tenants.list);
 
-    const health = [];
+    const health: HealthCheckResult[] = [];
 
     for (const tenant of tenants) {
       const pending = await ctx.runQuery(api.evaluationRuns.getPending, {
@@ -128,10 +143,10 @@ export const healthCheck = internalAction({
         status: "RUNNING",
       });
 
-      const status = pending.length > 20 ? "WARNING" : "HEALTHY";
+      const status: "HEALTHY" | "WARNING" = pending.length > 20 ? "WARNING" : "HEALTHY";
 
       health.push({
-        tenantId: tenant._id,
+        tenantId: tenant._id as string,
         tenantName: tenant.name,
         status,
         pendingCount: pending.length,
@@ -139,7 +154,7 @@ export const healthCheck = internalAction({
       });
 
       if (status === "WARNING") {
-        console.warn(`⚠️ High pending count for ${tenant.name}: ${pending.length} runs`);
+        console.warn(`High pending count for ${tenant.name}: ${pending.length} runs`);
       }
     }
 

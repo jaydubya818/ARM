@@ -1,13 +1,57 @@
 /**
  * Notification Event Processor
- * 
+ *
  * Processes notification events and creates notifications for operators.
  */
 
 import { v } from "convex/values";
-import { internalMutation, internalAction } from "./_generated/server";
+import { internalMutation, internalAction, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { Id } from "./_generated/dataModel";
+
+/**
+ * Internal query: Get a notification event by ID
+ */
+export const getEvent = internalQuery({
+  args: {
+    eventId: v.id("notificationEvents"),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.eventId);
+  },
+});
+
+/**
+ * Internal query: Get operators for a tenant
+ */
+export const getOperatorsByTenant = internalQuery({
+  args: {
+    tenantId: v.id("tenants"),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("operators")
+      .withIndex("by_tenant", (q) => q.eq("tenantId", args.tenantId))
+      .collect();
+  },
+});
+
+/**
+ * Internal query: Get notification preference for an operator and event type
+ */
+export const getPreferenceByEvent = internalQuery({
+  args: {
+    operatorId: v.id("operators"),
+    eventType: v.string(),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("notificationPreferences")
+      .withIndex("by_event", (q) =>
+        q.eq("operatorId", args.operatorId).eq("eventType", args.eventType)
+      )
+      .first();
+  },
+});
 
 /**
  * Process a single notification event
@@ -17,9 +61,9 @@ export const processEvent = internalAction({
     eventId: v.id("notificationEvents"),
   },
   handler: async (ctx, args) => {
-    // Get event
-    const event = await ctx.runQuery(async (ctx) => {
-      return await ctx.db.get(args.eventId);
+    // Get event via internal query reference
+    const event = await ctx.runQuery(internal.notificationProcessor.getEvent, {
+      eventId: args.eventId,
     });
 
     if (!event) {
@@ -34,22 +78,15 @@ export const processEvent = internalAction({
 
     try {
       // Get all operators for the tenant
-      const operators = await ctx.runQuery(async (ctx) => {
-        return await ctx.db
-          .query("operators")
-          .withIndex("by_tenant", (q) => q.eq("tenantId", event.tenantId))
-          .collect();
+      const operators = await ctx.runQuery(internal.notificationProcessor.getOperatorsByTenant, {
+        tenantId: event.tenantId,
       });
 
       // Get notification preferences for each operator
       for (const operator of operators) {
-        const preferences = await ctx.runQuery(async (ctx) => {
-          return await ctx.db
-            .query("notificationPreferences")
-            .withIndex("by_event", (q) =>
-              q.eq("operatorId", operator._id).eq("eventType", event.type)
-            )
-            .first();
+        const preferences = await ctx.runQuery(internal.notificationProcessor.getPreferenceByEvent, {
+          operatorId: operator._id,
+          eventType: event.type,
         });
 
         // Check if operator wants this notification

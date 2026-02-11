@@ -95,14 +95,19 @@ export const executeRun = action({
         status: "COMPLETED",
         metrics,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+
       // Get run details for notification
-      const run = await ctx.runQuery(api.evaluationRuns.get, {
-        runId: args.runId,
-      });
-      const suite = run ? await ctx.runQuery(api.evaluationSuites.get, {
-        suiteId: run.suiteId,
-      }) : null;
+      let failedRunData: { run: typeof runData.run; suite: typeof runData.suite } | null = null;
+      try {
+        const data = await ctx.runQuery(api.evaluationRuns.get, {
+          runId: args.runId,
+        });
+        failedRunData = { run: data.run, suite: data.suite };
+      } catch {
+        // Ignore errors fetching run data during failure handling
+      }
 
       // Mark run as failed
       await ctx.runMutation(api.evaluationRuns.updateStatus, {
@@ -111,15 +116,15 @@ export const executeRun = action({
       });
 
       // Create notification event (P3.0)
-      if (run && suite) {
+      if (failedRunData?.run && failedRunData?.suite) {
         await ctx.runMutation(api.notifications.createEvent, {
-          tenantId: run.tenantId,
+          tenantId: failedRunData.run.tenantId,
           type: "EVAL_FAILED",
           resourceType: "evaluationRun",
           resourceId: args.runId,
           payload: {
-            suiteName: suite.name,
-            error: error.message,
+            suiteName: failedRunData.suite.name,
+            error: errorMessage,
           },
         });
       }
@@ -135,19 +140,26 @@ export const executeRun = action({
  * This action is designed to be called by a cron job.
  * It picks up pending runs and executes them.
  */
+interface RunResult {
+  runId: string;
+  status: string;
+  metrics?: unknown;
+  error?: string;
+}
+
 export const processPendingRuns = action({
   args: {
     tenantId: v.id("tenants"),
     limit: v.optional(v.number()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<{ processed: number; results: RunResult[] }> => {
     // Get pending runs
     const pendingRuns = await ctx.runQuery(api.evaluationRuns.getPending, {
       tenantId: args.tenantId,
       limit: args.limit || 5, // Process up to 5 runs at a time
     });
 
-    const results = [];
+    const results: RunResult[] = [];
 
     // Execute each pending run
     for (const run of pendingRuns) {
@@ -155,13 +167,14 @@ export const processPendingRuns = action({
         const result = await ctx.runAction(api.evaluationActions.executeRun, {
           runId: run._id,
         });
-        results.push(result);
-      } catch (error: any) {
+        results.push(result as RunResult);
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
         console.error(`Failed to execute run ${run._id}:`, error);
         results.push({
-          runId: run._id,
+          runId: run._id as string,
           status: "FAILED",
-          error: error.message,
+          error: errorMessage,
         });
       }
     }
