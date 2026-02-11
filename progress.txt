@@ -287,30 +287,62 @@ Scoring Types:
 - similarity: Levenshtein-based similarity above threshold
 - custom: User-defined scoring logic (stub)
 
-Enhanced UI (P2.0 Step 4.3):
-✅ CreateSuiteModal: Full form with test cases, scoring types
-✅ CreateRunModal: Suite and version selection
-✅ RunDetailsModal: Detailed results with scoring breakdown
-✅ SuiteStatistics: Dashboard with metrics and trends
-✅ Enhanced EvaluationsView: Three-tab layout (Runs/Suites/Statistics)
-✅ Status filtering, refresh button, improved styling
+✅ PHASE 2.0 COMPLETE: Evaluation Orchestration
 
-Features:
-- Dynamic test case management (add/remove)
-- Four scoring types: exact_match, contains, similarity, custom
-- Similarity threshold configuration
-- Tag management for suites
-- Real-time suite/version selection
-- Detailed result visualization
-- Aggregate statistics and performance metrics
-- Recent activity tracking
+Enhanced UI (P2.0 Step 4.3):
+✅ CreateSuiteModal, CreateRunModal, RunDetailsModal, SuiteStatistics
+✅ Three-tab layout, status filtering, analytics dashboard
 
 Git Commits:
 f88a2ff - feat: implement evaluation orchestration (P2.0 Step 4.1)
 8045848 - docs: add P2.0 Step 4.1 completion summary
 ccccc70 - feat: add Convex cron for automatic evaluation processing (P2.0 Step 4.2)
 f7e1cd8 - docs: add P2.0 Step 4.2 completion summary
-[To be committed] feat: add enhanced evaluation UI (P2.0 Step 4.3)
+7711e29 - feat: add enhanced evaluation UI (P2.0 Step 4.3)
+4c1f380 - docs: add P2.0 Step 4.3 completion summary
+
+---
+
+🚀 PHASE 3.0: Advanced Features (IN PROGRESS)
+
+Step 5.1.1: RBAC Schema Design (Day 1):
+✅ Extended Convex schema with 10 new tables:
+   - roles: Role definitions with permissions
+   - roleAssignments: Operator-role mappings
+   - permissions: Permission registry
+   - auditLogs: Security audit trail
+   - evaluationMetrics: Time-series analytics
+   - customScoringFunctions: Extensible scoring
+   - notificationEvents: Event system
+   - notifications: User notifications
+   - notificationPreferences: Notification settings
+
+✅ Permission taxonomy (60+ permissions):
+   - Core: templates, versions, instances
+   - Evaluation: suites, runs
+   - Policies: policy envelopes
+   - Admin: operators, roles, tenant
+   - Audit: logs, metrics
+   - Advanced: custom functions, notifications
+
+✅ System roles defined:
+   - Super Admin: Full system access
+   - Admin: Full tenant access
+   - Operator: Standard operations
+   - Viewer: Read-only access
+
+✅ Documentation: RBAC_PERMISSIONS.md (500+ lines)
+
+What's Next:
+⬜ Step 5.1.2: Implement RBAC backend (Convex)
+⬜ Step 5.1.3: Authorization middleware
+⬜ Step 5.2: Tenant isolation enforcement
+⬜ Step 5.3: Advanced analytics
+⬜ Step 5.4: Custom scoring functions
+⬜ Step 5.5: Notification system
+
+Git Commits:
+[To be committed] feat: add RBAC schema and permission taxonomy (P3.0 Step 5.1.1)
 
 ================================================================================
 NOTES & LEARNINGS

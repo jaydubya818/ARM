@@ -183,4 +183,154 @@ export default defineSchema({
     .index("by_version", ["versionId"])
     .index("by_suite", ["suiteId"])
     .index("by_status", ["tenantId", "status"]),
+
+  // P3.0 Schema: RBAC (Role-Based Access Control)
+  roles: defineTable({
+    tenantId: v.id("tenants"),
+    name: v.string(),
+    description: v.optional(v.string()),
+    permissions: v.array(v.string()),
+    isSystem: v.boolean(),
+    createdBy: v.id("operators"),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_tenant", ["tenantId"])
+    .index("by_name", ["tenantId", "name"])
+    .index("by_system", ["isSystem"]),
+
+  roleAssignments: defineTable({
+    tenantId: v.id("tenants"),
+    operatorId: v.id("operators"),
+    roleId: v.id("roles"),
+    assignedBy: v.id("operators"),
+    assignedAt: v.number(),
+    expiresAt: v.optional(v.number()),
+  }).index("by_operator", ["operatorId"])
+    .index("by_role", ["roleId"])
+    .index("by_tenant", ["tenantId"]),
+
+  permissions: defineTable({
+    resource: v.string(),
+    action: v.string(),
+    description: v.string(),
+    category: v.string(),
+  }).index("by_resource", ["resource"])
+    .index("by_category", ["category"]),
+
+  // P3.0 Schema: Audit Logging
+  auditLogs: defineTable({
+    tenantId: v.id("tenants"),
+    operatorId: v.optional(v.id("operators")),
+    action: v.string(),
+    resource: v.string(),
+    details: v.object({
+      permission: v.optional(v.string()),
+      reason: v.optional(v.string()),
+      ipAddress: v.optional(v.string()),
+      userAgent: v.optional(v.string()),
+    }),
+    timestamp: v.number(),
+    severity: v.union(
+      v.literal("INFO"),
+      v.literal("WARNING"),
+      v.literal("ERROR")
+    ),
+  }).index("by_tenant", ["tenantId"])
+    .index("by_operator", ["operatorId"])
+    .index("by_timestamp", ["timestamp"])
+    .index("by_severity", ["tenantId", "severity"]),
+
+  // P3.0 Schema: Analytics
+  evaluationMetrics: defineTable({
+    tenantId: v.id("tenants"),
+    versionId: v.id("agentVersions"),
+    suiteId: v.id("evaluationSuites"),
+    runId: v.id("evaluationRuns"),
+    timestamp: v.number(),
+    metrics: v.object({
+      overallScore: v.number(),
+      passRate: v.number(),
+      avgExecutionTime: v.number(),
+      testCaseCount: v.number(),
+      passedCount: v.number(),
+      failedCount: v.number(),
+    }),
+    period: v.string(),
+  }).index("by_tenant", ["tenantId"])
+    .index("by_version", ["versionId"])
+    .index("by_suite", ["suiteId"])
+    .index("by_timestamp", ["tenantId", "timestamp"]),
+
+  // P3.0 Schema: Custom Scoring Functions
+  customScoringFunctions: defineTable({
+    tenantId: v.id("tenants"),
+    name: v.string(),
+    description: v.string(),
+    code: v.string(),
+    language: v.string(),
+    version: v.number(),
+    isActive: v.boolean(),
+    createdBy: v.id("operators"),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    metadata: v.object({
+      parameters: v.array(v.object({
+        name: v.string(),
+        type: v.string(),
+        required: v.boolean(),
+        default: v.optional(v.any()),
+      })),
+      returnType: v.string(),
+      examples: v.array(v.object({
+        input: v.any(),
+        expectedOutput: v.any(),
+        actualOutput: v.any(),
+        score: v.number(),
+      })),
+    }),
+  }).index("by_tenant", ["tenantId"])
+    .index("by_name", ["tenantId", "name"])
+    .index("by_active", ["tenantId", "isActive"]),
+
+  // P3.0 Schema: Notifications
+  notificationEvents: defineTable({
+    tenantId: v.id("tenants"),
+    type: v.string(),
+    resourceType: v.string(),
+    resourceId: v.string(),
+    payload: v.any(),
+    timestamp: v.number(),
+    processed: v.boolean(),
+  }).index("by_tenant", ["tenantId"])
+    .index("by_type", ["type"])
+    .index("by_processed", ["processed"]),
+
+  notifications: defineTable({
+    tenantId: v.id("tenants"),
+    operatorId: v.id("operators"),
+    eventId: v.id("notificationEvents"),
+    title: v.string(),
+    message: v.string(),
+    severity: v.union(
+      v.literal("INFO"),
+      v.literal("SUCCESS"),
+      v.literal("WARNING"),
+      v.literal("ERROR")
+    ),
+    read: v.boolean(),
+    readAt: v.optional(v.number()),
+    createdAt: v.number(),
+    expiresAt: v.optional(v.number()),
+  }).index("by_operator", ["operatorId"])
+    .index("by_read", ["operatorId", "read"])
+    .index("by_created", ["operatorId", "createdAt"]),
+
+  notificationPreferences: defineTable({
+    operatorId: v.id("operators"),
+    eventType: v.string(),
+    enabled: v.boolean(),
+    channels: v.array(v.string()),
+    frequency: v.string(),
+  }).index("by_operator", ["operatorId"])
+    .index("by_event", ["operatorId", "eventType"]),
 });
