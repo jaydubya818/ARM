@@ -1,5 +1,7 @@
-import { query, mutation } from "./_generated/server";
+import { query, mutation, action } from "./_generated/server";
 import { v } from "convex/values";
+import { api } from "./_generated/api";
+import { evaluatePolicy } from "./lib/policyEvaluator";
 
 /**
  * Create a new policy envelope
@@ -198,5 +200,62 @@ export const remove = mutation({
     });
 
     return args.policyId;
+  },
+});
+
+/**
+ * Evaluate a tool call against a policy and optionally record cost.
+ * Use from agent runtimes or inference gateways when enforcing policy.
+ */
+export const evaluateAndRecordCost = action({
+  args: {
+    policyId: v.id("policyEnvelopes"),
+    toolId: v.string(),
+    toolParams: v.optional(v.any()),
+    estimatedCost: v.optional(v.number()),
+    tokensUsed: v.optional(v.number()),
+    dailyTokensUsed: v.optional(v.number()),
+    monthlyCostUsed: v.optional(v.number()),
+    versionId: v.optional(v.id("agentVersions")),
+    instanceId: v.optional(v.id("agentInstances")),
+  },
+  handler: async (ctx, args) => {
+    const policy = await ctx.runQuery(api.policyEnvelopes.get, {
+      policyId: args.policyId,
+    });
+    if (!policy) throw new Error("Policy not found");
+
+    const policyEnv = {
+      autonomyTier: policy.autonomyTier,
+      allowedTools: policy.allowedTools,
+      costLimits: policy.costLimits,
+    };
+    const result = evaluatePolicy(
+      {
+        toolId: args.toolId,
+        toolParams: args.toolParams,
+        estimatedCost: args.estimatedCost,
+        dailyTokensUsed: args.dailyTokensUsed,
+        monthlyCostUsed: args.monthlyCostUsed,
+      },
+      policyEnv
+    );
+
+    if (result.decision === "ALLOW" && (args.estimatedCost ?? args.tokensUsed) != null) {
+      const tokens = args.tokensUsed ?? (args.estimatedCost ? Math.round(args.estimatedCost * 500_000) : 0);
+      const cost = args.estimatedCost ?? (args.tokensUsed ? (args.tokensUsed / 1000) * 0.002 : 0);
+      await ctx.runMutation(api.costLedger.record, {
+        tenantId: policy.tenantId,
+        policyId: args.policyId,
+        versionId: args.versionId,
+        instanceId: args.instanceId,
+        tokensUsed: tokens,
+        estimatedCost: cost,
+        source: "policy_eval",
+        metadata: { toolId: args.toolId },
+      });
+    }
+
+    return result;
   },
 });

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation } from 'convex/react'
+import { useTenant } from '../contexts/TenantContext'
 import { api } from '../convex/_generated/api'
 import { Id, type Doc } from '../convex/_generated/dataModel'
 import { toast } from '../lib/toast'
@@ -10,9 +11,7 @@ export function ApprovalsView() {
   const [selectedStatus, setSelectedStatus] = useState<ApprovalStatus | 'ALL'>('PENDING')
   const [selectedApproval, setSelectedApproval] = useState<Doc<'approvalRecords'> | null>(null)
 
-  // Get first tenant and operator (for demo)
-  const tenants = useQuery(api.tenants.list)
-  const tenantId = tenants?.[0]?._id
+  const { tenantId } = useTenant()
 
   const operators = useQuery(
     api.operators.list,

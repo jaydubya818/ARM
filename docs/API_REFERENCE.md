@@ -537,6 +537,40 @@ Array<{
 - Cannot delete if attached to any instances
 - Writes `POLICY_DELETED` change record
 
+### `policyEnvelopes.evaluateAndRecordCost`
+
+**Type:** Action  
+**Description:** Evaluate a tool call against a policy envelope and optionally record cost when the decision is ALLOW. Use from agent runtimes or inference gateways when enforcing policy and tracking usage.
+
+**Arguments:**
+```typescript
+{
+  policyId: Id<"policyEnvelopes">
+  toolId: string
+  toolParams?: any
+  estimatedCost?: number   // USD
+  tokensUsed?: number
+  dailyTokensUsed?: number
+  monthlyCostUsed?: number
+  versionId?: Id<"agentVersions">
+  instanceId?: Id<"agentInstances">
+}
+```
+
+**Returns:**
+```typescript
+{
+  decision: "ALLOW" | "DENY" | "NEEDS_APPROVAL"
+  reason: string
+  riskLevel: "low" | "medium" | "high" | "critical"
+  violations: string[]
+}
+```
+
+**Behavior:**
+- Evaluates the tool call against the policy (allowed tools, cost limits).
+- When decision is ALLOW and `estimatedCost` or `tokensUsed` is provided, records an entry in the cost ledger with source `"policy_eval"`.
+
 ---
 
 ## Approval Records

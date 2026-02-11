@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useQuery } from 'convex/react'
+import { useTenant } from '../contexts/TenantContext'
 import { api } from '../convex/_generated/api'
 import { Id, type Doc } from '../convex/_generated/dataModel'
 import { VersionDrawer } from '../components/VersionDrawer'
@@ -19,9 +20,7 @@ export function DirectoryView() {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('ALL')
   
-  // Get first tenant (for demo)
-  const tenants = useQuery(api.tenants.list)
-  const tenantId = tenants?.[0]?._id
+  const { tenantId } = useTenant()
   
   const templates = useQuery(
     api.agentTemplates.list,

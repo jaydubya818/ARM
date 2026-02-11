@@ -18,6 +18,8 @@ import { CostView } from './views/CostView'
 import { FederationView } from './views/FederationView'
 import { ToastContainer } from './components/ToastContainer'
 import { NotificationCenter } from './components/NotificationCenter'
+import { TenantProvider, useTenant } from './contexts/TenantContext'
+import { TenantSwitcher } from './components/TenantSwitcher'
 import { LoginPage } from './pages/LoginPage'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from './convex/_generated/api'
@@ -25,19 +27,17 @@ import { useEffect } from 'react'
 
 const clerkKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
-function AppContent() {
+function AppContentInner() {
   const ensureOperator = useMutation(api.auth.ensureOperator)
   const currentOperator = useQuery(
     api.auth.getCurrentOperator,
     clerkKey ? {} : "skip"
   )
-  const tenants = useQuery(api.tenants.list)
+  const { tenantId } = useTenant()
   const operators = useQuery(
     api.operators.list,
-    tenants?.[0]?._id ? { tenantId: tenants[0]._id } : "skip"
+    tenantId ? { tenantId } : "skip"
   )
-
-  const tenantId = tenants?.[0]?._id
   const operatorId = clerkKey
     ? currentOperator?._id
     : operators?.[0]?._id
@@ -47,11 +47,11 @@ function AppContent() {
       !clerkKey ||
       currentOperator === undefined ||
       currentOperator !== null ||
-      !tenants?.length
+      !tenantId
     )
       return
     ensureOperator().catch(() => {})
-  }, [clerkKey, currentOperator, tenants?.length, ensureOperator])
+  }, [clerkKey, currentOperator, tenantId, ensureOperator])
 
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
@@ -60,7 +60,7 @@ function AppContent() {
         <main className="flex-1 overflow-auto">
           {operatorId && (
             <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-3 flex justify-between items-center">
-              <div />
+              <TenantSwitcher />
               <div className="flex items-center gap-4">
                 <NotificationCenter operatorId={operatorId} />
                 {clerkKey && <UserButton afterSignOutUrl="/" />}
@@ -142,6 +142,14 @@ function AppContent() {
         <ToastContainer />
       </div>
     </BrowserRouter>
+  )
+}
+
+function AppContent() {
+  return (
+    <TenantProvider>
+      <AppContentInner />
+    </TenantProvider>
   )
 }
 

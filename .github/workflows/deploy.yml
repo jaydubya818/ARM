@@ -41,10 +41,18 @@ jobs:
           VITE_CONVEX_URL: ${{ secrets.CONVEX_URL }}
           
       - name: Deploy Convex
-        run: npx convex deploy --cmd 'pnpm build' --yes
+        run: npx convex deploy --yes
         env:
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
-          
+
+      - name: Deploy frontend to Vercel
+        if: secrets.VERCEL_TOKEN != ''
+        run: |
+          npm i -g vercel
+          cd ui && vercel deploy --prod --token "${{ secrets.VERCEL_TOKEN }}" --yes
+        env:
+          VITE_CONVEX_URL: ${{ secrets.CONVEX_URL }}
+
       - name: Run database migrations
         run: |
           echo "Running migrations..."

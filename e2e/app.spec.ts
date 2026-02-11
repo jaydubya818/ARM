@@ -35,4 +35,12 @@ test.describe("ARM Application", () => {
     await page.goto("/federation");
     await expect(page.getByRole("heading", { name: /Federation/i })).toBeVisible();
   });
+
+  test("auth flow: shows app or sign-in", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByText("ARM")).toBeVisible({ timeout: 5000 });
+    await expect(
+      page.getByRole("link", { name: /Directory/i }).or(page.getByRole("button", { name: /Sign In/i }))
+    ).toBeVisible({ timeout: 5000 });
+  });
 });

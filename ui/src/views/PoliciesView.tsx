@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation } from 'convex/react'
+import { useTenant } from '../contexts/TenantContext'
 import { api } from '../convex/_generated/api'
 import { Id, type Doc } from '../convex/_generated/dataModel'
 import { toast } from '../lib/toast'
@@ -7,9 +8,7 @@ import { toast } from '../lib/toast'
 export function PoliciesView() {
   const [isCreating, setIsCreating] = useState(false)
 
-  // Get first tenant (for demo)
-  const tenants = useQuery(api.tenants.list)
-  const tenantId = tenants?.[0]?._id
+  const { tenantId } = useTenant()
 
   // Fetch policies
   const policies = useQuery(

@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { Id } from "../convex/_generated/dataModel";
-import { Globe, Server, Activity, Plus, Trash2 } from "lucide-react";
+import { Globe, Server, Activity, Plus, Trash2, CheckCircle, XCircle } from "lucide-react";
 import type { Doc } from "../convex/_generated/dataModel";
 import { CreateProviderModal } from "../components/CreateProviderModal";
 import { toast } from "../lib/toast";
@@ -13,8 +13,21 @@ interface FederationViewProps {
 
 export function FederationView({ tenantId }: FederationViewProps) {
   const [showCreate, setShowCreate] = useState(false);
+  const [healthStatus, setHealthStatus] = useState<Record<string, string>>({});
   const providers = useQuery(api.providers.list, { tenantId });
   const removeProvider = useMutation(api.providers.remove);
+  const checkHealth = useAction(api.monitoring.providerHealth.checkProviderHealth);
+
+  useEffect(() => {
+    if (!providers) return;
+    providers.forEach((p: Doc<"providers">) => {
+      if (p.healthEndpoint) {
+        checkHealth({ healthEndpoint: p.healthEndpoint })
+          .then((r) => setHealthStatus((s) => ({ ...s, [p._id]: r.status })))
+          .catch(() => setHealthStatus((s) => ({ ...s, [p._id]: "error" })));
+      }
+    });
+  }, [providers, checkHealth]);
 
   const handleRemove = async (id: Id<"providers">, name: string) => {
     if (!window.confirm(`Remove provider "${name}"?`)) return;
@@ -87,9 +100,23 @@ export function FederationView({ tenantId }: FederationViewProps) {
                 </div>
                 <div className="flex items-center gap-2">
                   {provider.healthEndpoint && (
-                    <span className="flex items-center gap-1 text-sm text-arm-textMuted">
-                      <Activity className="w-4 h-4" />
-                      Health: {provider.healthEndpoint}
+                    <span
+                      className={`flex items-center gap-1 text-sm ${
+                        healthStatus[provider._id] === "healthy"
+                          ? "text-green-600"
+                          : healthStatus[provider._id]
+                          ? "text-red-600"
+                          : "text-arm-textMuted"
+                      }`}
+                    >
+                      {healthStatus[provider._id] === "healthy" ? (
+                        <CheckCircle className="w-4 h-4" />
+                      ) : healthStatus[provider._id] ? (
+                        <XCircle className="w-4 h-4" />
+                      ) : (
+                        <Activity className="w-4 h-4 animate-pulse" />
+                      )}
+                      {healthStatus[provider._id] || "Checking..."}
                     </span>
                   )}
                   <button
