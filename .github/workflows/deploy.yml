@@ -1,0 +1,104 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+
+jobs:
+  deploy:
+    name: Deploy to ${{ github.event.inputs.environment || 'production' }}
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'production' }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Build frontend
+        run: cd ui && pnpm build
+        env:
+          VITE_CONVEX_URL: ${{ secrets.CONVEX_URL }}
+          
+      - name: Deploy Convex
+        run: npx convex deploy --cmd 'pnpm build' --yes
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+          
+      - name: Run database migrations
+        run: |
+          echo "Running migrations..."
+          # Add migration commands here if needed
+          
+      - name: Seed production data (if needed)
+        if: github.event.inputs.environment == 'production'
+        run: |
+          echo "Checking if seeding is needed..."
+          # npx convex run seedARM --prod (only if database is empty)
+          
+      - name: Health check
+        run: |
+          echo "Performing health check..."
+          # Add health check endpoint call here
+          
+      - name: Notify deployment
+        if: always()
+        run: |
+          echo "Deployment ${{ job.status }}"
+          # Add Slack/Discord notification here
+
+  # Rollback job (manual trigger)
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment != ''
+    needs: [deploy]
+    when: manual
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.before }}
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Rollback Convex
+        run: npx convex deploy --yes
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+          
+      - name: Verify rollback
+        run: |
+          echo "Verifying rollback..."
+          # Add verification steps

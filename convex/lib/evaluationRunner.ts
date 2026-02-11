@@ -281,13 +281,14 @@ export function calculateMetrics(results: TestCaseResult[]): {
   passRate: number;
   overallScore: number;
   totalTests: number;
-  passedTests: number;
-  failedTests: number;
+  passed: number;
+  failed: number;
+  avgExecutionTime: number;
 } {
   const totalTests = results.length;
   const passedTests = results.filter(r => r.passed).length;
   const failedTests = totalTests - passedTests;
-  const passRate = totalTests > 0 ? (passedTests / totalTests) * 100 : 0;
+  const passRate = totalTests > 0 ? passedTests / totalTests : 0;
 
   // Calculate average score (only for tests with scores)
   const testsWithScores = results.filter(r => r.score !== undefined);
@@ -295,11 +296,19 @@ export function calculateMetrics(results: TestCaseResult[]): {
     ? testsWithScores.reduce((sum, r) => sum + (r.score || 0), 0) / testsWithScores.length
     : 0;
 
+  const times = results
+    .map(r => r.executionTime)
+    .filter((t): t is number => typeof t === "number");
+  const avgExecutionTime = times.length > 0
+    ? times.reduce((sum, t) => sum + t, 0) / times.length
+    : 0;
+
   return {
     passRate,
     overallScore,
     totalTests,
-    passedTests,
-    failedTests,
+    passed: passedTests,
+    failed: failedTests,
+    avgExecutionTime,
   };
 }
