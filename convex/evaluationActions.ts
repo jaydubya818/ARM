@@ -99,7 +99,7 @@ export const executeRun = action({
       const errorMessage = error instanceof Error ? error.message : String(error);
 
       // Get run details for notification
-      let failedRunData: { run: typeof runData.run; suite: typeof runData.suite } | null = null;
+      let failedRunData: { run: typeof runData.run; suite: typeof runData.suite | null } | null = null;
       try {
         const data = await ctx.runQuery(api.evaluationRuns.get, {
           runId: args.runId,
