@@ -1,0 +1,4157 @@
+{
+  "url": "https://hidden-civet-872.convex.cloud",
+  "functions": [
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "environmentId": {
+            "fieldType": {
+              "tableName": "environments",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "identityPrincipal": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "metadata": {
+            "fieldType": {
+              "type": "any"
+            },
+            "optional": true
+          },
+          "policyEnvelopeId": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "providerId": {
+            "fieldType": {
+              "tableName": "providers",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "secretRef": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "versionId": {
+            "fieldType": {
+              "tableName": "agentVersions",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "agentInstances.js:create",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "agentInstances.js:list",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "instanceId": {
+            "fieldType": {
+              "tableName": "agentInstances",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "agentInstances.js:get",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "versionId": {
+            "fieldType": {
+              "tableName": "agentVersions",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "agentInstances.js:listByVersion",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "instanceId": {
+            "fieldType": {
+              "tableName": "agentInstances",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "newState": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "PROVISIONING"
+                },
+                {
+                  "type": "literal",
+                  "value": "ACTIVE"
+                },
+                {
+                  "type": "literal",
+                  "value": "PAUSED"
+                },
+                {
+                  "type": "literal",
+                  "value": "READONLY"
+                },
+                {
+                  "type": "literal",
+                  "value": "DRAINING"
+                },
+                {
+                  "type": "literal",
+                  "value": "QUARANTINED"
+                },
+                {
+                  "type": "literal",
+                  "value": "RETIRED"
+                }
+              ]
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "agentInstances.js:transition",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "instanceId": {
+            "fieldType": {
+              "tableName": "agentInstances",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "agentInstances.js:heartbeat",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "description": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "name": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "owners": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "string"
+              }
+            },
+            "optional": false
+          },
+          "tags": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "string"
+              }
+            },
+            "optional": false
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "agentTemplates.js:create",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "agentTemplates.js:list",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "templateId": {
+            "fieldType": {
+              "tableName": "agentTemplates",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "agentTemplates.js:get",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "description": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "owners": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "string"
+              }
+            },
+            "optional": true
+          },
+          "tags": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "string"
+              }
+            },
+            "optional": true
+          },
+          "templateId": {
+            "fieldType": {
+              "tableName": "agentTemplates",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "agentTemplates.js:update",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "genome": {
+            "fieldType": {
+              "type": "any"
+            },
+            "optional": false
+          },
+          "parentVersionId": {
+            "fieldType": {
+              "tableName": "agentVersions",
+              "type": "id"
+            },
+            "optional": true
+          },
+          "templateId": {
+            "fieldType": {
+              "tableName": "agentTemplates",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "versionLabel": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "agentVersions.js:create",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "versionId": {
+            "fieldType": {
+              "tableName": "agentVersions",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "agentVersions.js:get",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "agentVersions.js:list",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "templateId": {
+            "fieldType": {
+              "tableName": "agentTemplates",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "agentVersions.js:listByTemplate",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "versionId": {
+            "fieldType": {
+              "tableName": "agentVersions",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "agentVersions.js:getLineage",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "approvalId": {
+            "fieldType": {
+              "tableName": "approvalRecords",
+              "type": "id"
+            },
+            "optional": true
+          },
+          "newState": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "DRAFT"
+                },
+                {
+                  "type": "literal",
+                  "value": "TESTING"
+                },
+                {
+                  "type": "literal",
+                  "value": "CANDIDATE"
+                },
+                {
+                  "type": "literal",
+                  "value": "APPROVED"
+                },
+                {
+                  "type": "literal",
+                  "value": "DEPRECATED"
+                },
+                {
+                  "type": "literal",
+                  "value": "RETIRED"
+                }
+              ]
+            },
+            "optional": false
+          },
+          "versionId": {
+            "fieldType": {
+              "tableName": "agentVersions",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "agentVersions.js:transition",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "metrics": {
+            "fieldType": {
+              "type": "object",
+              "value": {
+                "avgExecutionTime": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": false
+                },
+                "failedCount": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": false
+                },
+                "overallScore": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": false
+                },
+                "passRate": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": false
+                },
+                "passedCount": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": false
+                },
+                "testCaseCount": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": false
+                }
+              }
+            },
+            "optional": false
+          },
+          "runId": {
+            "fieldType": {
+              "tableName": "evaluationRuns",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "suiteId": {
+            "fieldType": {
+              "tableName": "evaluationSuites",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "versionId": {
+            "fieldType": {
+              "tableName": "agentVersions",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "analytics.js:recordEvaluationMetrics",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "limit": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
+          "period": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "versionId": {
+            "fieldType": {
+              "tableName": "agentVersions",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "analytics.js:getVersionMetrics",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "limit": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
+          "period": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "suiteId": {
+            "fieldType": {
+              "tableName": "evaluationSuites",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "analytics.js:getSuiteMetrics",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "endTime": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "startTime": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "suiteId": {
+            "fieldType": {
+              "tableName": "evaluationSuites",
+              "type": "id"
+            },
+            "optional": true
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "versionId": {
+            "fieldType": {
+              "tableName": "agentVersions",
+              "type": "id"
+            },
+            "optional": true
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "analytics.js:getMetricsByTimeRange",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "suiteId": {
+            "fieldType": {
+              "tableName": "evaluationSuites",
+              "type": "id"
+            },
+            "optional": true
+          },
+          "version1Id": {
+            "fieldType": {
+              "tableName": "agentVersions",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "version2Id": {
+            "fieldType": {
+              "tableName": "agentVersions",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "analytics.js:compareVersions",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "limit": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
+          "period": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "versionId": {
+            "fieldType": {
+              "tableName": "agentVersions",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "analytics.js:getTrend",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "endTime": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
+          "startTime": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "analytics.js:getTenantStatistics",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "context": {
+            "fieldType": {
+              "type": "any"
+            },
+            "optional": true
+          },
+          "justification": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "requestType": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "requestedBy": {
+            "fieldType": {
+              "tableName": "operators",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "targetId": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "approvalRecords.js:create",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "status": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "approvalRecords.js:list",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "approvalId": {
+            "fieldType": {
+              "tableName": "approvalRecords",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "approvalRecords.js:get",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "approvalId": {
+            "fieldType": {
+              "tableName": "approvalRecords",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "decidedBy": {
+            "fieldType": {
+              "tableName": "operators",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "decision": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "APPROVED"
+                },
+                {
+                  "type": "literal",
+                  "value": "DENIED"
+                }
+              ]
+            },
+            "optional": false
+          },
+          "reason": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "approvalRecords.js:decide",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "approvalId": {
+            "fieldType": {
+              "tableName": "approvalRecords",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "cancelledBy": {
+            "fieldType": {
+              "tableName": "operators",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "reason": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "approvalRecords.js:cancel",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "approvalRecords.js:getPendingCount",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "limit": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
+          "severity": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "INFO"
+                },
+                {
+                  "type": "literal",
+                  "value": "WARNING"
+                },
+                {
+                  "type": "literal",
+                  "value": "ERROR"
+                }
+              ]
+            },
+            "optional": true
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "auditLogs.js:list",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "limit": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
+          "operatorId": {
+            "fieldType": {
+              "tableName": "operators",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "auditLogs.js:getByOperator",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "endTime": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "startTime": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "auditLogs.js:getByTimeRange",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "limit": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
+          "severity": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "INFO"
+                },
+                {
+                  "type": "literal",
+                  "value": "WARNING"
+                },
+                {
+                  "type": "literal",
+                  "value": "ERROR"
+                }
+              ]
+            },
+            "optional": false
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "auditLogs.js:getBySeverity",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "action": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "endTime": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
+          "limit": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
+          "operatorId": {
+            "fieldType": {
+              "tableName": "operators",
+              "type": "id"
+            },
+            "optional": true
+          },
+          "resource": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "startTime": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "auditLogs.js:search",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "endTime": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
+          "startTime": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "auditLogs.js:getStatistics",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "action": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "details": {
+            "fieldType": {
+              "type": "object",
+              "value": {
+                "ipAddress": {
+                  "fieldType": {
+                    "type": "string"
+                  },
+                  "optional": true
+                },
+                "permission": {
+                  "fieldType": {
+                    "type": "string"
+                  },
+                  "optional": true
+                },
+                "reason": {
+                  "fieldType": {
+                    "type": "string"
+                  },
+                  "optional": true
+                },
+                "userAgent": {
+                  "fieldType": {
+                    "type": "string"
+                  },
+                  "optional": true
+                }
+              }
+            },
+            "optional": false
+          },
+          "operatorId": {
+            "fieldType": {
+              "tableName": "operators",
+              "type": "id"
+            },
+            "optional": true
+          },
+          "resource": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "severity": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "INFO"
+                },
+                {
+                  "type": "literal",
+                  "value": "WARNING"
+                },
+                {
+                  "type": "literal",
+                  "value": "ERROR"
+                }
+              ]
+            },
+            "optional": false
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "auditLogs.js:write",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "changeRecords.js:list",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "targetEntity": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "targetId": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "changeRecords.js:listByTarget",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "activeOnly": {
+            "fieldType": {
+              "type": "boolean"
+            },
+            "optional": true
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "customScoringFunctions.js:list",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "functionId": {
+            "fieldType": {
+              "tableName": "customScoringFunctions",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "customScoringFunctions.js:get",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "name": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "customScoringFunctions.js:getByName",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "code": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "createdBy": {
+            "fieldType": {
+              "tableName": "operators",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "description": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "metadata": {
+            "fieldType": {
+              "type": "object",
+              "value": {
+                "examples": {
+                  "fieldType": {
+                    "type": "array",
+                    "value": {
+                      "type": "object",
+                      "value": {
+                        "actualOutput": {
+                          "fieldType": {
+                            "type": "any"
+                          },
+                          "optional": false
+                        },
+                        "expectedOutput": {
+                          "fieldType": {
+                            "type": "any"
+                          },
+                          "optional": false
+                        },
+                        "input": {
+                          "fieldType": {
+                            "type": "any"
+                          },
+                          "optional": false
+                        },
+                        "score": {
+                          "fieldType": {
+                            "type": "number"
+                          },
+                          "optional": false
+                        }
+                      }
+                    }
+                  },
+                  "optional": false
+                },
+                "parameters": {
+                  "fieldType": {
+                    "type": "array",
+                    "value": {
+                      "type": "object",
+                      "value": {
+                        "default": {
+                          "fieldType": {
+                            "type": "any"
+                          },
+                          "optional": true
+                        },
+                        "name": {
+                          "fieldType": {
+                            "type": "string"
+                          },
+                          "optional": false
+                        },
+                        "required": {
+                          "fieldType": {
+                            "type": "boolean"
+                          },
+                          "optional": false
+                        },
+                        "type": {
+                          "fieldType": {
+                            "type": "string"
+                          },
+                          "optional": false
+                        }
+                      }
+                    }
+                  },
+                  "optional": false
+                },
+                "returnType": {
+                  "fieldType": {
+                    "type": "string"
+                  },
+                  "optional": false
+                }
+              }
+            },
+            "optional": false
+          },
+          "name": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "customScoringFunctions.js:create",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "code": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "description": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "functionId": {
+            "fieldType": {
+              "tableName": "customScoringFunctions",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "isActive": {
+            "fieldType": {
+              "type": "boolean"
+            },
+            "optional": true
+          },
+          "metadata": {
+            "fieldType": {
+              "type": "object",
+              "value": {
+                "examples": {
+                  "fieldType": {
+                    "type": "array",
+                    "value": {
+                      "type": "object",
+                      "value": {
+                        "actualOutput": {
+                          "fieldType": {
+                            "type": "any"
+                          },
+                          "optional": false
+                        },
+                        "expectedOutput": {
+                          "fieldType": {
+                            "type": "any"
+                          },
+                          "optional": false
+                        },
+                        "input": {
+                          "fieldType": {
+                            "type": "any"
+                          },
+                          "optional": false
+                        },
+                        "score": {
+                          "fieldType": {
+                            "type": "number"
+                          },
+                          "optional": false
+                        }
+                      }
+                    }
+                  },
+                  "optional": false
+                },
+                "parameters": {
+                  "fieldType": {
+                    "type": "array",
+                    "value": {
+                      "type": "object",
+                      "value": {
+                        "default": {
+                          "fieldType": {
+                            "type": "any"
+                          },
+                          "optional": true
+                        },
+                        "name": {
+                          "fieldType": {
+                            "type": "string"
+                          },
+                          "optional": false
+                        },
+                        "required": {
+                          "fieldType": {
+                            "type": "boolean"
+                          },
+                          "optional": false
+                        },
+                        "type": {
+                          "fieldType": {
+                            "type": "string"
+                          },
+                          "optional": false
+                        }
+                      }
+                    }
+                  },
+                  "optional": false
+                },
+                "returnType": {
+                  "fieldType": {
+                    "type": "string"
+                  },
+                  "optional": false
+                }
+              }
+            },
+            "optional": true
+          },
+          "name": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "customScoringFunctions.js:update",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "functionId": {
+            "fieldType": {
+              "tableName": "customScoringFunctions",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "customScoringFunctions.js:remove",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "actualOutput": {
+            "fieldType": {
+              "type": "any"
+            },
+            "optional": false
+          },
+          "expectedOutput": {
+            "fieldType": {
+              "type": "any"
+            },
+            "optional": false
+          },
+          "functionId": {
+            "fieldType": {
+              "tableName": "customScoringFunctions",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "input": {
+            "fieldType": {
+              "type": "any"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Action",
+      "identifier": "customScoringFunctions.js:execute",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "functionId": {
+            "fieldType": {
+              "tableName": "customScoringFunctions",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Action",
+      "identifier": "customScoringFunctions.js:test",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "config": {
+            "fieldType": {
+              "type": "any"
+            },
+            "optional": true
+          },
+          "name": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "slug": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "environments.js:create",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "environments.js:list",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "runId": {
+            "fieldType": {
+              "tableName": "evaluationRuns",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Action",
+      "identifier": "evaluationActions.js:executeRun",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "limit": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Action",
+      "identifier": "evaluationActions.js:processPendingRuns",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "any"
+      },
+      "functionType": "Action",
+      "identifier": "evaluationCron.js:processPendingEvaluations",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "internal"
+      }
+    },
+    {
+      "args": {
+        "type": "any"
+      },
+      "functionType": "Mutation",
+      "identifier": "evaluationCron.js:cleanupOldRuns",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "internal"
+      }
+    },
+    {
+      "args": {
+        "type": "any"
+      },
+      "functionType": "Action",
+      "identifier": "evaluationCron.js:healthCheck",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "internal"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "status": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "evaluationRuns.js:list",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "versionId": {
+            "fieldType": {
+              "tableName": "agentVersions",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "evaluationRuns.js:getByVersion",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "runId": {
+            "fieldType": {
+              "tableName": "evaluationRuns",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "evaluationRuns.js:get",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "suiteId": {
+            "fieldType": {
+              "tableName": "evaluationSuites",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "triggeredBy": {
+            "fieldType": {
+              "tableName": "operators",
+              "type": "id"
+            },
+            "optional": true
+          },
+          "versionId": {
+            "fieldType": {
+              "tableName": "agentVersions",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "evaluationRuns.js:create",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "overallScore": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
+          "passRate": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
+          "results": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "object",
+                "value": {
+                  "error": {
+                    "fieldType": {
+                      "type": "string"
+                    },
+                    "optional": true
+                  },
+                  "executionTime": {
+                    "fieldType": {
+                      "type": "number"
+                    },
+                    "optional": true
+                  },
+                  "output": {
+                    "fieldType": {
+                      "type": "any"
+                    },
+                    "optional": false
+                  },
+                  "passed": {
+                    "fieldType": {
+                      "type": "boolean"
+                    },
+                    "optional": false
+                  },
+                  "score": {
+                    "fieldType": {
+                      "type": "number"
+                    },
+                    "optional": true
+                  },
+                  "testCaseId": {
+                    "fieldType": {
+                      "type": "string"
+                    },
+                    "optional": false
+                  }
+                }
+              }
+            },
+            "optional": true
+          },
+          "runId": {
+            "fieldType": {
+              "tableName": "evaluationRuns",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "status": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "PENDING"
+                },
+                {
+                  "type": "literal",
+                  "value": "RUNNING"
+                },
+                {
+                  "type": "literal",
+                  "value": "COMPLETED"
+                },
+                {
+                  "type": "literal",
+                  "value": "FAILED"
+                }
+              ]
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "evaluationRuns.js:updateStatus",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "cancelledBy": {
+            "fieldType": {
+              "tableName": "operators",
+              "type": "id"
+            },
+            "optional": true
+          },
+          "runId": {
+            "fieldType": {
+              "tableName": "evaluationRuns",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "evaluationRuns.js:cancel",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "limit": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "evaluationRuns.js:getPending",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "versionId": {
+            "fieldType": {
+              "tableName": "agentVersions",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "evaluationRuns.js:getSummary",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "evaluationSuites.js:list",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "suiteId": {
+            "fieldType": {
+              "tableName": "evaluationSuites",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "evaluationSuites.js:get",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "createdBy": {
+            "fieldType": {
+              "tableName": "operators",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "description": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "name": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "tags": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "string"
+              }
+            },
+            "optional": true
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "testCases": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "object",
+                "value": {
+                  "description": {
+                    "fieldType": {
+                      "type": "string"
+                    },
+                    "optional": true
+                  },
+                  "expectedOutput": {
+                    "fieldType": {
+                      "type": "any"
+                    },
+                    "optional": false
+                  },
+                  "id": {
+                    "fieldType": {
+                      "type": "string"
+                    },
+                    "optional": false
+                  },
+                  "input": {
+                    "fieldType": {
+                      "type": "any"
+                    },
+                    "optional": false
+                  },
+                  "name": {
+                    "fieldType": {
+                      "type": "string"
+                    },
+                    "optional": false
+                  },
+                  "scoringCriteria": {
+                    "fieldType": {
+                      "type": "object",
+                      "value": {
+                        "config": {
+                          "fieldType": {
+                            "type": "any"
+                          },
+                          "optional": true
+                        },
+                        "threshold": {
+                          "fieldType": {
+                            "type": "number"
+                          },
+                          "optional": true
+                        },
+                        "type": {
+                          "fieldType": {
+                            "type": "union",
+                            "value": [
+                              {
+                                "type": "literal",
+                                "value": "exact_match"
+                              },
+                              {
+                                "type": "literal",
+                                "value": "contains"
+                              },
+                              {
+                                "type": "literal",
+                                "value": "similarity"
+                              },
+                              {
+                                "type": "literal",
+                                "value": "custom"
+                              }
+                            ]
+                          },
+                          "optional": false
+                        }
+                      }
+                    },
+                    "optional": true
+                  }
+                }
+              }
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "evaluationSuites.js:create",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "description": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "name": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "suiteId": {
+            "fieldType": {
+              "tableName": "evaluationSuites",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "tags": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "string"
+              }
+            },
+            "optional": true
+          },
+          "testCases": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "object",
+                "value": {
+                  "description": {
+                    "fieldType": {
+                      "type": "string"
+                    },
+                    "optional": true
+                  },
+                  "expectedOutput": {
+                    "fieldType": {
+                      "type": "any"
+                    },
+                    "optional": false
+                  },
+                  "id": {
+                    "fieldType": {
+                      "type": "string"
+                    },
+                    "optional": false
+                  },
+                  "input": {
+                    "fieldType": {
+                      "type": "any"
+                    },
+                    "optional": false
+                  },
+                  "name": {
+                    "fieldType": {
+                      "type": "string"
+                    },
+                    "optional": false
+                  },
+                  "scoringCriteria": {
+                    "fieldType": {
+                      "type": "object",
+                      "value": {
+                        "config": {
+                          "fieldType": {
+                            "type": "any"
+                          },
+                          "optional": true
+                        },
+                        "threshold": {
+                          "fieldType": {
+                            "type": "number"
+                          },
+                          "optional": true
+                        },
+                        "type": {
+                          "fieldType": {
+                            "type": "union",
+                            "value": [
+                              {
+                                "type": "literal",
+                                "value": "exact_match"
+                              },
+                              {
+                                "type": "literal",
+                                "value": "contains"
+                              },
+                              {
+                                "type": "literal",
+                                "value": "similarity"
+                              },
+                              {
+                                "type": "literal",
+                                "value": "custom"
+                              }
+                            ]
+                          },
+                          "optional": false
+                        }
+                      }
+                    },
+                    "optional": true
+                  }
+                }
+              }
+            },
+            "optional": true
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "evaluationSuites.js:update",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "suiteId": {
+            "fieldType": {
+              "tableName": "evaluationSuites",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "evaluationSuites.js:remove",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "tag": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "evaluationSuites.js:getByTag",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "suiteId": {
+            "fieldType": {
+              "tableName": "evaluationSuites",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "evaluationSuites.js:getStats",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "eventId": {
+            "fieldType": {
+              "tableName": "notificationEvents",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "notificationProcessor.js:getEvent",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "internal"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "notificationProcessor.js:getOperatorsByTenant",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "internal"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "eventType": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "operatorId": {
+            "fieldType": {
+              "tableName": "operators",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "notificationProcessor.js:getPreferenceByEvent",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "internal"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "eventId": {
+            "fieldType": {
+              "tableName": "notificationEvents",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Action",
+      "identifier": "notificationProcessor.js:processEvent",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "internal"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "eventId": {
+            "fieldType": {
+              "tableName": "notificationEvents",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "operatorId": {
+            "fieldType": {
+              "tableName": "operators",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "payload": {
+            "fieldType": {
+              "type": "any"
+            },
+            "optional": false
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "type": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "notificationProcessor.js:createNotification",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "internal"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "eventId": {
+            "fieldType": {
+              "tableName": "notificationEvents",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "notificationProcessor.js:markProcessed",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "internal"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "limit": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
+          "operatorId": {
+            "fieldType": {
+              "tableName": "operators",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "unreadOnly": {
+            "fieldType": {
+              "type": "boolean"
+            },
+            "optional": true
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "notifications.js:list",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "operatorId": {
+            "fieldType": {
+              "tableName": "operators",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "notifications.js:getUnreadCount",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "notificationId": {
+            "fieldType": {
+              "tableName": "notifications",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "notifications.js:markAsRead",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "operatorId": {
+            "fieldType": {
+              "tableName": "operators",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "notifications.js:markAllAsRead",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "notificationId": {
+            "fieldType": {
+              "tableName": "notifications",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "notifications.js:remove",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "operatorId": {
+            "fieldType": {
+              "tableName": "operators",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "notifications.js:getPreferences",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "channels": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "string"
+              }
+            },
+            "optional": false
+          },
+          "enabled": {
+            "fieldType": {
+              "type": "boolean"
+            },
+            "optional": false
+          },
+          "eventType": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "frequency": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "operatorId": {
+            "fieldType": {
+              "tableName": "operators",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "notifications.js:updatePreferences",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "payload": {
+            "fieldType": {
+              "type": "any"
+            },
+            "optional": false
+          },
+          "resourceId": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "resourceType": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "type": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "notifications.js:createEvent",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "limit": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "notifications.js:getPendingEvents",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "eventId": {
+            "fieldType": {
+              "tableName": "notificationEvents",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "notifications.js:markEventProcessed",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "any"
+      },
+      "functionType": "Query",
+      "identifier": "permissions.js:list",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "resource": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "permissions.js:getByResource",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "category": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "permissions.js:getByCategory",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "any"
+      },
+      "functionType": "Mutation",
+      "identifier": "permissions.js:seed",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "any"
+      },
+      "functionType": "Query",
+      "identifier": "permissions.js:getAllPermissionStrings",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "allowedTools": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "string"
+              }
+            },
+            "optional": false
+          },
+          "autonomyTier": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": false
+          },
+          "costLimits": {
+            "fieldType": {
+              "type": "object",
+              "value": {
+                "dailyTokens": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": true
+                },
+                "monthlyCost": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": true
+                }
+              }
+            },
+            "optional": true
+          },
+          "name": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "policyEnvelopes.js:create",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "policyEnvelopes.js:list",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "policyId": {
+            "fieldType": {
+              "tableName": "policyEnvelopes",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "policyEnvelopes.js:get",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "allowedTools": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "string"
+              }
+            },
+            "optional": true
+          },
+          "autonomyTier": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
+          "costLimits": {
+            "fieldType": {
+              "type": "object",
+              "value": {
+                "dailyTokens": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": true
+                },
+                "monthlyCost": {
+                  "fieldType": {
+                    "type": "number"
+                  },
+                  "optional": true
+                }
+              }
+            },
+            "optional": true
+          },
+          "name": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "policyId": {
+            "fieldType": {
+              "tableName": "policyEnvelopes",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "policyEnvelopes.js:update",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "policyId": {
+            "fieldType": {
+              "tableName": "policyEnvelopes",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "policyEnvelopes.js:remove",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "federationConfig": {
+            "fieldType": {
+              "type": "any"
+            },
+            "optional": true
+          },
+          "healthEndpoint": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "metadata": {
+            "fieldType": {
+              "type": "any"
+            },
+            "optional": true
+          },
+          "name": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "type": {
+            "fieldType": {
+              "type": "union",
+              "value": [
+                {
+                  "type": "literal",
+                  "value": "local"
+                },
+                {
+                  "type": "literal",
+                  "value": "federated"
+                }
+              ]
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "providers.js:create",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "providers.js:list",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "roleAssignments.js:list",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "operatorId": {
+            "fieldType": {
+              "tableName": "operators",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "roleAssignments.js:getByOperator",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "roleId": {
+            "fieldType": {
+              "tableName": "roles",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "roleAssignments.js:getOperatorsWithRole",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "assignedBy": {
+            "fieldType": {
+              "tableName": "operators",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "expiresAt": {
+            "fieldType": {
+              "type": "number"
+            },
+            "optional": true
+          },
+          "operatorId": {
+            "fieldType": {
+              "tableName": "operators",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "roleId": {
+            "fieldType": {
+              "tableName": "roles",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "roleAssignments.js:assign",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "assignmentId": {
+            "fieldType": {
+              "tableName": "roleAssignments",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "revokedBy": {
+            "fieldType": {
+              "tableName": "operators",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "roleAssignments.js:revoke",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "operatorId": {
+            "fieldType": {
+              "tableName": "operators",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "revokedBy": {
+            "fieldType": {
+              "tableName": "operators",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "roleAssignments.js:revokeAll",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "roles.js:list",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "roleId": {
+            "fieldType": {
+              "tableName": "roles",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "roles.js:get",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "name": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "roles.js:getByName",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "any"
+      },
+      "functionType": "Query",
+      "identifier": "roles.js:getSystemRoles",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "createdBy": {
+            "fieldType": {
+              "tableName": "operators",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "description": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "name": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "permissions": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "string"
+              }
+            },
+            "optional": false
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "roles.js:create",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "description": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "name": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "permissions": {
+            "fieldType": {
+              "type": "array",
+              "value": {
+                "type": "string"
+              }
+            },
+            "optional": true
+          },
+          "roleId": {
+            "fieldType": {
+              "tableName": "roles",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "updatedBy": {
+            "fieldType": {
+              "tableName": "operators",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "roles.js:update",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "deletedBy": {
+            "fieldType": {
+              "tableName": "operators",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "roleId": {
+            "fieldType": {
+              "tableName": "roles",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "roles.js:remove",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "any"
+      },
+      "functionType": "Mutation",
+      "identifier": "seedARM.js:default",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "name": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "slug": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "tenants.js:create",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "any"
+      },
+      "functionType": "Query",
+      "identifier": "tenants.js:list",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "slug": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "tenants.js:getBySlug",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "operators.js:list",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "id": {
+            "fieldType": {
+              "tableName": "operators",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "operators.js:get",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "authIdentity": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Query",
+      "identifier": "operators.js:getByAuth",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "authIdentity": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "email": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "name": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "role": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": false
+          },
+          "tenantId": {
+            "fieldType": {
+              "tableName": "tenants",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "operators.js:create",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "email": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "id": {
+            "fieldType": {
+              "tableName": "operators",
+              "type": "id"
+            },
+            "optional": false
+          },
+          "name": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          },
+          "role": {
+            "fieldType": {
+              "type": "string"
+            },
+            "optional": true
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "operators.js:update",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    },
+    {
+      "args": {
+        "type": "object",
+        "value": {
+          "id": {
+            "fieldType": {
+              "tableName": "operators",
+              "type": "id"
+            },
+            "optional": false
+          }
+        }
+      },
+      "functionType": "Mutation",
+      "identifier": "operators.js:remove",
+      "returns": {
+        "type": "any"
+      },
+      "visibility": {
+        "kind": "public"
+      }
+    }
+  ]
+}
