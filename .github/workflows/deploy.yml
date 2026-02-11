@@ -39,7 +39,12 @@ jobs:
           VITE_CONVEX_URL: ${{ secrets.CONVEX_URL }}
           
       - name: Deploy Convex
-        run: npx convex deploy --yes
+        run: |
+          if [ -z "$CONVEX_DEPLOY_KEY" ]; then
+            echo "Skipping Convex deploy (CONVEX_DEPLOY_KEY not set). Add secret for backend deploy."
+            exit 0
+          fi
+          npx convex deploy --yes
         env:
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
 
