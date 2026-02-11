@@ -344,9 +344,8 @@ export const clearOldMetrics = mutation({
     const cutoff = Date.now() - args.olderThanMs;
     const before = metricsStore.length;
 
-    // Remove old metrics
-    const i = 0;
-    while (i < metricsStore.length && metricsStore[i].timestamp < cutoff) {
+    // Remove old metrics (oldest first)
+    while (metricsStore.length > 0 && metricsStore[0].timestamp < cutoff) {
       metricsStore.shift();
     }
 

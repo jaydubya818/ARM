@@ -27,7 +27,7 @@ type FunctionExample = Doc<'customScoringFunctions'>['metadata']['examples'][num
 
 async function runCustomFunction(
   func: Doc<'customScoringFunctions'>,
-  args: ExecutionArgs,
+  _args: ExecutionArgs,
 ): Promise<ExecutionResult> {
   const isolate = new ivm.Isolate({ memoryLimit: 128 });
   const context = await isolate.createContext();

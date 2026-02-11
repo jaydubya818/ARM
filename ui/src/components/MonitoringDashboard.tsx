@@ -3,15 +3,14 @@ import {
   Activity, AlertTriangle, CheckCircle, TrendingUp, Zap,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { api } from 'agent-resources-platform/convex/_generated/api';
+import { monitoringApi, healthCheckApi } from '../lib/convexApi';
 
 export function MonitoringDashboard() {
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [refreshInterval, setRefreshInterval] = useState(5000); // 5 seconds
 
-  // Fetch monitoring data
-  const metrics = useQuery(api.monitoring.metrics.getCurrentMetrics, {});
-  const health = useQuery(api.monitoring.healthCheck.healthCheck);
+  const metrics = useQuery(monitoringApi.getCurrentMetrics, {});
+  const health = useQuery(healthCheckApi.healthCheck);
 
   // Auto-refresh
   useEffect(() => {
@@ -110,30 +109,30 @@ export function MonitoringDashboard() {
         <div className="bg-arm-surface border border-arm-border rounded-lg p-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-arm-text-secondary">Database</span>
-            <CheckCircle className={`w-5 h-5 ${health.checks.database ? 'text-green-500' : 'text-red-500'}`} />
+            <CheckCircle className={`w-5 h-5 ${health.checks.database.status === 'healthy' ? 'text-green-500' : 'text-red-500'}`} />
           </div>
           <div className="text-2xl font-bold text-arm-text">
-            {health.checks.database ? 'Connected' : 'Error'}
+            {health.checks.database.status === 'healthy' ? 'Connected' : 'Error'}
           </div>
         </div>
 
         <div className="bg-arm-surface border border-arm-border rounded-lg p-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-arm-text-secondary">Queries</span>
-            <Activity className={`w-5 h-5 ${health.checks.queries ? 'text-green-500' : 'text-yellow-500'}`} />
+            <Activity className={`w-5 h-5 ${health.checks.queries.status === 'healthy' ? 'text-green-500' : health.checks.queries.status === 'degraded' ? 'text-yellow-500' : 'text-red-500'}`} />
           </div>
           <div className="text-2xl font-bold text-arm-text">
-            {health.checks.queries ? 'Healthy' : 'Degraded'}
+            {health.checks.queries.status === 'healthy' ? 'Healthy' : health.checks.queries.status === 'degraded' ? 'Degraded' : 'Unhealthy'}
           </div>
         </div>
 
         <div className="bg-arm-surface border border-arm-border rounded-lg p-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-arm-text-secondary">Mutations</span>
-            <Zap className={`w-5 h-5 ${health.checks.mutations ? 'text-green-500' : 'text-yellow-500'}`} />
+            <Zap className={`w-5 h-5 ${health.checks.mutations.status === 'healthy' ? 'text-green-500' : health.checks.mutations.status === 'degraded' ? 'text-yellow-500' : 'text-red-500'}`} />
           </div>
           <div className="text-2xl font-bold text-arm-text">
-            {health.checks.mutations ? 'Healthy' : 'Degraded'}
+            {health.checks.mutations.status === 'healthy' ? 'Healthy' : health.checks.mutations.status === 'degraded' ? 'Degraded' : 'Unhealthy'}
           </div>
         </div>
       </div>

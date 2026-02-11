@@ -62,7 +62,7 @@ export const getTrend = query({
     period: v.union(v.literal('daily'), v.literal('weekly'), v.literal('monthly')),
     limit: v.number(),
   },
-  handler: async (_ctx, args) => {
+  handler: async (_ctx, _args) => {
     // Placeholder implementation
     return [];
   },

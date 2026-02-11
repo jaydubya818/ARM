@@ -327,7 +327,7 @@ export class CircuitBreaker {
  * Create a circuit breaker for a specific operation
  */
 export function createCircuitBreaker(
-  operation: string,
+  _operation: string,
   options?: {
     threshold?: number;
     timeout?: number;

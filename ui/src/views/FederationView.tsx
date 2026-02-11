@@ -4,6 +4,7 @@ import {
   Globe, Server, Activity, Plus, Trash2, CheckCircle, XCircle,
 } from 'lucide-react';
 import { api } from 'agent-resources-platform/convex/_generated/api';
+import { providerHealthApi } from '../lib/convexApi';
 import { Id } from 'agent-resources-platform/convex/_generated/dataModel';
 import type { Doc } from 'agent-resources-platform/convex/_generated/dataModel';
 import { CreateProviderModal } from '../components/CreateProviderModal';
@@ -18,14 +19,14 @@ export function FederationView({ tenantId }: FederationViewProps) {
   const [healthStatus, setHealthStatus] = useState<Record<string, string>>({});
   const providers = useQuery(api.providers.list, { tenantId });
   const removeProvider = useMutation(api.providers.remove);
-  const checkHealth = useAction(api.monitoring.providerHealth.checkProviderHealth);
+  const checkHealth = useAction(providerHealthApi.checkProviderHealth);
 
   useEffect(() => {
     if (!providers) return;
     providers.forEach((p: Doc<'providers'>) => {
       if (p.healthEndpoint) {
         checkHealth({ healthEndpoint: p.healthEndpoint })
-          .then((r) => setHealthStatus((s) => ({ ...s, [p._id]: r.status })))
+          .then((r: { status: string }) => setHealthStatus((s) => ({ ...s, [p._id]: r.status })))
           .catch(() => setHealthStatus((s) => ({ ...s, [p._id]: 'error' })));
       }
     });
