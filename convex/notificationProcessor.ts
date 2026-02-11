@@ -9,6 +9,81 @@ import { internalMutation, internalAction, internalQuery } from './_generated/se
 import { internal } from './_generated/api';
 
 /**
+ * Generate notification content based on event type
+ */
+function generateNotificationContent(
+  type: string,
+  payload: any,
+): { title: string; message: string; severity: 'INFO' | 'SUCCESS' | 'WARNING' | 'ERROR' } {
+  switch (type) {
+    case 'EVAL_COMPLETED': {
+      const passRatePercent = Math.round((payload.passRate || 0) * 1000) / 10;
+      return {
+        title: 'Evaluation Complete',
+        message: `Evaluation run for suite "${payload.suiteName}" completed with ${passRatePercent}% pass rate.`,
+        severity: (payload.passRate || 0) >= 0.8 ? 'SUCCESS' : 'WARNING',
+      };
+    }
+
+    case 'EVAL_FAILED':
+      return {
+        title: 'Evaluation Failed',
+        message: `Evaluation run for suite "${payload.suiteName}" failed: ${payload.error}`,
+        severity: 'ERROR',
+      };
+
+    case 'VERSION_APPROVED':
+      return {
+        title: 'Version Approved',
+        message: `Agent version ${payload.versionLabel} has been approved and is ready for deployment.`,
+        severity: 'SUCCESS',
+      };
+
+    case 'VERSION_REJECTED':
+      return {
+        title: 'Version Rejected',
+        message: `Agent version ${payload.versionLabel} was rejected: ${payload.reason}`,
+        severity: 'WARNING',
+      };
+
+    case 'INSTANCE_FAILED':
+      return {
+        title: 'Instance Failed',
+        message: `Agent instance in ${payload.environment} has failed. Immediate attention required.`,
+        severity: 'ERROR',
+      };
+
+    case 'APPROVAL_REQUIRED':
+      return {
+        title: 'Approval Required',
+        message: `${payload.requestType} requires your approval: ${payload.description}`,
+        severity: 'INFO',
+      };
+
+    case 'POLICY_VIOLATION':
+      return {
+        title: 'Policy Violation',
+        message: `Policy "${payload.policyName}" was violated: ${payload.reason}`,
+        severity: 'WARNING',
+      };
+
+    case 'CUSTOM_FUNCTION_ERROR':
+      return {
+        title: 'Custom Function Error',
+        message: `Custom scoring function "${payload.functionName}" encountered an error: ${payload.error}`,
+        severity: 'ERROR',
+      };
+
+    default:
+      return {
+        title: 'Notification',
+        message: `Event: ${type}`,
+        severity: 'INFO',
+      };
+  }
+}
+
+/**
  * Internal query: Get a notification event by ID
  */
 export const getEvent = internalQuery({
@@ -158,78 +233,3 @@ export const markProcessed = internalMutation({
     });
   },
 });
-
-/**
- * Generate notification content based on event type
- */
-function generateNotificationContent(
-  type: string,
-  payload: any,
-): { title: string; message: string; severity: 'INFO' | 'SUCCESS' | 'WARNING' | 'ERROR' } {
-  switch (type) {
-    case 'EVAL_COMPLETED': {
-      const passRatePercent = Math.round((payload.passRate || 0) * 1000) / 10;
-      return {
-        title: 'Evaluation Complete',
-        message: `Evaluation run for suite "${payload.suiteName}" completed with ${passRatePercent}% pass rate.`,
-        severity: (payload.passRate || 0) >= 0.8 ? 'SUCCESS' : 'WARNING',
-      };
-    }
-
-    case 'EVAL_FAILED':
-      return {
-        title: 'Evaluation Failed',
-        message: `Evaluation run for suite "${payload.suiteName}" failed: ${payload.error}`,
-        severity: 'ERROR',
-      };
-
-    case 'VERSION_APPROVED':
-      return {
-        title: 'Version Approved',
-        message: `Agent version ${payload.versionLabel} has been approved and is ready for deployment.`,
-        severity: 'SUCCESS',
-      };
-
-    case 'VERSION_REJECTED':
-      return {
-        title: 'Version Rejected',
-        message: `Agent version ${payload.versionLabel} was rejected: ${payload.reason}`,
-        severity: 'WARNING',
-      };
-
-    case 'INSTANCE_FAILED':
-      return {
-        title: 'Instance Failed',
-        message: `Agent instance in ${payload.environment} has failed. Immediate attention required.`,
-        severity: 'ERROR',
-      };
-
-    case 'APPROVAL_REQUIRED':
-      return {
-        title: 'Approval Required',
-        message: `${payload.requestType} requires your approval: ${payload.description}`,
-        severity: 'INFO',
-      };
-
-    case 'POLICY_VIOLATION':
-      return {
-        title: 'Policy Violation',
-        message: `Policy "${payload.policyName}" was violated: ${payload.reason}`,
-        severity: 'WARNING',
-      };
-
-    case 'CUSTOM_FUNCTION_ERROR':
-      return {
-        title: 'Custom Function Error',
-        message: `Custom scoring function "${payload.functionName}" encountered an error: ${payload.error}`,
-        severity: 'ERROR',
-      };
-
-    default:
-      return {
-        title: 'Notification',
-        message: `Event: ${type}`,
-        severity: 'INFO',
-      };
-  }
-}

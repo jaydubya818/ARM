@@ -7,6 +7,19 @@
 import { v } from 'convex/values';
 import { query, mutation } from './_generated/server';
 
+function normalizeRate(value: number): number {
+  if (Number.isNaN(value)) return 0;
+  return Math.abs(value) > 1 ? value / 100 : value;
+}
+
+function getWeekNumber(date: Date): number {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+}
+
 // Helper functions
 
 function calculateAverages(metrics: any[]) {
@@ -48,19 +61,6 @@ function calculateAverages(metrics: any[]) {
     passedCount: sums.passedCount / metrics.length,
     failedCount: sums.failedCount / metrics.length,
   };
-}
-
-function normalizeRate(value: number): number {
-  if (Number.isNaN(value)) return 0;
-  return Math.abs(value) > 1 ? value / 100 : value;
-}
-
-function getWeekNumber(date: Date): number {
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
 }
 
 /**

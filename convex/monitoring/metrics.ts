@@ -41,6 +41,40 @@ const metricsStore: MetricEntry[] = [];
 const MAX_METRICS = 10000; // Keep last 10k metrics
 
 /**
+ * Calculate percentiles from sorted array
+ */
+function calculatePercentiles(values: number[]): {
+  avg: number;
+  p50: number;
+  p95: number;
+  p99: number;
+} {
+  if (values.length === 0) {
+    return {
+      avg: 0, p50: 0, p95: 0, p99: 0,
+    };
+  }
+
+  const avg = values.reduce((sum, v) => sum + v, 0) / values.length;
+  const p50 = percentile(values, 0.5);
+  const p95 = percentile(values, 0.95);
+  const p99 = percentile(values, 0.99);
+
+  return {
+    avg, p50, p95, p99,
+  };
+}
+
+/**
+ * Calculate percentile from sorted array
+ */
+function percentile(sortedValues: number[], p: number): number {
+  if (sortedValues.length === 0) return 0;
+  const index = Math.ceil(sortedValues.length * p) - 1;
+  return sortedValues[Math.max(0, index)];
+}
+
+/**
  * Record a metric
  */
 export function recordMetric(metric: Omit<MetricEntry, 'timestamp'>): void {
@@ -189,40 +223,6 @@ export function calculateMetrics(
     totalQueries: queryLatencies.length,
     totalMutations,
   };
-}
-
-/**
- * Calculate percentiles from sorted array
- */
-function calculatePercentiles(values: number[]): {
-  avg: number;
-  p50: number;
-  p95: number;
-  p99: number;
-} {
-  if (values.length === 0) {
-    return {
-      avg: 0, p50: 0, p95: 0, p99: 0,
-    };
-  }
-
-  const avg = values.reduce((sum, v) => sum + v, 0) / values.length;
-  const p50 = percentile(values, 0.5);
-  const p95 = percentile(values, 0.95);
-  const p99 = percentile(values, 0.99);
-
-  return {
-    avg, p50, p95, p99,
-  };
-}
-
-/**
- * Calculate percentile from sorted array
- */
-function percentile(sortedValues: number[], p: number): number {
-  if (sortedValues.length === 0) return 0;
-  const index = Math.ceil(sortedValues.length * p) - 1;
-  return sortedValues[Math.max(0, index)];
 }
 
 /**

@@ -46,6 +46,66 @@ const defaultConfig: APMConfig = {
 let config: APMConfig = { ...defaultConfig };
 
 /**
+ * Generate unique ID for spans
+ */
+function generateId(): string {
+  return `span_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+}
+
+/**
+ * Send trace to Datadog (stub - integrate with dd-trace when needed)
+ */
+function sendToDatadog(
+  name: string,
+  duration: number,
+  attributes?: SpanAttributes,
+): void {
+  if (!config.datadog?.apiKey) return;
+
+  const payload = {
+    service: config.serviceName || 'arm-platform',
+    resource: name,
+    type: 'custom',
+    duration: duration * 1e6,
+    meta: attributes,
+    metrics: { _sampling_priority_v1: 1 },
+  };
+
+  if (process.env.NODE_ENV === 'development') {
+    console.debug('[APM->Datadog]', payload);
+  }
+
+  // In production, use fetch to send to Datadog API
+  // fetch(`https://trace.agent.${config.datadog.site || 'datadoghq.com'}/v0.4/traces`, {...})
+}
+
+/**
+ * Send trace to New Relic (stub - integrate with newrelic when needed)
+ */
+function sendToNewRelic(
+  name: string,
+  duration: number,
+  attributes?: SpanAttributes,
+): void {
+  if (!config.newrelic?.licenseKey) return;
+
+  const payload = {
+    eventType: 'ArmSpan',
+    name,
+    duration,
+    service: config.serviceName || 'arm-platform',
+    ...attributes,
+  };
+
+  if (process.env.NODE_ENV === 'development') {
+    console.debug('[APM->NewRelic]', payload);
+  }
+
+  // In production, use New Relic Insights API
+  // fetch('https://insights-collector.newrelic.com/v1/events', {...})
+}
+
+/**
  * Configure APM provider
  */
 export function configureAPM(newConfig: Partial<APMConfig>): void {
@@ -163,66 +223,6 @@ export async function withAPMSpan<T>(
     span.end();
     throw error;
   }
-}
-
-/**
- * Generate unique ID for spans
- */
-function generateId(): string {
-  return `span_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
-}
-
-/**
- * Send trace to Datadog (stub - integrate with dd-trace when needed)
- */
-function sendToDatadog(
-  name: string,
-  duration: number,
-  attributes?: SpanAttributes,
-): void {
-  if (!config.datadog?.apiKey) return;
-
-  const payload = {
-    service: config.serviceName || 'arm-platform',
-    resource: name,
-    type: 'custom',
-    duration: duration * 1e6,
-    meta: attributes,
-    metrics: { _sampling_priority_v1: 1 },
-  };
-
-  if (process.env.NODE_ENV === 'development') {
-    console.debug('[APM->Datadog]', payload);
-  }
-
-  // In production, use fetch to send to Datadog API
-  // fetch(`https://trace.agent.${config.datadog.site || 'datadoghq.com'}/v0.4/traces`, {...})
-}
-
-/**
- * Send trace to New Relic (stub - integrate with newrelic when needed)
- */
-function sendToNewRelic(
-  name: string,
-  duration: number,
-  attributes?: SpanAttributes,
-): void {
-  if (!config.newrelic?.licenseKey) return;
-
-  const payload = {
-    eventType: 'ArmSpan',
-    name,
-    duration,
-    service: config.serviceName || 'arm-platform',
-    ...attributes,
-  };
-
-  if (process.env.NODE_ENV === 'development') {
-    console.debug('[APM->NewRelic]', payload);
-  }
-
-  // In production, use New Relic Insights API
-  // fetch('https://insights-collector.newrelic.com/v1/events', {...})
 }
 
 /**

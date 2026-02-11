@@ -34,96 +34,37 @@ export interface PolicyEnvelope {
 }
 
 /**
- * Evaluate a tool call against a policy envelope
+ * Policy Evaluation Engine
+ *
+ * Evaluates tool calls and actions against policy envelopes to determine
+ * if they should be ALLOWED, DENIED, or require APPROVAL.
  */
-export function evaluatePolicy(
-  request: PolicyEvaluationRequest,
-  policy: PolicyEnvelope,
-): PolicyEvaluationResult {
-  const violations: string[] = [];
-  let riskLevel: RiskLevel = 'low';
 
-  // 1. Check if tool is in allowed list
-  if (!policy.allowedTools.includes(request.toolId)) {
-    violations.push(`Tool '${request.toolId}' not in allowed tools list`);
-    riskLevel = 'high';
+export type PolicyDecision = 'ALLOW' | 'DENY' | 'NEEDS_APPROVAL';
 
-    return {
-      decision: 'DENY',
-      reason: `Tool '${request.toolId}' is not allowed by policy`,
-      riskLevel,
-      violations,
-    };
-  }
+export type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
 
-  // 2. Check cost limits
-  if (policy.costLimits) {
-    // Daily token limit
-    if (
-      policy.costLimits.dailyTokens !== undefined
-      && request.dailyTokensUsed !== undefined
-      && request.estimatedCost !== undefined
-    ) {
-      const projectedTokens = request.dailyTokensUsed + request.estimatedCost;
-      if (projectedTokens > policy.costLimits.dailyTokens) {
-        violations.push(
-          `Daily token limit exceeded: ${projectedTokens} > ${policy.costLimits.dailyTokens}`,
-        );
-        riskLevel = 'medium';
+export interface PolicyEvaluationRequest {
+  toolId: string;
+  toolParams?: any;
+  estimatedCost?: number;
+  dailyTokensUsed?: number;
+  monthlyCostUsed?: number;
+}
 
-        return {
-          decision: 'DENY',
-          reason: 'Daily token limit would be exceeded',
-          riskLevel,
-          violations,
-        };
-      }
-    }
+export interface PolicyEvaluationResult {
+  decision: PolicyDecision;
+  reason: string;
+  riskLevel: RiskLevel;
+  violations: string[];
+}
 
-    // Monthly cost limit
-    if (
-      policy.costLimits.monthlyCost !== undefined
-      && request.monthlyCostUsed !== undefined
-      && request.estimatedCost !== undefined
-    ) {
-      const projectedCost = request.monthlyCostUsed + request.estimatedCost;
-      if (projectedCost > policy.costLimits.monthlyCost) {
-        violations.push(
-          `Monthly cost limit exceeded: $${projectedCost} > $${policy.costLimits.monthlyCost}`,
-        );
-        riskLevel = 'medium';
-
-        return {
-          decision: 'DENY',
-          reason: 'Monthly cost limit would be exceeded',
-          riskLevel,
-          violations,
-        };
-      }
-    }
-  }
-
-  // 3. Classify risk based on tool and params
-  riskLevel = classifyRisk(request.toolId, request.toolParams);
-
-  // 4. Determine if approval needed based on autonomy tier and risk
-  const needsApproval = shouldRequireApproval(policy.autonomyTier, riskLevel);
-
-  if (needsApproval) {
-    return {
-      decision: 'NEEDS_APPROVAL',
-      reason: `Autonomy tier ${policy.autonomyTier} requires approval for ${riskLevel} risk actions`,
-      riskLevel,
-      violations: [],
-    };
-  }
-
-  // 5. Allow if all checks pass
-  return {
-    decision: 'ALLOW',
-    reason: 'All policy checks passed',
-    riskLevel,
-    violations: [],
+export interface PolicyEnvelope {
+  autonomyTier: number;
+  allowedTools: string[];
+  costLimits?: {
+    dailyTokens?: number;
+    monthlyCost?: number;
   };
 }
 
@@ -214,6 +155,100 @@ function shouldRequireApproval(
       // Unknown tier - default to requiring approval
       return true;
   }
+}
+
+/**
+ * Evaluate a tool call against a policy envelope
+ */
+export function evaluatePolicy(
+  request: PolicyEvaluationRequest,
+  policy: PolicyEnvelope,
+): PolicyEvaluationResult {
+  const violations: string[] = [];
+  let riskLevel: RiskLevel = 'low';
+
+  // 1. Check if tool is in allowed list
+  if (!policy.allowedTools.includes(request.toolId)) {
+    violations.push(`Tool '${request.toolId}' not in allowed tools list`);
+    riskLevel = 'high';
+
+    return {
+      decision: 'DENY',
+      reason: `Tool '${request.toolId}' is not allowed by policy`,
+      riskLevel,
+      violations,
+    };
+  }
+
+  // 2. Check cost limits
+  if (policy.costLimits) {
+    // Daily token limit
+    if (
+      policy.costLimits.dailyTokens !== undefined
+      && request.dailyTokensUsed !== undefined
+      && request.estimatedCost !== undefined
+    ) {
+      const projectedTokens = request.dailyTokensUsed + request.estimatedCost;
+      if (projectedTokens > policy.costLimits.dailyTokens) {
+        violations.push(
+          `Daily token limit exceeded: ${projectedTokens} > ${policy.costLimits.dailyTokens}`,
+        );
+        riskLevel = 'medium';
+
+        return {
+          decision: 'DENY',
+          reason: 'Daily token limit would be exceeded',
+          riskLevel,
+          violations,
+        };
+      }
+    }
+
+    // Monthly cost limit
+    if (
+      policy.costLimits.monthlyCost !== undefined
+      && request.monthlyCostUsed !== undefined
+      && request.estimatedCost !== undefined
+    ) {
+      const projectedCost = request.monthlyCostUsed + request.estimatedCost;
+      if (projectedCost > policy.costLimits.monthlyCost) {
+        violations.push(
+          `Monthly cost limit exceeded: ${projectedCost} > ${policy.costLimits.monthlyCost}`,
+        );
+        riskLevel = 'medium';
+
+        return {
+          decision: 'DENY',
+          reason: 'Monthly cost limit would be exceeded',
+          riskLevel,
+          violations,
+        };
+      }
+    }
+  }
+
+  // 3. Classify risk based on tool and params
+  riskLevel = classifyRisk(request.toolId, request.toolParams);
+
+  // 4. Determine if approval needed based on autonomy tier and risk
+  const needsApproval = shouldRequireApproval(policy.autonomyTier, riskLevel);
+
+  if (needsApproval) {
+    return {
+      decision: 'NEEDS_APPROVAL',
+      reason: `Autonomy tier ${policy.autonomyTier} requires approval for ${riskLevel} risk actions`,
+      riskLevel,
+      violations: [],
+    };
+  }
+
+  // 5. Allow if all checks pass
+  return {
+    decision: 'ALLOW',
+    reason: 'All policy checks passed',
+    riskLevel,
+    violations: [],
+  };
 }
 
 /**

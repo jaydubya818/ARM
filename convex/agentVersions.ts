@@ -64,13 +64,10 @@ export const get = query({
 
 export const list = query({
   args: { tenantId: v.id('tenants') },
-  handler: (ctx, args) =>
-    // NO hash verification on list for performance
-    ctx.db
-      .query('agentVersions')
-      .withIndex('by_tenant', (q) => q.eq('tenantId', args.tenantId))
-      .collect()
-  ,
+  handler: (ctx, args) => ctx.db
+    .query('agentVersions')
+    .withIndex('by_tenant', (q) => q.eq('tenantId', args.tenantId))
+    .collect(),
 });
 
 export const listByTemplate = query({

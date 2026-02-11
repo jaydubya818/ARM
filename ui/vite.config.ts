@@ -6,7 +6,10 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      'agent-resources-platform': path.resolve(process.cwd(), '..'),
+      'agent-resources-platform/convex/_generated': path.resolve(
+        process.cwd(),
+        'src/convex/_generated',
+      ),
     },
   },
   server: {
