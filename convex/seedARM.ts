@@ -16,6 +16,74 @@ export default mutation({
   handler: async (ctx) => {
     console.log("🚀 Starting ARM seed...");
     
+    // 0. Seed permissions registry (P3.0)
+    console.log("📋 Seeding permissions registry...");
+    const permissionsList = [
+      // Core Resources - Templates
+      { resource: "templates", action: "read", description: "View agent templates", category: "core" },
+      { resource: "templates", action: "write", description: "Create/update templates", category: "core" },
+      { resource: "templates", action: "delete", description: "Delete templates", category: "core" },
+      // Core Resources - Versions
+      { resource: "versions", action: "read", description: "View agent versions", category: "core" },
+      { resource: "versions", action: "write", description: "Create/update versions", category: "core" },
+      { resource: "versions", action: "delete", description: "Delete versions", category: "core" },
+      { resource: "versions", action: "approve", description: "Approve version transitions", category: "core" },
+      { resource: "versions", action: "transition", description: "Trigger lifecycle transitions", category: "core" },
+      // Core Resources - Instances
+      { resource: "instances", action: "read", description: "View agent instances", category: "core" },
+      { resource: "instances", action: "write", description: "Create/update instances", category: "core" },
+      { resource: "instances", action: "delete", description: "Delete instances", category: "core" },
+      { resource: "instances", action: "start", description: "Start instances", category: "core" },
+      { resource: "instances", action: "stop", description: "Stop instances", category: "core" },
+      // Evaluation
+      { resource: "evaluations", action: "read", description: "View evaluation suites and runs", category: "evaluation" },
+      { resource: "evaluations", action: "write", description: "Create/update suites", category: "evaluation" },
+      { resource: "evaluations", action: "delete", description: "Delete suites", category: "evaluation" },
+      { resource: "evaluations", action: "execute", description: "Trigger evaluation runs", category: "evaluation" },
+      { resource: "evaluations", action: "cancel", description: "Cancel running evaluations", category: "evaluation" },
+      // Policies
+      { resource: "policies", action: "read", description: "View policy envelopes", category: "policies" },
+      { resource: "policies", action: "write", description: "Create/update policies", category: "policies" },
+      { resource: "policies", action: "delete", description: "Delete policies", category: "policies" },
+      { resource: "policies", action: "evaluate", description: "Evaluate policy decisions", category: "policies" },
+      // Approvals
+      { resource: "approvals", action: "read", description: "View approval requests", category: "approvals" },
+      { resource: "approvals", action: "write", description: "Create approval requests", category: "approvals" },
+      { resource: "approvals", action: "approve", description: "Approve requests", category: "approvals" },
+      { resource: "approvals", action: "reject", description: "Reject requests", category: "approvals" },
+      // Administration
+      { resource: "operators", action: "read", description: "View operators", category: "admin" },
+      { resource: "operators", action: "write", description: "Create/update operators", category: "admin" },
+      { resource: "operators", action: "delete", description: "Delete operators", category: "admin" },
+      { resource: "roles", action: "read", description: "View roles", category: "admin" },
+      { resource: "roles", action: "write", description: "Create/update roles", category: "admin" },
+      { resource: "roles", action: "delete", description: "Delete roles", category: "admin" },
+      { resource: "roles", action: "assign", description: "Assign roles to operators", category: "admin" },
+      { resource: "roles", action: "revoke", description: "Revoke role assignments", category: "admin" },
+      { resource: "permissions", action: "read", description: "View permissions", category: "admin" },
+      { resource: "permissions", action: "manage", description: "Manage permission registry", category: "admin" },
+      { resource: "tenant", action: "read", description: "View tenant details", category: "admin" },
+      { resource: "tenant", action: "write", description: "Update tenant settings", category: "admin" },
+      { resource: "tenant", action: "manage", description: "Full tenant administration", category: "admin" },
+      // Audit
+      { resource: "audit", action: "read", description: "View audit logs", category: "audit" },
+      { resource: "audit", action: "export", description: "Export audit logs", category: "audit" },
+      { resource: "metrics", action: "read", description: "View analytics metrics", category: "audit" },
+      // Advanced
+      { resource: "custom-functions", action: "read", description: "View custom scoring functions", category: "advanced" },
+      { resource: "custom-functions", action: "write", description: "Create/update functions", category: "advanced" },
+      { resource: "custom-functions", action: "delete", description: "Delete functions", category: "advanced" },
+      { resource: "custom-functions", action: "execute", description: "Execute functions", category: "advanced" },
+      { resource: "notifications", action: "read", description: "View notifications", category: "advanced" },
+      { resource: "notifications", action: "write", description: "Create notifications", category: "advanced" },
+      { resource: "notifications", action: "manage", description: "Manage notification settings", category: "advanced" },
+    ];
+
+    for (const permission of permissionsList) {
+      await ctx.db.insert("permissions", permission);
+    }
+    console.log(`✅ Seeded ${permissionsList.length} permissions`);
+    
     // 1. Create tenant
     const tenantId = await ctx.db.insert("tenants", {
       name: "ARM Dev Org",
@@ -56,7 +124,104 @@ export default mutation({
     });
     console.log("✅ Created provider:", providerId);
     
-    // 4. Create template
+    // 4. Create operator (P3.0)
+    const operatorId = await ctx.db.insert("operators", {
+      tenantId,
+      email: "admin@arm-dev.com",
+      name: "Admin User",
+      status: "ACTIVE",
+    });
+    console.log("✅ Created operator:", operatorId);
+    
+    // 5. Create system roles (P3.0)
+    console.log("🔐 Creating system roles...");
+    
+    const now = Date.now();
+    
+    // Admin role (full tenant access)
+    const adminRoleId = await ctx.db.insert("roles", {
+      tenantId,
+      name: "Admin",
+      description: "Full tenant administration access",
+      permissions: [
+        "read:templates", "write:templates", "delete:templates",
+        "read:versions", "write:versions", "delete:versions", "approve:versions", "transition:versions",
+        "read:instances", "write:instances", "delete:instances", "start:instances", "stop:instances",
+        "read:evaluations", "write:evaluations", "delete:evaluations", "execute:evaluations", "cancel:evaluations",
+        "read:policies", "write:policies", "delete:policies", "evaluate:policies",
+        "read:approvals", "write:approvals", "approve:approvals", "reject:approvals",
+        "read:operators", "write:operators", "delete:operators",
+        "read:roles", "write:roles", "delete:roles", "assign:roles", "revoke:roles",
+        "read:permissions", "read:tenant", "write:tenant",
+        "read:audit", "export:audit", "read:metrics",
+        "read:custom-functions", "write:custom-functions", "delete:custom-functions", "execute:custom-functions",
+        "read:notifications", "write:notifications", "manage:notifications",
+      ],
+      isSystem: true,
+      createdBy: operatorId,
+      createdAt: now,
+      updatedAt: now,
+    });
+    
+    // Operator role (standard operations)
+    const operatorRoleId = await ctx.db.insert("roles", {
+      tenantId,
+      name: "Operator",
+      description: "Standard operational access",
+      permissions: [
+        "read:templates", "write:templates",
+        "read:versions", "write:versions", "transition:versions",
+        "read:instances", "write:instances", "start:instances", "stop:instances",
+        "read:evaluations", "write:evaluations", "execute:evaluations",
+        "read:policies", "evaluate:policies",
+        "read:approvals", "write:approvals",
+        "read:operators", "read:roles", "read:permissions", "read:tenant",
+        "read:audit", "read:metrics",
+        "read:custom-functions", "execute:custom-functions",
+        "read:notifications",
+      ],
+      isSystem: true,
+      createdBy: operatorId,
+      createdAt: now,
+      updatedAt: now,
+    });
+    
+    // Viewer role (read-only)
+    const viewerRoleId = await ctx.db.insert("roles", {
+      tenantId,
+      name: "Viewer",
+      description: "Read-only access",
+      permissions: [
+        "read:templates",
+        "read:versions",
+        "read:instances",
+        "read:evaluations",
+        "read:policies",
+        "read:approvals",
+        "read:operators", "read:roles", "read:permissions", "read:tenant",
+        "read:audit", "read:metrics",
+        "read:custom-functions",
+        "read:notifications",
+      ],
+      isSystem: true,
+      createdBy: operatorId,
+      createdAt: now,
+      updatedAt: now,
+    });
+    
+    console.log("✅ Created system roles:", { adminRoleId, operatorRoleId, viewerRoleId });
+    
+    // 6. Assign Admin role to operator (P3.0)
+    await ctx.db.insert("roleAssignments", {
+      tenantId,
+      operatorId,
+      roleId: adminRoleId,
+      assignedBy: operatorId,
+      assignedAt: now,
+    });
+    console.log("✅ Assigned Admin role to operator");
+    
+    // 8. Create template
     const templateId = await ctx.db.insert("agentTemplates", {
       tenantId,
       name: "Customer Support Agent",
@@ -76,7 +241,7 @@ export default mutation({
       timestamp: Date.now(),
     });
     
-    // 5. Create version v1.0.0
+    // 9. Create version v1.0.0
     const genome1 = {
       modelConfig: {
         provider: "anthropic",
@@ -127,7 +292,7 @@ export default mutation({
       timestamp: Date.now(),
     });
     
-    // 6. Create version v2.0.0 (with lineage)
+    // 10. Create version v2.0.0 (with lineage)
     const genome2 = {
       modelConfig: {
         provider: "anthropic",
@@ -184,7 +349,7 @@ export default mutation({
       timestamp: Date.now(),
     });
     
-    // 7. Create instance in prod
+    // 11. Create instance in prod
     const instanceId = await ctx.db.insert("agentInstances", {
       versionId: version2Id,
       tenantId,
@@ -209,7 +374,7 @@ export default mutation({
       timestamp: Date.now(),
     });
     
-    // 8. Create evaluation suite (P2.0)
+    // 12. Create evaluation suite (P2.0)
     const suiteId = await ctx.db.insert("evaluationSuites", {
       tenantId,
       name: "Standard Agent Tests",
@@ -263,7 +428,7 @@ export default mutation({
       timestamp: Date.now(),
     });
 
-    // 9. Create sample evaluation run
+    // 13. Create sample evaluation run
     const runId = await ctx.db.insert("evaluationRuns", {
       tenantId,
       suiteId,
@@ -320,15 +485,20 @@ export default mutation({
       instanceId,
       suiteId,
       runId,
+      operatorId,
+      adminRoleId,
       summary: {
         tenant: "ARM Dev Org",
         environments: 3,
         providers: 1,
+        operators: 1,
+        systemRoles: 3,
         templates: 1,
         versions: 2,
         instances: 1,
         evaluationSuites: 1,
         evaluationRuns: 1,
+        permissions: permissionsList.length,
       },
     };
   },
