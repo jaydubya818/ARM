@@ -1,7 +1,8 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
 import type { Id } from "../convex/_generated/dataModel";
-import { Play } from "lucide-react";
+import { useState } from "react";
+import { Play, Plus } from "lucide-react";
 
 interface ExperimentsManagementProps {
   tenantId: Id<"tenants">;
@@ -14,6 +15,32 @@ export function ExperimentsManagement({
 }: ExperimentsManagementProps) {
   const experiments = useQuery(api.experiments.list, { tenantId });
   const startExperiment = useMutation(api.experiments.start);
+  const createExperiment = useMutation(api.experiments.create);
+
+  const [showForm, setShowForm] = useState(false);
+  const [newKey, setNewKey] = useState("");
+  const [newName, setNewName] = useState("");
+  const [controlName, setControlName] = useState("Control");
+  const [variantName, setVariantName] = useState("Variant A");
+
+  const handleCreate = async () => {
+    if (!newKey.trim() || !newName.trim()) return;
+    await createExperiment({
+      tenantId,
+      key: newKey.trim(),
+      name: newName.trim(),
+      variants: [
+        { id: "control", name: controlName, weight: 50 },
+        { id: "variant_a", name: variantName, weight: 50 },
+      ],
+      createdBy: currentOperatorId,
+    });
+    setNewKey("");
+    setNewName("");
+    setControlName("Control");
+    setVariantName("Variant A");
+    setShowForm(false);
+  };
 
   const handleStart = async (experimentId: Id<"experiments">) => {
     await startExperiment({ experimentId });
@@ -30,7 +57,77 @@ export function ExperimentsManagement({
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-arm-text">A/B Experiments</h2>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="flex items-center gap-2 px-4 py-2 bg-arm-accent text-white rounded-lg hover:opacity-90"
+        >
+          <Plus className="w-5 h-5" />
+          Create Experiment
+        </button>
       </div>
+
+      {showForm && (
+        <div className="p-4 bg-arm-surface border border-arm-border rounded-lg">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-arm-text mb-1">
+                Key
+              </label>
+              <input
+                value={newKey}
+                onChange={(e) => setNewKey(e.target.value)}
+                placeholder="homepage_cta_test"
+                className="w-full px-3 py-2 border border-arm-border rounded-lg bg-arm-bg text-arm-text"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-arm-text mb-1">
+                Name
+              </label>
+              <input
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="Homepage CTA Test"
+                className="w-full px-3 py-2 border border-arm-border rounded-lg bg-arm-bg text-arm-text"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-arm-text mb-1">
+                Control variant name
+              </label>
+              <input
+                value={controlName}
+                onChange={(e) => setControlName(e.target.value)}
+                className="w-full px-3 py-2 border border-arm-border rounded-lg bg-arm-bg text-arm-text"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-arm-text mb-1">
+                Variant A name
+              </label>
+              <input
+                value={variantName}
+                onChange={(e) => setVariantName(e.target.value)}
+                className="w-full px-3 py-2 border border-arm-border rounded-lg bg-arm-bg text-arm-text"
+              />
+            </div>
+          </div>
+          <div className="mt-4 flex gap-2">
+            <button
+              onClick={handleCreate}
+              className="px-4 py-2 bg-arm-accent text-white rounded-lg"
+            >
+              Create
+            </button>
+            <button
+              onClick={() => setShowForm(false)}
+              className="px-4 py-2 border border-arm-border rounded-lg"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="border border-arm-border rounded-lg overflow-hidden">
         {!experiments ? (
@@ -39,8 +136,7 @@ export function ExperimentsManagement({
           </div>
         ) : experiments.length === 0 ? (
           <div className="p-8 text-center text-arm-text-secondary">
-            No experiments yet. Create experiments via the Convex dashboard or
-            add a create flow here.
+            No experiments yet. Click &quot;Create Experiment&quot; to add one.
           </div>
         ) : (
           <table className="w-full">
