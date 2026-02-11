@@ -32,7 +32,7 @@ jobs:
           
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        
+
       - name: Build frontend
         run: cd ui && pnpm build
         env:

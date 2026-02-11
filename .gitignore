@@ -28,7 +28,7 @@ Thumbs.db
 
 # Convex
 .convex/
-convex/_generated/
+# convex/_generated/ - committed for CI build (run npx convex codegen after schema changes)
 
 # Python
 __pycache__/

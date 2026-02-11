@@ -8,6 +8,11 @@ import { v } from 'convex/values';
 import { internalAction, internalMutation } from './_generated/server';
 import { api, internal } from './_generated/api';
 
+function normalizeRate(value: number): number {
+  if (Number.isNaN(value)) return 0;
+  return Math.abs(value) > 1 ? value / 100 : value;
+}
+
 /**
  * Process pending evaluation runs for all tenants
  *
@@ -275,8 +280,3 @@ export const normalizeLegacyPassRatesForTenant = internalMutation({
     };
   },
 });
-
-function normalizeRate(value: number): number {
-  if (Number.isNaN(value)) return 0;
-  return Math.abs(value) > 1 ? value / 100 : value;
-}
