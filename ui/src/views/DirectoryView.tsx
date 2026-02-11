@@ -197,7 +197,7 @@ export function DirectoryView() {
                       <td className="p-4 text-arm-textMuted text-sm">{template.owners.join(', ')}</td>
                       <td className="p-4">
                         <div className="flex gap-1">
-                          {template.tags.map((tag) => (
+                          {template.tags.map((tag: string) => (
                             <span key={tag} className="px-2 py-1 bg-arm-surface rounded text-xs text-arm-textMuted">
                               {tag}
                             </span>

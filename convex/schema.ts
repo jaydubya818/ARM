@@ -228,12 +228,10 @@ export default defineSchema({
     operatorId: v.optional(v.id("operators")),
     action: v.string(),
     resource: v.string(),
-    details: v.object({
-      permission: v.optional(v.string()),
-      reason: v.optional(v.string()),
-      ipAddress: v.optional(v.string()),
-      userAgent: v.optional(v.string()),
-    }),
+    // Details can contain various fields depending on the action
+    // Common fields: permission, reason, ipAddress (anonymized), userAgent (anonymized)
+    // PII-safe fields: pseudonymousId, emailMasked, emailUpdated, etc.
+    details: v.any(),
     timestamp: v.number(),
     severity: v.union(
       v.literal("INFO"),

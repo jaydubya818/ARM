@@ -196,7 +196,7 @@ export function SuiteStatistics({ tenantId }: SuiteStatisticsProps) {
 
                 {suite.tags && suite.tags.length > 0 && (
                   <div className="flex items-center gap-2 mt-2">
-                    {suite.tags.map(tag => (
+                    {suite.tags.map((tag: string) => (
                       <span
                         key={tag}
                         className="px-2 py-1 bg-arm-accent/20 text-arm-accent rounded text-xs"

@@ -356,7 +356,7 @@ export function EvaluationsView() {
                     <td className="p-4">
                       {suite.tags && suite.tags.length > 0 ? (
                         <div className="flex gap-2 flex-wrap">
-                          {suite.tags.map((tag) => (
+                          {suite.tags.map((tag: string) => (
                             <span
                               key={tag}
                               className="px-2 py-1 text-xs bg-arm-accent/20 text-arm-accent rounded"

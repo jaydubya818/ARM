@@ -15,6 +15,8 @@ interface RunDetailsModalProps {
 }
 
 export function RunDetailsModal({ runId, onClose }: RunDetailsModalProps) {
+  type SuiteTestCase = Doc<'evaluationSuites'>['testCases'][number]
+
   const runData = useQuery(api.evaluationRuns.get, { runId }) as
     | {
         run: Doc<'evaluationRuns'>
@@ -157,7 +159,7 @@ export function RunDetailsModal({ runId, onClose }: RunDetailsModalProps) {
           {run.status === 'COMPLETED' && run.results && (
             <div className="space-y-4">
               {(run.results as TestCaseResult[]).map((result: TestCaseResult, index: number) => {
-                const testCase = suite?.testCases.find((tc) => tc.id === result.testCaseId)
+                const testCase = suite?.testCases.find((tc: SuiteTestCase) => tc.id === result.testCaseId)
                 const score = result.score ?? (result.passed ? 1 : 0)
 
                 return (

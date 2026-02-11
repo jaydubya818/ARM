@@ -7,7 +7,6 @@
 
 import { useState, useCallback } from 'react';
 import {
-  parseConvexError,
   getUserFriendlyMessage,
   getErrorSeverity,
   isRetryable,

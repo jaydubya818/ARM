@@ -282,13 +282,10 @@ export const write = mutation({
     operatorId: v.optional(v.id("operators")),
     action: v.string(),
     resource: v.string(),
-    details: v.object({
-      permission: v.optional(v.string()),
-      reason: v.optional(v.string()),
-      // SENSITIVE: These fields will be anonymized before storage
-      ipAddress: v.optional(v.string()),
-      userAgent: v.optional(v.string()),
-    }),
+    // Details can be any object - common fields are documented below
+    // Standard fields: permission, reason, ipAddress (will be anonymized), userAgent (will be anonymized)
+    // PII-safe fields: pseudonymousId, emailMasked, emailUpdated, roleUpdated, etc.
+    details: v.any(),
     severity: v.union(
       v.literal("INFO"),
       v.literal("WARNING"),
@@ -296,19 +293,18 @@ export const write = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    // Anonymize PII fields before persistence
-    const anonymizedDetails = {
-      permission: args.details.permission,
-      reason: args.details.reason,
-      // Anonymize IP address (e.g., 192.168.1.100 -> 192.168.1.0)
-      ipAddress: args.details.ipAddress 
-        ? anonymizeIpAddress(args.details.ipAddress)
-        : undefined,
-      // Anonymize user agent (remove version numbers and identifiers)
-      userAgent: args.details.userAgent
-        ? anonymizeUserAgent(args.details.userAgent)
-        : undefined,
-    };
+    // Anonymize PII fields if present in details
+    const details = { ...args.details };
+    
+    // Anonymize IP address if present (e.g., 192.168.1.100 -> 192.168.1.0)
+    if (details.ipAddress && typeof details.ipAddress === 'string') {
+      details.ipAddress = anonymizeIpAddress(details.ipAddress);
+    }
+    
+    // Anonymize user agent if present (remove version numbers and identifiers)
+    if (details.userAgent && typeof details.userAgent === 'string') {
+      details.userAgent = anonymizeUserAgent(details.userAgent);
+    }
     
     const timestamp = Date.now();
     
@@ -322,7 +318,7 @@ export const write = mutation({
       operatorId: args.operatorId,
       action: args.action,
       resource: args.resource,
-      details: anonymizedDetails,
+      details,
       severity: args.severity,
       timestamp,
     });
