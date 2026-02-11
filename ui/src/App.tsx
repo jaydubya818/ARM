@@ -1,4 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { Authenticated, Unauthenticated, AuthLoading } from 'convex/react'
+import { UserButton } from '@clerk/clerk-react'
 import { Sidebar } from './components/Sidebar'
 import { DirectoryView } from './views/DirectoryView'
 import { PoliciesView } from './views/PoliciesView'
@@ -11,32 +13,58 @@ import { CustomFunctionsView } from './views/CustomFunctionsView'
 import { FeatureFlagsView } from './views/FeatureFlagsView'
 import { ExperimentsView } from './views/ExperimentsView'
 import { MonitoringView } from './views/MonitoringView'
-import { PlaceholderView } from './views/PlaceholderView'
+import { IncidentsView } from './views/IncidentsView'
+import { CostView } from './views/CostView'
+import { FederationView } from './views/FederationView'
 import { ToastContainer } from './components/ToastContainer'
 import { NotificationCenter } from './components/NotificationCenter'
-import { useQuery } from 'convex/react'
+import { LoginPage } from './pages/LoginPage'
+import { useQuery, useMutation } from 'convex/react'
 import { api } from './convex/_generated/api'
+import { useEffect } from 'react'
 
-export default function App() {
-  // Get tenant and operator (hardcoded for now, will be from auth later)
+const clerkKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
+
+function AppContent() {
+  const ensureOperator = useMutation(api.auth.ensureOperator)
+  const currentOperator = useQuery(
+    api.auth.getCurrentOperator,
+    clerkKey ? {} : "skip"
+  )
   const tenants = useQuery(api.tenants.list)
   const operators = useQuery(
-    api.operators.list, 
+    api.operators.list,
     tenants?.[0]?._id ? { tenantId: tenants[0]._id } : "skip"
   )
-  
+
   const tenantId = tenants?.[0]?._id
-  const operatorId = operators?.[0]?._id
+  const operatorId = clerkKey
+    ? currentOperator?._id
+    : operators?.[0]?._id
+
+  useEffect(() => {
+    if (
+      !clerkKey ||
+      currentOperator === undefined ||
+      currentOperator !== null ||
+      !tenants?.length
+    )
+      return
+    ensureOperator().catch(() => {})
+  }, [clerkKey, currentOperator, tenants?.length, ensureOperator])
 
   return (
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <div className="flex h-screen bg-arm-surface">
         <Sidebar />
         <main className="flex-1 overflow-auto">
-          {/* Header with Notification Center */}
           {operatorId && (
-            <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-3 flex justify-end">
-              <NotificationCenter operatorId={operatorId} />
+            <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-3 flex justify-between items-center">
+              <div />
+              <div className="flex items-center gap-4">
+                <NotificationCenter operatorId={operatorId} />
+                {clerkKey && <UserButton afterSignOutUrl="/" />}
+              </div>
             </div>
           )}
 
@@ -46,67 +74,95 @@ export default function App() {
             <Route path="/policies" element={<PoliciesView />} />
             <Route path="/approvals" element={<ApprovalsView />} />
             <Route path="/evaluations" element={<EvaluationsView />} />
-            
-            {/* P3.0 Routes */}
-            <Route 
-              path="/analytics" 
-              element={tenantId ? <AnalyticsView tenantId={tenantId} /> : <div>Loading...</div>} 
+
+            <Route
+              path="/analytics"
+              element={tenantId ? <AnalyticsView tenantId={tenantId} /> : <div>Loading...</div>}
             />
-            <Route 
-              path="/roles" 
+            <Route
+              path="/roles"
               element={
                 tenantId && operatorId ? (
                   <RolesView tenantId={tenantId} currentOperatorId={operatorId} />
                 ) : (
                   <div>Loading...</div>
                 )
-              } 
+              }
             />
-            <Route 
-              path="/audit" 
-              element={tenantId ? <AuditView tenantId={tenantId} /> : <div>Loading...</div>} 
+            <Route
+              path="/audit"
+              element={tenantId ? <AuditView tenantId={tenantId} /> : <div>Loading...</div>}
             />
-            <Route 
-              path="/feature-flags" 
+            <Route
+              path="/feature-flags"
               element={
                 tenantId && operatorId ? (
                   <FeatureFlagsView tenantId={tenantId} currentOperatorId={operatorId} />
                 ) : (
                   <div>Loading...</div>
                 )
-              } 
+              }
             />
-            <Route 
-              path="/experiments" 
+            <Route
+              path="/experiments"
               element={
                 tenantId && operatorId ? (
                   <ExperimentsView tenantId={tenantId} currentOperatorId={operatorId} />
                 ) : (
                   <div>Loading...</div>
                 )
-              } 
+              }
             />
-            <Route 
-              path="/custom-functions" 
+            <Route
+              path="/custom-functions"
               element={
                 tenantId && operatorId ? (
                   <CustomFunctionsView tenantId={tenantId} currentOperatorId={operatorId} />
                 ) : (
                   <div>Loading...</div>
                 )
-              } 
+              }
             />
-            
-            {/* P4.0 Routes */}
+
             <Route path="/monitoring" element={<MonitoringView />} />
-            
-            <Route path="/incidents" element={<PlaceholderView title="Incidents" />} />
-            <Route path="/cost" element={<PlaceholderView title="Cost Management" />} />
-            <Route path="/federation" element={<PlaceholderView title="Federation" />} />
+            <Route
+              path="/incidents"
+              element={tenantId ? <IncidentsView tenantId={tenantId} /> : <div>Loading...</div>}
+            />
+            <Route
+              path="/cost"
+              element={tenantId ? <CostView tenantId={tenantId} /> : <div>Loading...</div>}
+            />
+            <Route
+              path="/federation"
+              element={tenantId ? <FederationView tenantId={tenantId} /> : <div>Loading...</div>}
+            />
           </Routes>
         </main>
         <ToastContainer />
       </div>
     </BrowserRouter>
+  )
+}
+
+export default function App() {
+  if (!clerkKey) {
+    return <AppContent />
+  }
+
+  return (
+    <>
+      <Authenticated>
+        <AppContent />
+      </Authenticated>
+      <Unauthenticated>
+        <LoginPage />
+      </Unauthenticated>
+      <AuthLoading>
+        <div className="min-h-screen flex items-center justify-center bg-arm-surface">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-arm-accent" />
+        </div>
+      </AuthLoading>
+    </>
   )
 }

@@ -93,7 +93,7 @@ All three security issues have been successfully resolved with comprehensive PII
    - Email masking, hashing, anonymization functions
    - Production-ready, well-tested utilities
 
-2. **`convex/utils/loadFunctionSpec.ts`** (60 lines)
+2. **`convex/utils/loadFunctionSpec.nobundle.ts`** (60 lines)
    - Function spec loader with environment variable substitution
    - URL validation and error handling
 
@@ -226,7 +226,7 @@ All three security issues have been successfully resolved with comprehensive PII
 
 ### Created (6 files)
 1. `convex/utils/pii.ts` - PII utility functions
-2. `convex/utils/loadFunctionSpec.ts` - Config loader
+2. `convex/utils/loadFunctionSpec.nobundle.ts` - Config loader
 3. `convex/utils/PII_COMPLIANCE.md` - Compliance documentation
 4. `.env.example` - Environment variable template
 5. `PII_SECURITY_FIXES.md` - Implementation guide

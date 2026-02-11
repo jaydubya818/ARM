@@ -57,6 +57,18 @@ async function executeRunCore(
       passRate: metrics.passRate,
     });
 
+    // Record cost (estimate ~500 tokens per test, ~$0.0001/1k tokens)
+    const estTokens = suite.testCases.length * 500;
+    const estCost = (estTokens / 1000) * 0.0001;
+    await ctx.runMutation(api.costLedger.record, {
+      tenantId: run.tenantId,
+      versionId: run.versionId,
+      tokensUsed: estTokens,
+      estimatedCost: estCost,
+      source: "evaluation",
+      metadata: { runId, suiteId: run.suiteId },
+    });
+
     // Record metrics for analytics (P3.0)
     await ctx.runMutation(api.analytics.recordEvaluationMetrics, {
       tenantId: run.tenantId,

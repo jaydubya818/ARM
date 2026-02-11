@@ -8,15 +8,21 @@ import { QueryCtx, MutationCtx } from "../_generated/server";
 import { Id } from "../_generated/dataModel";
 
 /**
- * Get operator by auth identity
+ * Get operator by auth identity (Clerk subject or other provider)
  */
 export async function getOperatorByIdentity(
   ctx: QueryCtx | MutationCtx,
-  identity: any
+  identity: { subject?: string } | null
 ): Promise<any> {
-  // For now, get first operator (will be replaced with real auth)
-  const operators = await ctx.db.query("operators").collect();
-  return operators[0] || null;
+  const subject = identity?.subject;
+  if (!subject) return null;
+
+  const operator = await ctx.db
+    .query("operators")
+    .withIndex("by_auth", (q) => q.eq("authIdentity", subject))
+    .first();
+
+  return operator ?? null;
 }
 
 /**

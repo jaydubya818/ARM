@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { Id, type Doc } from "../convex/_generated/dataModel";
+import { normalizeRate } from "../lib/metrics";
 
 interface AnalyticsDashboardProps {
   tenantId: Id<"tenants">;
@@ -91,6 +92,7 @@ export function AnalyticsDashboard({ tenantId }: AnalyticsDashboardProps) {
   ) as ComparisonData | undefined;
 
   const formatScore = (score: number) => (score * 100).toFixed(1);
+  const formatRate = (rate: number) => formatScore(normalizeRate(rate) ?? 0);
   const formatTime = (ms: number) => `${ms.toFixed(0)}ms`;
 
   return (
@@ -182,7 +184,7 @@ export function AnalyticsDashboard({ tenantId }: AnalyticsDashboardProps) {
               <div>
                 <p className="text-sm font-medium text-gray-600">Pass Rate</p>
                 <p className="text-3xl font-bold text-gray-900 mt-2">
-                  {formatScore(tenantStats.averages.passRate)}%
+                  {formatRate(tenantStats.averages.passRate)}%
                 </p>
               </div>
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -302,7 +304,7 @@ export function AnalyticsDashboard({ tenantId }: AnalyticsDashboardProps) {
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Pass Rate:</span>
                   <span className="text-sm font-medium">
-                    {formatScore(comparison.version1.metrics.passRate)}%
+                    {formatRate(comparison.version1.metrics.passRate)}%
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -347,7 +349,7 @@ export function AnalyticsDashboard({ tenantId }: AnalyticsDashboardProps) {
                     }`}
                   >
                     {comparison.deltas.passRate > 0 ? "+" : ""}
-                    {formatScore(comparison.deltas.passRate)}%
+                    {formatRate(comparison.deltas.passRate)}%
                   </div>
                   <div
                     className={`text-lg font-bold ${
@@ -379,7 +381,7 @@ export function AnalyticsDashboard({ tenantId }: AnalyticsDashboardProps) {
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Pass Rate:</span>
                   <span className="text-sm font-medium">
-                    {formatScore(comparison.version2.metrics.passRate)}%
+                    {formatRate(comparison.version2.metrics.passRate)}%
                   </span>
                 </div>
                 <div className="flex justify-between">

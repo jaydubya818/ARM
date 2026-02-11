@@ -19,7 +19,10 @@
     "test:convex": "vitest run convex",
     "test:e2e": "npx playwright test",
     "test:all": "pnpm test:unit && pnpm test:convex && pnpm test:e2e",
-    "test:coverage": "cd ui && vitest run --coverage"
+    "test:coverage": "cd ui && vitest run --coverage",
+    "deploy:convex": "convex deploy --prod",
+    "deploy:vercel": "cd ui && vercel --prod",
+    "build:ui": "cd ui && pnpm build"
   },
   "repository": {
     "type": "git",

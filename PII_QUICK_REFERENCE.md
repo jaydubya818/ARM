@@ -214,7 +214,7 @@ AUDIT_LOG_RETENTION_DAYS=90  # Optional, default: 90
 
 ### Loading Function Spec
 ```typescript
-import { loadFunctionSpec } from "./convex/utils/loadFunctionSpec";
+import { loadFunctionSpec } from "./convex/utils/loadFunctionSpec.nobundle";
 
 const spec = loadFunctionSpec("./function_spec.json");
 console.log(spec.url); // Loaded from CONVEX_URL

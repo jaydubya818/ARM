@@ -9,6 +9,7 @@ import { CreateRunModal } from '../components/CreateRunModal'
 import { RunDetailsModal } from '../components/RunDetailsModal'
 import { SuiteStatistics } from '../components/SuiteStatistics'
 import { toast } from '../lib/toast'
+import { normalizeRate } from '../lib/metrics'
 
 type EvalRunStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED'
 type ViewMode = 'runs' | 'suites' | 'statistics'
@@ -283,7 +284,7 @@ export function EvaluationsView() {
                         </td>
                         <td className="p-4 text-arm-text-primary">
                           {run.passRate !== undefined
-                            ? `${(run.passRate * 100).toFixed(1)}%`
+                            ? `${((normalizeRate(run.passRate) || 0) * 100).toFixed(1)}%`
                             : '—'}
                         </td>
                         <td className="p-4 text-arm-text-primary">

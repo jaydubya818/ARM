@@ -28,6 +28,10 @@ export const recordEvaluationMetrics = mutation({
   handler: async (ctx, args) => {
     const now = Date.now();
     const date = new Date(now);
+    const normalizedMetrics = {
+      ...args.metrics,
+      passRate: normalizeRate(args.metrics.passRate),
+    };
     
     // Determine period (daily, weekly, monthly)
     const periods = [
@@ -44,7 +48,7 @@ export const recordEvaluationMetrics = mutation({
         suiteId: args.suiteId,
         runId: args.runId,
         timestamp: now,
-        metrics: args.metrics,
+        metrics: normalizedMetrics,
         period,
       });
     }
@@ -335,7 +339,7 @@ function calculateAverages(metrics: any[]) {
   const sums = metrics.reduce(
     (acc, m) => ({
       overallScore: acc.overallScore + m.metrics.overallScore,
-      passRate: acc.passRate + m.metrics.passRate,
+      passRate: acc.passRate + normalizeRate(m.metrics.passRate),
       avgExecutionTime: acc.avgExecutionTime + m.metrics.avgExecutionTime,
       testCaseCount: acc.testCaseCount + m.metrics.testCaseCount,
       passedCount: acc.passedCount + m.metrics.passedCount,
@@ -359,6 +363,11 @@ function calculateAverages(metrics: any[]) {
     passedCount: sums.passedCount / metrics.length,
     failedCount: sums.failedCount / metrics.length,
   };
+}
+
+function normalizeRate(value: number): number {
+  if (Number.isNaN(value)) return 0;
+  return Math.abs(value) > 1 ? value / 100 : value;
 }
 
 function getWeekNumber(date: Date): number {

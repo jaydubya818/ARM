@@ -415,4 +415,20 @@ export default defineSchema({
     timestamp: v.number(),
   }).index("by_experiment", ["experimentId"])
     .index("by_timestamp", ["experimentId", "timestamp"]),
+
+  // Cost Ledger - token usage and cost tracking
+  costLedger: defineTable({
+    tenantId: v.id("tenants"),
+    versionId: v.optional(v.id("agentVersions")),
+    instanceId: v.optional(v.id("agentInstances")),
+    policyId: v.optional(v.id("policyEnvelopes")),
+    tokensUsed: v.number(),
+    estimatedCost: v.number(), // USD
+    source: v.string(), // e.g. "evaluation", "inference", "manual"
+    metadata: v.optional(v.any()),
+    timestamp: v.number(),
+  }).index("by_tenant", ["tenantId"])
+    .index("by_tenant_time", ["tenantId", "timestamp"])
+    .index("by_version", ["versionId"])
+    .index("by_instance", ["instanceId"]),
 });

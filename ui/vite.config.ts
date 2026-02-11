@@ -19,7 +19,7 @@ export default defineConfig({
           // Vendor chunks
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
           'vendor-convex': ['convex', 'convex/react'],
-          'vendor-ui': ['lucide-react', 'framer-motion'],
+          'vendor-ui': ['lucide-react'],
           
           // Feature chunks
           'feature-evaluations': [

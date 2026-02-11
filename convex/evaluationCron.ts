@@ -4,8 +4,9 @@
  * Internal functions called by Convex cron scheduler.
  */
 
+import { v } from "convex/values";
 import { internalAction, internalMutation } from "./_generated/server";
-import { api } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 
 /**
  * Process pending evaluation runs for all tenants
@@ -165,3 +166,119 @@ export const healthCheck = internalAction({
     };
   },
 });
+
+/**
+ * One-time backfill: normalize legacy passRate values (>1 treated as 0-100 scale).
+ * Run manually via: npx convex run internal:evaluationCron:normalizeLegacyPassRates
+ */
+export const normalizeLegacyPassRates = internalAction({
+  args: {
+    tenantId: v.optional(v.id("tenants")),
+    dryRun: v.optional(v.boolean()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const tenants = await ctx.runQuery(api.tenants.list);
+    const targetTenants = args.tenantId
+      ? tenants.filter((tenant) => tenant._id === args.tenantId)
+      : tenants;
+
+    if (args.tenantId && targetTenants.length === 0) {
+      throw new Error("Tenant not found for normalization");
+    }
+
+    const results: Array<{
+      tenantId: string;
+      tenantName: string;
+      normalizedRuns: number;
+      normalizedMetrics: number;
+    }> = [];
+
+    for (const tenant of targetTenants) {
+      const result = await ctx.runMutation(
+        internal.evaluationCron.normalizeLegacyPassRatesForTenant,
+        {
+          tenantId: tenant._id,
+          dryRun: args.dryRun,
+          limit: args.limit,
+        }
+      );
+
+      results.push({
+        tenantId: tenant._id,
+        tenantName: tenant.name,
+        normalizedRuns: result.normalizedRuns,
+        normalizedMetrics: result.normalizedMetrics,
+      });
+    }
+
+    return {
+      dryRun: args.dryRun ?? false,
+      totalRuns: results.reduce((sum, r) => sum + r.normalizedRuns, 0),
+      totalMetrics: results.reduce((sum, r) => sum + r.normalizedMetrics, 0),
+      tenants: results,
+      timestamp: Date.now(),
+    };
+  },
+});
+
+export const normalizeLegacyPassRatesForTenant = internalMutation({
+  args: {
+    tenantId: v.id("tenants"),
+    dryRun: v.optional(v.boolean()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const runs = await ctx.db
+      .query("evaluationRuns")
+      .withIndex("by_tenant", (q) => q.eq("tenantId", args.tenantId))
+      .collect();
+
+    const runsToNormalize = runs.filter(
+      (run) => typeof run.passRate === "number" && Math.abs(run.passRate) > 1
+    );
+
+    const runTargets = args.limit ? runsToNormalize.slice(0, args.limit) : runsToNormalize;
+
+    for (const run of runTargets) {
+      const normalized = normalizeRate(run.passRate as number);
+      if (!args.dryRun) {
+        await ctx.db.patch(run._id, { passRate: normalized });
+      }
+    }
+
+    const metrics = await ctx.db
+      .query("evaluationMetrics")
+      .withIndex("by_tenant", (q) => q.eq("tenantId", args.tenantId))
+      .collect();
+
+    const metricsToNormalize = metrics.filter(
+      (metric) => Math.abs(metric.metrics.passRate) > 1
+    );
+
+    const metricTargets = args.limit ? metricsToNormalize.slice(0, args.limit) : metricsToNormalize;
+
+    for (const metric of metricTargets) {
+      const normalized = normalizeRate(metric.metrics.passRate);
+      if (!args.dryRun) {
+        await ctx.db.patch(metric._id, {
+          metrics: {
+            ...metric.metrics,
+            passRate: normalized,
+          },
+        });
+      }
+    }
+
+    return {
+      normalizedRuns: runTargets.length,
+      normalizedMetrics: metricTargets.length,
+      dryRun: args.dryRun ?? false,
+    };
+  },
+});
+
+function normalizeRate(value: number): number {
+  if (Number.isNaN(value)) return 0;
+  return Math.abs(value) > 1 ? value / 100 : value;
+}

@@ -117,7 +117,7 @@ This document summarizes the security and privacy fixes implemented to address P
   - `generatePseudonymousId()` - Pseudonymous ID generation
 
 ### Configuration
-- **`convex/utils/loadFunctionSpec.ts`** (60 lines)
+- **`convex/utils/loadFunctionSpec.nobundle.ts`** (60 lines)
   - Function spec loader with environment variable substitution
   - URL validation
   - Error handling

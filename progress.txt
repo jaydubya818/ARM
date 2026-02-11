@@ -417,7 +417,7 @@ Files Created (20):
 - convex/lib/queryOptimizer.ts
 - convex/lib/rateLimit.ts
 - convex/lib/inputValidation.ts
-- convex/lib/security.ts
+- convex/lib/security.nobundle.ts
 - ui/src/lib/errorHandler.ts
 - ui/src/hooks/useErrorHandler.ts
 - ui/src/components/MonitoringDashboard.tsx

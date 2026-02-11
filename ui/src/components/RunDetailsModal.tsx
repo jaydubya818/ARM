@@ -7,6 +7,7 @@
 import { useQuery } from 'convex/react'
 import { api } from '../convex/_generated/api'
 import { Id, type Doc } from '../convex/_generated/dataModel'
+import { normalizeRate } from '../lib/metrics'
 import type { TestCaseResult } from '../../../packages/shared/src/types/evaluation'
 
 interface RunDetailsModalProps {
@@ -59,6 +60,7 @@ export function RunDetailsModal({ runId, onClose }: RunDetailsModalProps) {
 
   const duration =
     run.startedAt && run.completedAt ? run.completedAt - run.startedAt : undefined
+  const normalizedPassRate = normalizeRate(run.passRate)
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -96,8 +98,8 @@ export function RunDetailsModal({ runId, onClose }: RunDetailsModalProps) {
             </div>
             <div className="p-3 bg-arm-bg-primary rounded-lg">
               <div className="text-xs text-arm-text-tertiary mb-1">Pass Rate</div>
-              <div className={`text-lg font-semibold ${getScoreColor(run.passRate || 0)}`}>
-                {run.passRate !== undefined ? `${(run.passRate * 100).toFixed(1)}%` : 'N/A'}
+              <div className={`text-lg font-semibold ${getScoreColor(normalizedPassRate || 0)}`}>
+                {normalizedPassRate !== undefined ? `${(normalizedPassRate * 100).toFixed(1)}%` : 'N/A'}
               </div>
             </div>
             <div className="p-3 bg-arm-bg-primary rounded-lg">

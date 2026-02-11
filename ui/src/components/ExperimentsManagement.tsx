@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
-import type { Id } from "../convex/_generated/dataModel";
+import type { Id, Doc } from "../convex/_generated/dataModel";
 import { useState } from "react";
 import { Play, Plus } from "lucide-react";
 
@@ -158,7 +158,7 @@ export function ExperimentsManagement({
               </tr>
             </thead>
             <tbody>
-              {experiments.map((exp) => (
+              {experiments.map((exp: Doc<"experiments">) => (
                 <tr
                   key={exp._id}
                   className="border-t border-arm-border hover:bg-arm-surface/50"
@@ -179,7 +179,7 @@ export function ExperimentsManagement({
                     </span>
                   </td>
                   <td className="px-4 py-3 text-sm text-arm-text">
-                    {exp.variants.map((v) => `${v.name} (${v.weight}%)`).join(", ")}
+                    {exp.variants.map((v: { name: string; weight: number }) => `${v.name} (${v.weight}%)`).join(", ")}
                   </td>
                   <td className="px-4 py-3 flex gap-2">
                     {exp.status === "DRAFT" && (

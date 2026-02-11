@@ -47,7 +47,7 @@ Core Utilities (3 files):
    - anonymizeUserAgent() - User agent anonymization
    - generatePseudonymousId() - Pseudonymous ID generation
 
-2. convex/utils/loadFunctionSpec.ts (60 lines)
+2. convex/utils/loadFunctionSpec.nobundle.ts (60 lines)
    - Function spec loader with environment variable substitution
    - URL validation and error handling
    - Usage examples

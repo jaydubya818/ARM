@@ -166,7 +166,7 @@ Phase 4.0 focused on production readiness, implementing enterprise-grade feature
   - Pre-built schemas (template, version, operator, policy)
 
 **Security Features:**
-- ✅ Security utilities (`convex/lib/security.ts`)
+- ✅ Security utilities (`convex/lib/security.nobundle.ts`)
   - CSRF token management with timing-safe comparison
   - Secure token generation (crypto.randomBytes)
   - API key generation and validation
@@ -303,7 +303,7 @@ Phase 4.0 focused on production readiness, implementing enterprise-grade feature
 7. `convex/lib/queryOptimizer.ts` - Query optimization utilities
 8. `convex/lib/rateLimit.ts` - Rate limiting system
 9. `convex/lib/inputValidation.ts` - Input validation and sanitization
-10. `convex/lib/security.ts` - Security utilities
+10. `convex/lib/security.nobundle.ts` - Security utilities
 11. `docs/PHASE_4.0_PLAN.md` - Phase 4.0 planning document
 
 **Frontend (3 files):**

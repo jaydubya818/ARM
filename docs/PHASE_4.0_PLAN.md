@@ -152,7 +152,7 @@ perf: optimize bundle size and loading times
 
 #### Security Enhancements
 **Files to Create/Modify**:
-- `convex/lib/security.ts` - Security utilities
+- `convex/lib/security.nobundle.ts` - Security utilities
 - `convex/lib/rateLimit.ts` - Rate limiting
 - `convex/lib/inputValidation.ts` - Enhanced validation
 - All mutation modules - Add validation

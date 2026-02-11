@@ -20,6 +20,7 @@
 - [Policy Envelopes](#policy-envelopes)
 - [Approval Records](#approval-records)
 - [Change Records](#change-records)
+- [Cost Ledger](#cost-ledger)
 - [Error Handling](#error-handling)
 
 ---
@@ -694,6 +695,35 @@ Array<{
 - `APPROVAL_DECIDED`
 - `APPROVAL_CANCELLED`
 - `INTEGRITY_FAILED`
+
+---
+
+## Cost Ledger
+
+### `costLedger.record`
+
+**Type:** Mutation  
+**Description:** Record token usage and cost. Used by evaluations, manual entry, or **external inference services** (call via Convex client when tracking LLM usage).
+
+**Arguments:**
+```typescript
+{
+  tenantId: Id<"tenants">
+  tokensUsed: number
+  estimatedCost: number  // USD
+  source: string         // e.g. "inference", "evaluation", "manual"
+  versionId?: Id<"agentVersions">
+  instanceId?: Id<"agentInstances">
+  policyId?: Id<"policyEnvelopes">
+  metadata?: any
+}
+```
+
+### `costLedger.getSummary`
+
+**Type:** Query  
+**Arguments:** `{ tenantId, period?: "day" | "week" | "month" }`  
+**Returns:** `{ totalTokens, totalCost, entryCount, period }`
 
 ---
 

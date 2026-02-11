@@ -85,16 +85,26 @@ convex deploy --prod
 ✓ Deployment URL: https://your-project.convex.cloud
 ```
 
-### 2. Configure Environment Variables
+### 2. Configure Clerk Authentication
+
+See **[AUTH_SETUP.md](./AUTH_SETUP.md)** for full instructions. Summary:
+1. Create a Clerk account and JWT template named `convex`
+2. Set `CLERK_JWT_ISSUER_DOMAIN` in Convex Dashboard
+3. Update `convex/auth.config.ts` with your Clerk domain and run `npx convex deploy`
+
+### 3. Configure Environment Variables
 
 Create `.env.production` in the `ui/` directory:
 
 ```bash
 # ui/.env.production
 VITE_CONVEX_URL=https://your-project.convex.cloud
+VITE_CLERK_PUBLISHABLE_KEY=pk_live_...
 ```
 
-### 3. Seed Production Data
+For local development, use `.env.local` with `pk_test_...` keys.
+
+### 4. Seed Production Data
 
 ```bash
 # Run seed script in production
@@ -188,19 +198,7 @@ vercel --prod
 
 #### Automatic Deployments
 
-Create `vercel.json` in `ui/`:
-
-```json
-{
-  "buildCommand": "pnpm build",
-  "outputDirectory": "dist",
-  "installCommand": "pnpm install",
-  "framework": "vite",
-  "env": {
-    "VITE_CONVEX_URL": "@convex-url"
-  }
-}
-```
+`ui/vercel.json` is configured. Connect GitHub for auto-deploy on push.
 
 Connect GitHub repository for automatic deployments:
 
@@ -208,31 +206,15 @@ Connect GitHub repository for automatic deployments:
 # Link repository
 vercel link
 
-# Configure environment variables in Vercel dashboard
+# Configure environment variables in Vercel dashboard:
 # Settings → Environment Variables → Add:
-# VITE_CONVEX_URL = https://your-project.convex.cloud
+#   VITE_CONVEX_URL = https://your-project.convex.cloud
+#   VITE_CLERK_PUBLISHABLE_KEY = pk_live_... (if using Clerk)
 ```
 
 ### Option 2: Netlify
 
-#### netlify.toml
-
-```toml
-[build]
-  base = "ui/"
-  command = "pnpm build"
-  publish = "dist"
-
-[build.environment]
-  NODE_VERSION = "18"
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-```
-
-#### Deploy
+`netlify.toml` at project root is configured. Deploy with:
 
 ```bash
 # From project root
@@ -262,6 +244,19 @@ netlify deploy --prod
 5. Add environment variable:
    - `VITE_CONVEX_URL` = `https://your-project.convex.cloud`
 6. Deploy
+
+---
+
+## Deploy Script
+
+From project root:
+
+```bash
+chmod +x scripts/deploy.sh
+./scripts/deploy.sh
+```
+
+This deploys Convex to production and builds the UI. Deploy the `ui/dist/` folder to your hosting provider.
 
 ---
 

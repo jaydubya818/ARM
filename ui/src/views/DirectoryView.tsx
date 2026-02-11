@@ -5,6 +5,7 @@ import { Id, type Doc } from '../convex/_generated/dataModel'
 import { VersionDrawer } from '../components/VersionDrawer'
 import { CreateTemplateModal } from '../components/CreateTemplateModal'
 import { CreateVersionModal } from '../components/CreateVersionModal'
+import { CreateInstanceModal } from '../components/CreateInstanceModal'
 import { StatusChip } from '../components/StatusChip'
 
 type Tab = 'templates' | 'versions' | 'instances'
@@ -14,6 +15,7 @@ export function DirectoryView() {
   const [selectedVersionId, setSelectedVersionId] = useState<Id<'agentVersions'> | null>(null)
   const [isCreatingTemplate, setIsCreatingTemplate] = useState(false)
   const [isCreatingVersion, setIsCreatingVersion] = useState(false)
+  const [isCreatingInstance, setIsCreatingInstance] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('ALL')
   
@@ -109,6 +111,14 @@ export function DirectoryView() {
               className="px-4 py-2 bg-arm-accent text-white rounded hover:bg-arm-blue transition-colors"
             >
               Create Version
+            </button>
+          )}
+          {activeTab === 'instances' && (
+            <button
+              onClick={() => setIsCreatingInstance(true)}
+              className="px-4 py-2 bg-arm-accent text-white rounded hover:bg-arm-blue transition-colors"
+            >
+              Create Instance
             </button>
           )}
         </div>
@@ -333,6 +343,14 @@ export function DirectoryView() {
         <CreateVersionModal
           tenantId={tenantId}
           onClose={() => setIsCreatingVersion(false)}
+        />
+      )}
+
+      {/* Create Instance Modal */}
+      {isCreatingInstance && tenantId && (
+        <CreateInstanceModal
+          tenantId={tenantId}
+          onClose={() => setIsCreatingInstance(false)}
         />
       )}
     </div>

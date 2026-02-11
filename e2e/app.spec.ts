@@ -19,4 +19,20 @@ test.describe("ARM Application", () => {
       page.getByRole("heading", { name: /System Monitoring/i })
     ).toBeVisible();
   });
+
+  test("incidents page loads", async ({ page }) => {
+    await page.goto("/incidents");
+    await expect(page.getByRole("heading", { name: /Incidents/i })).toBeVisible();
+  });
+
+  test("cost page loads", async ({ page }) => {
+    await page.goto("/cost");
+    await expect(page.getByRole("heading", { name: /Cost Management/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Record Cost/i })).toBeVisible();
+  });
+
+  test("federation page loads", async ({ page }) => {
+    await page.goto("/federation");
+    await expect(page.getByRole("heading", { name: /Federation/i })).toBeVisible();
+  });
 });

@@ -58,7 +58,7 @@ All four requested tasks have been completed:
 - `convex/lib/queryOptimizer.ts`
 - `convex/lib/rateLimit.ts`
 - `convex/lib/inputValidation.ts`
-- `convex/lib/security.ts`
+- `convex/lib/security.nobundle.ts`
 - `docs/PHASE_4.0_PLAN.md`
 
 **Frontend (3):**

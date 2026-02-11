@@ -7,6 +7,7 @@
 import { useQuery } from 'convex/react'
 import { api } from '../convex/_generated/api'
 import { Id, type Doc } from '../convex/_generated/dataModel'
+import { normalizeRate } from '../lib/metrics'
 
 interface SuiteStatisticsProps {
   tenantId: Id<'tenants'>
@@ -43,7 +44,7 @@ export function SuiteStatistics({ tenantId }: SuiteStatisticsProps) {
       ? completedRunsData.reduce((sum, r) => sum + (r.overallScore || 0), 0) / completedRunsData.length
       : 0
 
-  const passedRuns = completedRunsData.filter(r => (r.passRate || 0) >= 0.8).length
+  const passedRuns = completedRunsData.filter(r => (normalizeRate(r.passRate) || 0) >= 0.8).length
   const successRate = completedRuns > 0 ? passedRuns / completedRuns : 0
 
   // Suite-level stats

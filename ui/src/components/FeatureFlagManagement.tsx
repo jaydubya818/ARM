@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
-import type { Id } from "../convex/_generated/dataModel";
+import type { Id, Doc } from "../convex/_generated/dataModel";
 import { useState } from "react";
 import { Plus, ToggleLeft, ToggleRight, Trash2 } from "lucide-react";
 
@@ -143,7 +143,7 @@ export function FeatureFlagManagement({
               </tr>
             </thead>
             <tbody>
-              {flags.map((flag) => (
+              {flags.map((flag: Doc<"featureFlags">) => (
                 <tr
                   key={flag._id}
                   className="border-t border-arm-border hover:bg-arm-surface/50"
