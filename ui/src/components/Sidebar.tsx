@@ -9,6 +9,8 @@ const navItems = [
   { path: '/custom-functions', label: 'Custom Functions', icon: '⚡', section: 'Advanced' },
   { path: '/roles', label: 'Roles & Permissions', icon: '🔐', section: 'Admin' },
   { path: '/audit', label: 'Audit Logs', icon: '📋', section: 'Admin' },
+  { path: '/feature-flags', label: 'Feature Flags', icon: '🚩', section: 'Admin' },
+  { path: '/experiments', label: 'Experiments', icon: '🧪', section: 'Admin' },
   { path: '/monitoring', label: 'System Monitoring', icon: '📈', section: 'Monitoring' },
   { path: '/incidents', label: 'Incidents', icon: '⚠️', section: 'Monitoring' },
   { path: '/cost', label: 'Cost', icon: '💰', section: 'Monitoring' },

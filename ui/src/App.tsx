@@ -8,6 +8,8 @@ import { AnalyticsView } from './views/AnalyticsView'
 import { RolesView } from './views/RolesView'
 import { AuditView } from './views/AuditView'
 import { CustomFunctionsView } from './views/CustomFunctionsView'
+import { FeatureFlagsView } from './views/FeatureFlagsView'
+import { ExperimentsView } from './views/ExperimentsView'
 import { MonitoringView } from './views/MonitoringView'
 import { PlaceholderView } from './views/PlaceholderView'
 import { ToastContainer } from './components/ToastContainer'
@@ -63,6 +65,26 @@ export default function App() {
             <Route 
               path="/audit" 
               element={tenantId ? <AuditView tenantId={tenantId} /> : <div>Loading...</div>} 
+            />
+            <Route 
+              path="/feature-flags" 
+              element={
+                tenantId && operatorId ? (
+                  <FeatureFlagsView tenantId={tenantId} currentOperatorId={operatorId} />
+                ) : (
+                  <div>Loading...</div>
+                )
+              } 
+            />
+            <Route 
+              path="/experiments" 
+              element={
+                tenantId && operatorId ? (
+                  <ExperimentsView tenantId={tenantId} currentOperatorId={operatorId} />
+                ) : (
+                  <div>Loading...</div>
+                )
+              } 
             />
             <Route 
               path="/custom-functions" 
