@@ -2,6 +2,11 @@ import { useState } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from 'agent-resources-platform/convex/_generated/api';
 import { Id, type Doc } from 'agent-resources-platform/convex/_generated/dataModel';
+
+type EnrichedApprovalRecord = Doc<'approvalRecords'> & {
+  requesterName: string;
+  deciderName?: string;
+};
 import { useTenant } from '../contexts/TenantContext';
 import { toast } from '../lib/toast';
 
@@ -28,7 +33,7 @@ export function ApprovalsView() {
         status: selectedStatus === 'ALL' ? undefined : selectedStatus,
       }
       : 'skip',
-  ) as Doc<'approvalRecords'>[] | undefined;
+  ) as EnrichedApprovalRecord[] | undefined;
 
   const pendingCount = useQuery(
     api.approvalRecords.getPendingCount,

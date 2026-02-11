@@ -217,20 +217,3 @@ export const remove = mutation({
     await ctx.db.delete(args.flagId);
   },
 });
-
-/**
- * Deterministic hash to assign operator to rollout percentage
- */
-function hashOperatorToPercent(
-  operatorId: string,
-  flagKey: string,
-): number {
-  const str = `${operatorId}_${flagKey}`;
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash &= hash;
-  }
-  return Math.abs(hash % 100);
-}

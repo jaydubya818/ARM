@@ -143,14 +143,14 @@ export const create = mutation({
       })),
     }),
   },
-  handler: async (ctx, args) => await ctx.db.atomic(async (tx) => {
+  handler: async (ctx, args) => {
     // Validate function name
     if (!args.name.trim()) {
       throw new Error('Function name is required');
     }
 
     // Check for duplicate name
-    const existing = await tx
+    const existing = await ctx.db
       .query('customScoringFunctions')
       .withIndex('by_name', (q) => q.eq('tenantId', args.tenantId).eq('name', args.name))
       .first();
@@ -168,7 +168,7 @@ export const create = mutation({
 
     // Create function
     const now = Date.now();
-    const functionId = await tx.insert('customScoringFunctions', {
+    const functionId = await ctx.db.insert('customScoringFunctions', {
       tenantId: args.tenantId,
       name: args.name,
       description: args.description,
@@ -183,7 +183,7 @@ export const create = mutation({
     });
 
     // Write change record
-    await tx.insert('changeRecords', {
+    await ctx.db.insert('changeRecords', {
       tenantId: args.tenantId,
       type: 'CUSTOM_FUNCTION_CREATED',
       targetEntity: 'customScoringFunction',
@@ -196,7 +196,7 @@ export const create = mutation({
     });
 
     return functionId;
-  }),
+  },
 });
 
 /**
@@ -225,8 +225,8 @@ export const update = mutation({
       })),
     })),
   },
-  handler: async (ctx, args) => await ctx.db.atomic(async (tx) => {
-    const func = await tx.get(args.functionId);
+  handler: async (ctx, args) => {
+    const func = await ctx.db.get(args.functionId);
     if (!func) {
       throw new Error('Function not found');
     }
@@ -242,7 +242,7 @@ export const update = mutation({
 
     // Check for duplicate name if changing name
     if (args.name && args.name !== func.name) {
-      const existing = await tx
+      const existing = await ctx.db
         .query('customScoringFunctions')
         .withIndex('by_name', (q) => q.eq('tenantId', func.tenantId).eq('name', args.name!))
         .first();
@@ -266,10 +266,10 @@ export const update = mutation({
     if (args.isActive !== undefined) updates.isActive = args.isActive;
     if (args.metadata !== undefined) updates.metadata = args.metadata;
 
-    await tx.patch(args.functionId, updates);
+    await ctx.db.patch(args.functionId, updates);
 
     // Write change record
-    await tx.insert('changeRecords', {
+    await ctx.db.insert('changeRecords', {
       tenantId: func.tenantId,
       type: 'CUSTOM_FUNCTION_UPDATED',
       targetEntity: 'customScoringFunction',
@@ -282,7 +282,7 @@ export const update = mutation({
     });
 
     return args.functionId;
-  }),
+  },
 });
 
 /**
@@ -292,17 +292,17 @@ export const remove = mutation({
   args: {
     functionId: v.id('customScoringFunctions'),
   },
-  handler: async (ctx, args) => await ctx.db.atomic(async (tx) => {
-    const func = await tx.get(args.functionId);
+  handler: async (ctx, args) => {
+    const func = await ctx.db.get(args.functionId);
     if (!func) {
       throw new Error('Function not found');
     }
 
     // Delete function
-    await tx.delete(args.functionId);
+    await ctx.db.delete(args.functionId);
 
     // Write change record
-    await tx.insert('changeRecords', {
+    await ctx.db.insert('changeRecords', {
       tenantId: func.tenantId,
       type: 'CUSTOM_FUNCTION_DELETED',
       targetEntity: 'customScoringFunction',
@@ -315,7 +315,7 @@ export const remove = mutation({
     });
 
     return { success: true };
-  }),
+  },
 });
 
 /**

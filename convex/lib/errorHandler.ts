@@ -6,7 +6,7 @@
  */
 
 import {
-  ARMError, toARMError, isARMError, ErrorCode,
+  ARMError, toARMError, ErrorCode,
 } from './errorTypes';
 
 export interface ErrorContext {

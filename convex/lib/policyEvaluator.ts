@@ -33,45 +33,8 @@ export interface PolicyEnvelope {
   };
 }
 
-/**
- * Policy Evaluation Engine
- *
- * Evaluates tool calls and actions against policy envelopes to determine
- * if they should be ALLOWED, DENIED, or require APPROVAL.
- */
 
-export type PolicyDecision = 'ALLOW' | 'DENY' | 'NEEDS_APPROVAL';
-
-export type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
-
-export interface PolicyEvaluationRequest {
-  toolId: string;
-  toolParams?: any;
-  estimatedCost?: number;
-  dailyTokensUsed?: number;
-  monthlyCostUsed?: number;
-}
-
-export interface PolicyEvaluationResult {
-  decision: PolicyDecision;
-  reason: string;
-  riskLevel: RiskLevel;
-  violations: string[];
-}
-
-export interface PolicyEnvelope {
-  autonomyTier: number;
-  allowedTools: string[];
-  costLimits?: {
-    dailyTokens?: number;
-    monthlyCost?: number;
-  };
-}
-
-/**
- * Classify risk level based on tool and parameters
- */
-function classifyRisk(toolId: string, toolParams?: any): RiskLevel {
+function classifyRisk(toolId: string, _toolParams?: any): RiskLevel {
   // Critical risk tools (require highest autonomy)
   const criticalTools = [
     'database_write',

@@ -2,7 +2,6 @@
  * Auth module - operator resolution from Clerk identity
  */
 
-import { v } from 'convex/values';
 import { query, mutation } from './_generated/server';
 
 /**

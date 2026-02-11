@@ -232,7 +232,7 @@ export const getCurrentMetrics = query({
   args: {
     windowMs: v.optional(v.number()),
   },
-  handler: async (ctx, args) => {
+  handler: async (_ctx, args) => {
     const metrics = calculateMetrics(args.windowMs || 60000);
     return {
       ...metrics,
@@ -250,7 +250,7 @@ export const getMetricsByType = query({
     type: v.string(),
     windowMs: v.optional(v.number()),
   },
-  handler: async (ctx, args) => {
+  handler: async (_ctx, args) => {
     const now = Date.now();
     const windowStart = now - (args.windowMs || 60000);
 
@@ -280,7 +280,7 @@ export const getSlowQueries = query({
     limit: v.optional(v.number()),
     thresholdMs: v.optional(v.number()),
   },
-  handler: async (ctx, args) => {
+  handler: async (_ctx, args) => {
     const limit = args.limit || 10;
     const threshold = args.thresholdMs || 100;
 
@@ -310,7 +310,7 @@ export const getErrorBreakdown = query({
   args: {
     windowMs: v.optional(v.number()),
   },
-  handler: async (ctx, args) => {
+  handler: async (_ctx, args) => {
     const now = Date.now();
     const windowStart = now - (args.windowMs || 3600000); // Default: 1 hour
 
@@ -340,7 +340,7 @@ export const clearOldMetrics = mutation({
   args: {
     olderThanMs: v.number(),
   },
-  handler: async (ctx, args) => {
+  handler: async (_ctx, args) => {
     const cutoff = Date.now() - args.olderThanMs;
     const before = metricsStore.length;
 

@@ -7,7 +7,7 @@
 import { useQuery } from 'convex/react';
 import { api } from 'agent-resources-platform/convex/_generated/api';
 import { Id, type Doc } from 'agent-resources-platform/convex/_generated/dataModel';
-import type { TestCaseResult } from '@arm/shared/src/types/evaluation';
+import type { TestCaseResult } from '../../../packages/shared/src/types/evaluation';
 import { normalizeRate } from '../lib/metrics';
 
 interface RunDetailsModalProps {

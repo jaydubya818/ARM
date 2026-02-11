@@ -42,7 +42,7 @@ export function IncidentsView({ tenantId }: IncidentsViewProps) {
         <div className="space-y-3">
           {incidents.map((incident) => (
             <div
-              key={incident._id}
+              key={incident._id as string}
               className={`flex items-start gap-4 p-4 rounded-lg border ${
                 incident.type === 'error'
                   ? 'bg-red-50 border-red-200'
@@ -58,9 +58,9 @@ export function IncidentsView({ tenantId }: IncidentsViewProps) {
                 <p className="font-medium text-arm-text">{incident.action}</p>
                 <p className="text-sm text-arm-textMuted mt-1">
                   {incident.resource}
-                  {incident.details
-                    && typeof incident.details === 'object'
-                    && Object.keys(incident.details).length > 0 && (
+                  {(incident.details as any)
+                    && typeof (incident.details as any) === 'object'
+                    && Object.keys(incident.details as any).length > 0 && (
                       <span className="ml-2">
                         —
                         {' '}

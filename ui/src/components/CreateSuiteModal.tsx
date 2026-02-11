@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { useMutation } from 'convex/react';
 import { api } from 'agent-resources-platform/convex/_generated/api';
 import { Id } from 'agent-resources-platform/convex/_generated/dataModel';
-import type { TestCase, ScoringCriteria, ScoringCriteriaType } from '@arm/shared/src/types/evaluation';
+import type { TestCase, ScoringCriteria, ScoringCriteriaType } from '../../../packages/shared/src/types/evaluation';
 import { toast } from '../lib/toast';
 
 interface CreateSuiteModalProps {
@@ -23,7 +23,7 @@ export function CreateSuiteModal({
 }: CreateSuiteModalProps) {
   const createSuite = useMutation(api.evaluationSuites.create);
 
-  type TestCaseForm = Omit<TestCase, 'scoringCriteria'> & { scoringCriteria: ScoringCriteria }
+  type TestCaseForm = Omit<TestCase, 'scoringCriteria'> & { scoringCriteria?: ScoringCriteria }
   const buildTestCase = (id: string): TestCaseForm => ({
     id,
     name: `Test Case ${id}`,
@@ -55,7 +55,15 @@ export function CreateSuiteModal({
   };
 
   const updateTestCase = (id: string, updates: Partial<TestCaseForm>) => {
-    setTestCases(testCases.map((tc) => (tc.id === id ? { ...tc, ...updates } : tc)));
+    setTestCases(testCases.map((tc) => (tc.id === id
+      ? {
+        ...tc,
+        ...updates,
+        scoringCriteria: updates.scoringCriteria
+          ? { ...tc.scoringCriteria, ...updates.scoringCriteria }
+          : tc.scoringCriteria,
+      }
+      : tc)));
   };
 
   const addTag = () => {
@@ -283,7 +291,7 @@ export function CreateSuiteModal({
                           Scoring Type
                         </label>
                         <select
-                          value={testCase.scoringCriteria.type}
+                          value={testCase.scoringCriteria?.type || 'exact_match'}
                           onChange={(e) => updateTestCase(testCase.id, {
                             scoringCriteria: { type: e.target.value as ScoringCriteriaType },
                           })}
@@ -297,7 +305,7 @@ export function CreateSuiteModal({
                         </select>
                       </div>
 
-                      {testCase.scoringCriteria.type === 'similarity' && (
+                      {testCase.scoringCriteria?.type === 'similarity' && (
                         <div>
                           <label className="block text-xs font-medium text-arm-text-secondary mb-1">
                             Similarity Threshold (0-1)
@@ -307,10 +315,11 @@ export function CreateSuiteModal({
                             min="0"
                             max="1"
                             step="0.01"
-                            value={testCase.scoringCriteria.threshold || 0.8}
+                            value={testCase.scoringCriteria?.threshold || 0.8}
                             onChange={(e) => updateTestCase(testCase.id, {
                               scoringCriteria: {
                                 ...testCase.scoringCriteria,
+                                type: testCase.scoringCriteria?.type || 'exact_match', // Ensure type is always present
                                 threshold: parseFloat(e.target.value),
                               },
                             })}

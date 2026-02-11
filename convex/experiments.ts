@@ -85,42 +85,7 @@ export const assignVariant = mutation({
   },
 });
 
-/**
- * Assign variant to operator (called by mutation when needed)
- */
-export const assignVariant = mutation({
-  args: {
-    experimentId: v.id('experiments'),
-    operatorId: v.id('operators'),
-  },
-  handler: async (ctx, args) => {
-    const existing = await ctx.db
-      .query('experimentAssignments')
-      .withIndex('by_experiment_operator', (q) => q.eq('experimentId', args.experimentId).eq('operatorId', args.operatorId))
-      .first();
 
-    if (existing) return existing.variantId;
-
-    const experiment = await ctx.db.get(args.experimentId);
-    if (!experiment || experiment.status !== 'RUNNING') return null;
-
-    const variant = selectVariant(experiment.variants, args.operatorId);
-    if (!variant) return null;
-
-    await ctx.db.insert('experimentAssignments', {
-      experimentId: args.experimentId,
-      operatorId: args.operatorId,
-      variantId: variant.id,
-      assignedAt: Date.now(),
-    });
-
-    return variant.id;
-  },
-});
-
-/**
- * Track experiment event (conversion, engagement, etc.)
- */
 export const trackEvent = mutation({
   args: {
     experimentId: v.id('experiments'),
@@ -270,29 +235,4 @@ export const getResults = query({
   },
 });
 
-/**
- * Deterministic variant selection by operator ID
- */
-function selectVariant(
-  variants: Array<{ id: string; weight: number }>,
-  operatorId: string,
-): (typeof variants)[0] | null {
-  const hash = hashString(operatorId);
-  const bucket = hash % 100;
-  let acc = 0;
-  for (const v of variants) {
-    acc += v.weight;
-    if (bucket < acc) return v;
-  }
-  return variants[variants.length - 1] ?? null;
-}
 
-function hashString(str: string): number {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash &= hash;
-  }
-  return Math.abs(hash);
-}

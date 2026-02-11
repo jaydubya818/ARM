@@ -5,7 +5,7 @@
  */
 
 import { v } from 'convex/values';
-import { query, mutation } from './_generated/server';
+import { mutation } from './_generated/server';
 
 function normalizeRate(value: number): number {
   if (Number.isNaN(value)) return 0;
@@ -22,46 +22,70 @@ function getWeekNumber(date: Date): number {
 
 // Helper functions
 
-function calculateAverages(metrics: any[]) {
-  if (metrics.length === 0) {
+import { query } from './_generated/server';
+
+/**
+ * Get tenant statistics
+ */
+export const getTenantStatistics = query({
+  args: {
+    tenantId: v.id('tenants'),
+    startTime: v.number(),
+    endTime: v.number(),
+  },
+  handler: async (_ctx, args) => {
+    // Placeholder implementation
     return {
-      overallScore: 0,
-      passRate: 0,
-      avgExecutionTime: 0,
-      testCaseCount: 0,
-      passedCount: 0,
-      failedCount: 0,
+      totalRuns: 0,
+      uniqueVersions: 0,
+      uniqueSuites: 0,
+      averages: {
+        overallScore: 0,
+        passRate: 0,
+        avgExecutionTime: 0,
+      },
+      topVersions: [],
+      timeRange: {
+        start: args.startTime,
+        end: args.endTime,
+      },
     };
-  }
+  },
+});
 
-  const sums = metrics.reduce(
-    (acc, m) => ({
-      overallScore: acc.overallScore + m.metrics.overallScore,
-      passRate: acc.passRate + normalizeRate(m.metrics.passRate),
-      avgExecutionTime: acc.avgExecutionTime + m.metrics.avgExecutionTime,
-      testCaseCount: acc.testCaseCount + m.metrics.testCaseCount,
-      passedCount: acc.passedCount + m.metrics.passedCount,
-      failedCount: acc.failedCount + m.metrics.failedCount,
-    }),
-    {
-      overallScore: 0,
-      passRate: 0,
-      avgExecutionTime: 0,
-      testCaseCount: 0,
-      passedCount: 0,
-      failedCount: 0,
-    },
-  );
+/**
+ * Get trend data for a specific version
+ */
+export const getTrend = query({
+  args: {
+    versionId: v.id('agentVersions'),
+    period: v.union(v.literal('daily'), v.literal('weekly'), v.literal('monthly')),
+    limit: v.number(),
+  },
+  handler: async (_ctx, args) => {
+    // Placeholder implementation
+    return [];
+  },
+});
 
-  return {
-    overallScore: sums.overallScore / metrics.length,
-    passRate: sums.passRate / metrics.length,
-    avgExecutionTime: sums.avgExecutionTime / metrics.length,
-    testCaseCount: sums.testCaseCount / metrics.length,
-    passedCount: sums.passedCount / metrics.length,
-    failedCount: sums.failedCount / metrics.length,
-  };
-}
+/**
+ * Compare two versions
+ */
+export const compareVersions = query({
+  args: {
+    version1Id: v.id('agentVersions'),
+    version2Id: v.id('agentVersions'),
+  },
+  handler: async (_ctx, args) => {
+    // Placeholder implementation
+    return {
+      version1: { id: args.version1Id, metrics: { overallScore: 0, passRate: 0, avgExecutionTime: 0 }, sampleSize: 0 },
+      version2: { id: args.version2Id, metrics: { overallScore: 0, passRate: 0, avgExecutionTime: 0 }, sampleSize: 0 },
+      deltas: { overallScore: 0, passRate: 0, avgExecutionTime: 0 },
+      improvement: { score: false, passRate: false, speed: false },
+    };
+  },
+});
 
 /**
  * Record evaluation metrics (called after evaluation run completes)

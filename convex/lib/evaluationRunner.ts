@@ -138,7 +138,7 @@ function scoreSimilarity(
 function scoreCustom(
   actual: any,
   expected: any,
-  config?: any,
+  _config?: any,
 ): { passed: boolean; score?: number } {
   // STUB: Default to exact match
   return scoreExactMatch(actual, expected);
@@ -186,7 +186,7 @@ function scoreOutput(
  * In production, this would call the actual agent infrastructure.
  */
 async function simulateAgentExecution(
-  input: any,
+  _input: any,
   versionId: Id<'agentVersions'>,
 ): Promise<any> {
   // Simulate network delay

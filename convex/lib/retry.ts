@@ -5,7 +5,7 @@
  * configurable backoff strategies.
  */
 
-import { isRetryableError, ARMError, TimeoutError } from './errorTypes';
+import { isRetryableError, TimeoutError } from './errorTypes';
 import { handleError } from './errorHandler';
 
 export interface RetryOptions {
@@ -100,12 +100,12 @@ function sleep(ms: number): Promise<void> {
 async function withTimeout<T>(
   fn: () => Promise<T>,
   timeoutMs: number,
-  operation: string,
+  _operation: string,
 ): Promise<T> {
   return Promise.race([
     fn(),
     new Promise<T>((_, reject) => setTimeout(
-      () => reject(new TimeoutError(operation, timeoutMs)),
+      () => reject(new TimeoutError(_operation, timeoutMs)),
       timeoutMs,
     )),
   ]);
@@ -237,7 +237,7 @@ export async function retryBatch<T>(
   const successResults: T[] = [];
   const errors: unknown[] = [];
 
-  results.forEach((result, index) => {
+  results.forEach((result, _index) => {
     if (result.status === 'fulfilled') {
       successResults.push(result.value);
     } else {

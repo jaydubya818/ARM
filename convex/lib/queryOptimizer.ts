@@ -13,7 +13,7 @@ import { DataModel } from '../_generated/dataModel';
  */
 export async function batchLoad<T extends { _id: any }>(
   ctx: GenericQueryCtx<DataModel>,
-  tableName: keyof DataModel,
+  _tableName: keyof DataModel,
   ids: any[],
 ): Promise<Map<string, T>> {
   const uniqueIds = [...new Set(ids)];
