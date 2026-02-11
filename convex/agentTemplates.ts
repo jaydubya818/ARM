@@ -10,21 +10,19 @@ export const create = mutation({
     tags: v.array(v.string()),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.atomic(async (tx) => {
-      const templateId = await tx.insert("agentTemplates", args);
-      
-      // Write ChangeRecord
-      await tx.insert("changeRecords", {
-        tenantId: args.tenantId,
-        type: "TEMPLATE_CREATED",
-        targetEntity: "agentTemplate",
-        targetId: templateId,
-        payload: { name: args.name },
-        timestamp: Date.now(),
-      });
-      
-      return templateId;
+    const templateId = await ctx.db.insert("agentTemplates", args);
+
+    // Write ChangeRecord
+    await ctx.db.insert("changeRecords", {
+      tenantId: args.tenantId,
+      type: "TEMPLATE_CREATED",
+      targetEntity: "agentTemplate",
+      targetId: templateId,
+      payload: { name: args.name },
+      timestamp: Date.now(),
     });
+
+    return templateId;
   },
 });
 
@@ -53,24 +51,22 @@ export const update = mutation({
     tags: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.atomic(async (tx) => {
-      const { templateId, ...updates } = args;
-      const template = await tx.get(templateId);
-      if (!template) throw new Error("Template not found");
-      
-      await tx.patch(templateId, updates);
-      
-      // Write ChangeRecord
-      await tx.insert("changeRecords", {
-        tenantId: template.tenantId,
-        type: "TEMPLATE_UPDATED",
-        targetEntity: "agentTemplate",
-        targetId: templateId,
-        payload: updates,
-        timestamp: Date.now(),
-      });
-      
-      return templateId;
+    const { templateId, ...updates } = args;
+    const template = await ctx.db.get(templateId);
+    if (!template) throw new Error("Template not found");
+
+    await ctx.db.patch(templateId, updates);
+
+    // Write ChangeRecord
+    await ctx.db.insert("changeRecords", {
+      tenantId: template.tenantId,
+      type: "TEMPLATE_UPDATED",
+      targetEntity: "agentTemplate",
+      targetId: templateId,
+      payload: updates,
+      timestamp: Date.now(),
     });
+
+    return templateId;
   },
 });

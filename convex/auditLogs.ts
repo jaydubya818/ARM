@@ -249,14 +249,12 @@ export const cleanupOldLogs = mutation({
       .collect();
     
     // Delete old logs
-    let deletedCount = 0;
     for (const log of oldLogs) {
       await ctx.db.delete(log._id);
-      deletedCount++;
     }
     
     return {
-      deletedCount,
+      deletedCount: oldLogs.length,
       cutoffTimestamp,
       retentionDays,
     };

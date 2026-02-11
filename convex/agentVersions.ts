@@ -14,31 +14,29 @@ export const create = mutation({
   handler: async (ctx, args) => {
     // Compute hash
     const genomeHash = await computeGenomeHash(args.genome);
-    
-    return await ctx.db.atomic(async (tx) => {
-      const versionId = await tx.insert("agentVersions", {
-        templateId: args.templateId,
-        tenantId: args.tenantId,
-        versionLabel: args.versionLabel,
-        genome: args.genome,
-        genomeHash,
-        lifecycleState: "DRAFT",
-        evalStatus: "NOT_RUN",
-        parentVersionId: args.parentVersionId,
-      });
-      
-      // Write ChangeRecord
-      await tx.insert("changeRecords", {
-        tenantId: args.tenantId,
-        type: "VERSION_CREATED",
-        targetEntity: "agentVersion",
-        targetId: versionId,
-        payload: { versionLabel: args.versionLabel, genomeHash },
-        timestamp: Date.now(),
-      });
-      
-      return versionId;
+
+    const versionId = await ctx.db.insert("agentVersions", {
+      templateId: args.templateId,
+      tenantId: args.tenantId,
+      versionLabel: args.versionLabel,
+      genome: args.genome,
+      genomeHash,
+      lifecycleState: "DRAFT",
+      evalStatus: "NOT_RUN",
+      parentVersionId: args.parentVersionId,
     });
+
+    // Write ChangeRecord
+    await ctx.db.insert("changeRecords", {
+      tenantId: args.tenantId,
+      type: "VERSION_CREATED",
+      targetEntity: "agentVersion",
+      targetId: versionId,
+      payload: { versionLabel: args.versionLabel, genomeHash },
+      timestamp: Date.now(),
+    });
+
+    return versionId;
   },
 });
 
@@ -116,70 +114,68 @@ export const transition = mutation({
     approvalId: v.optional(v.id("approvalRecords")),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.atomic(async (tx) => {
-      const version = await tx.get(args.versionId);
-      if (!version) throw new Error("Version not found");
-      
-      // State machine validation (imported from lib/approvalEngine)
-      const { validateVersionTransition } = await import("./lib/approvalEngine");
-      const validation = validateVersionTransition(
-        version.lifecycleState,
-        args.newState,
-        version.evalStatus
-      );
-      
-      if (!validation.valid) {
-        throw new Error(validation.error);
-      }
-      
-      // Check if approval required (P1.2 - basic check, full integration later)
-      // For now, we'll allow transitions without approval enforcement
-      // Full approval enforcement will be added when instance policies are attached
-      
-      await tx.patch(args.versionId, {
-        lifecycleState: args.newState,
-      });
-      
-      // Write ChangeRecord
-      await tx.insert("changeRecords", {
-        tenantId: version.tenantId,
-        type: "VERSION_TRANSITIONED",
-        targetEntity: "agentVersion",
-        targetId: args.versionId,
-        payload: {
-          from: version.lifecycleState,
-          to: args.newState,
-          approvalId: args.approvalId,
-        },
-        timestamp: Date.now(),
-      });
+    const version = await ctx.db.get(args.versionId);
+    if (!version) throw new Error("Version not found");
 
-      // P2.0: Auto-trigger evaluation when transitioning to TESTING
-      // Note: This creates a pending run that will be picked up by the evaluation runner
-      if (args.newState === "TESTING") {
-        // Find a default evaluation suite for this tenant
-        const defaultSuite = await tx
-          .query("evaluationSuites")
-          .withIndex("by_tenant", (q) => q.eq("tenantId", version.tenantId))
-          .first();
+    // State machine validation (imported from lib/approvalEngine)
+    const { validateVersionTransition } = await import("./lib/approvalEngine");
+    const validation = validateVersionTransition(
+      version.lifecycleState,
+      args.newState,
+      version.evalStatus
+    );
 
-        if (defaultSuite) {
-          // Create evaluation run
-          await tx.insert("evaluationRuns", {
-            tenantId: version.tenantId,
-            suiteId: defaultSuite._id,
-            versionId: args.versionId,
-            status: "PENDING",
-          });
+    if (!validation.valid) {
+      throw new Error(validation.error);
+    }
 
-          // Update version evalStatus to RUNNING
-          await tx.patch(args.versionId, {
-            evalStatus: "RUNNING",
-          });
-        }
-      }
-      
-      return args.versionId;
+    // Check if approval required (P1.2 - basic check, full integration later)
+    // For now, we'll allow transitions without approval enforcement
+    // Full approval enforcement will be added when instance policies are attached
+
+    await ctx.db.patch(args.versionId, {
+      lifecycleState: args.newState,
     });
+
+    // Write ChangeRecord
+    await ctx.db.insert("changeRecords", {
+      tenantId: version.tenantId,
+      type: "VERSION_TRANSITIONED",
+      targetEntity: "agentVersion",
+      targetId: args.versionId,
+      payload: {
+        from: version.lifecycleState,
+        to: args.newState,
+        approvalId: args.approvalId,
+      },
+      timestamp: Date.now(),
+    });
+
+    // P2.0: Auto-trigger evaluation when transitioning to TESTING
+    // Note: This creates a pending run that will be picked up by the evaluation runner
+    if (args.newState === "TESTING") {
+      // Find a default evaluation suite for this tenant
+      const defaultSuite = await ctx.db
+        .query("evaluationSuites")
+        .withIndex("by_tenant", (q) => q.eq("tenantId", version.tenantId))
+        .first();
+
+      if (defaultSuite) {
+        // Create evaluation run
+        await ctx.db.insert("evaluationRuns", {
+          tenantId: version.tenantId,
+          suiteId: defaultSuite._id,
+          versionId: args.versionId,
+          status: "PENDING",
+        });
+
+        // Update version evalStatus to RUNNING
+        await ctx.db.patch(args.versionId, {
+          evalStatus: "RUNNING",
+        });
+      }
+    }
+
+    return args.versionId;
   },
 });

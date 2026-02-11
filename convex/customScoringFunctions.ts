@@ -8,6 +8,7 @@ import { v } from "convex/values";
 import { query, mutation, action } from "./_generated/server";
 import { api } from "./_generated/api";
 import { Doc, Id } from "./_generated/dataModel";
+import ivm from "isolated-vm";
 
 type ExecutionArgs = {
   input: unknown;
@@ -28,33 +29,25 @@ async function runCustomFunction(
   func: Doc<"customScoringFunctions">,
   args: ExecutionArgs
 ): Promise<ExecutionResult> {
+  const isolate = new ivm.Isolate({ memoryLimit: 128 });
+  const context = await isolate.createContext();
+  const jail = context.global;
+  await jail.set("global", jail.derefInto());
+
+  const code = `
+    "use strict";
+    ${func.code}
+  `;
+
+  const script = await isolate.compileScript(code);
+
+  const startTime = Date.now();
   try {
-    // Create sandboxed function
-    // Note: In production, this should use a proper sandbox like vm2 or isolated-vm
-    const sandboxedFunction = new Function(
-      "input",
-      "expectedOutput",
-      "actualOutput",
-      `
-        "use strict";
-        ${func.code}
-        `
-    );
+    await script.run(context, { timeout: 5000 });
+    const result = await context.global.get("score");
 
-    // Execute with timeout
-    const timeoutMs = 5000; // 5 second timeout
-    const result = await Promise.race([
-      Promise.resolve(
-        sandboxedFunction(args.input, args.expectedOutput, args.actualOutput)
-      ),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Function execution timeout")), timeoutMs)
-      ),
-    ]);
-
-    // Validate result
     if (typeof result !== "number") {
-      throw new Error("Function must return a number");
+      throw new Error("Function must produce a numeric score");
     }
 
     if (result < 0 || result > 1) {
@@ -63,15 +56,17 @@ async function runCustomFunction(
 
     return {
       success: true,
-      score: result as number,
-      executionTime: Date.now(),
+      score: result,
+      executionTime: Date.now() - startTime,
     };
   } catch (error) {
     return {
       success: false,
       error: (error as Error).message,
-      executionTime: Date.now(),
+      executionTime: Date.now() - startTime,
     };
+  } finally {
+    isolate.dispose();
   }
 }
 
@@ -155,60 +150,62 @@ export const create = mutation({
     }),
   },
   handler: async (ctx, args) => {
-    // Validate function name
-    if (!args.name.trim()) {
-      throw new Error("Function name is required");
-    }
+    return await ctx.db.atomic(async (tx) => {
+      // Validate function name
+      if (!args.name.trim()) {
+        throw new Error("Function name is required");
+      }
 
-    // Check for duplicate name
-    const existing = await ctx.db
-      .query("customScoringFunctions")
-      .withIndex("by_name", (q) =>
-        q.eq("tenantId", args.tenantId).eq("name", args.name)
-      )
-      .first();
+      // Check for duplicate name
+      const existing = await tx
+        .query("customScoringFunctions")
+        .withIndex("by_name", (q) =>
+          q.eq("tenantId", args.tenantId).eq("name", args.name)
+        )
+        .first();
 
-    if (existing) {
-      throw new Error(`Function with name "${args.name}" already exists`);
-    }
+      if (existing) {
+        throw new Error(`Function with name "${args.name}" already exists`);
+      }
 
-    // Validate code (basic syntax check)
-    try {
-      new Function(args.code);
-    } catch (error) {
-      throw new Error(`Invalid JavaScript code: ${(error as Error).message}`);
-    }
+      // Validate code (basic syntax check)
+      try {
+        new Function(args.code);
+      } catch (error) {
+        throw new Error(`Invalid JavaScript code: ${(error as Error).message}`);
+      }
 
-    // Create function
-    const now = Date.now();
-    const functionId = await ctx.db.insert("customScoringFunctions", {
-      tenantId: args.tenantId,
-      name: args.name,
-      description: args.description,
-      code: args.code,
-      language: "javascript",
-      version: 1,
-      isActive: true,
-      createdBy: args.createdBy,
-      createdAt: now,
-      updatedAt: now,
-      metadata: args.metadata,
-    });
-
-    // Write change record
-    await ctx.db.insert("changeRecords", {
-      tenantId: args.tenantId,
-      type: "CUSTOM_FUNCTION_CREATED",
-      targetEntity: "customScoringFunction",
-      targetId: functionId,
-      payload: {
+      // Create function
+      const now = Date.now();
+      const functionId = await tx.insert("customScoringFunctions", {
+        tenantId: args.tenantId,
         name: args.name,
+        description: args.description,
+        code: args.code,
+        language: "javascript",
         version: 1,
-      },
-      timestamp: now,
-    });
+        isActive: true,
+        createdBy: args.createdBy,
+        createdAt: now,
+        updatedAt: now,
+        metadata: args.metadata,
+      });
 
-    return functionId;
+      // Write change record
+      await tx.insert("changeRecords", {
+        tenantId: args.tenantId,
+        type: "CUSTOM_FUNCTION_CREATED",
+        targetEntity: "customScoringFunction",
+        targetId: functionId,
+        payload: {
+          name: args.name,
+          version: 1,
+        },
+        timestamp: now,
+      });
+
+      return functionId;
+    });
   },
 });
 
@@ -239,64 +236,66 @@ export const update = mutation({
     })),
   },
   handler: async (ctx, args) => {
-    const func = await ctx.db.get(args.functionId);
-    if (!func) {
-      throw new Error("Function not found");
-    }
-
-    // Validate code if provided
-    if (args.code) {
-      try {
-        new Function(args.code);
-      } catch (error) {
-        throw new Error(`Invalid JavaScript code: ${(error as Error).message}`);
+    return await ctx.db.atomic(async (tx) => {
+      const func = await tx.get(args.functionId);
+      if (!func) {
+        throw new Error("Function not found");
       }
-    }
 
-    // Check for duplicate name if changing name
-    if (args.name && args.name !== func.name) {
-      const existing = await ctx.db
-        .query("customScoringFunctions")
-        .withIndex("by_name", (q) =>
-          q.eq("tenantId", func.tenantId).eq("name", args.name!)
-        )
-        .first();
-
-      if (existing) {
-        throw new Error(`Function with name "${args.name}" already exists`);
+      // Validate code if provided
+      if (args.code) {
+        try {
+          new Function(args.code);
+        } catch (error) {
+          throw new Error(`Invalid JavaScript code: ${(error as Error).message}`);
+        }
       }
-    }
 
-    // Update function
-    const updates: any = {
-      updatedAt: Date.now(),
-    };
+      // Check for duplicate name if changing name
+      if (args.name && args.name !== func.name) {
+        const existing = await tx
+          .query("customScoringFunctions")
+          .withIndex("by_name", (q) =>
+            q.eq("tenantId", func.tenantId).eq("name", args.name!)
+          )
+          .first();
 
-    if (args.name !== undefined) updates.name = args.name;
-    if (args.description !== undefined) updates.description = args.description;
-    if (args.code !== undefined) {
-      updates.code = args.code;
-      updates.version = func.version + 1;
-    }
-    if (args.isActive !== undefined) updates.isActive = args.isActive;
-    if (args.metadata !== undefined) updates.metadata = args.metadata;
+        if (existing) {
+          throw new Error(`Function with name "${args.name}" already exists`);
+        }
+      }
 
-    await ctx.db.patch(args.functionId, updates);
+      // Update function
+      const updates: any = {
+        updatedAt: Date.now(),
+      };
 
-    // Write change record
-    await ctx.db.insert("changeRecords", {
-      tenantId: func.tenantId,
-      type: "CUSTOM_FUNCTION_UPDATED",
-      targetEntity: "customScoringFunction",
-      targetId: args.functionId,
-      payload: {
-        name: args.name || func.name,
-        version: updates.version || func.version,
-      },
-      timestamp: Date.now(),
+      if (args.name !== undefined) updates.name = args.name;
+      if (args.description !== undefined) updates.description = args.description;
+      if (args.code !== undefined) {
+        updates.code = args.code;
+        updates.version = func.version + 1;
+      }
+      if (args.isActive !== undefined) updates.isActive = args.isActive;
+      if (args.metadata !== undefined) updates.metadata = args.metadata;
+
+      await tx.patch(args.functionId, updates);
+
+      // Write change record
+      await tx.insert("changeRecords", {
+        tenantId: func.tenantId,
+        type: "CUSTOM_FUNCTION_UPDATED",
+        targetEntity: "customScoringFunction",
+        targetId: args.functionId,
+        payload: {
+          name: args.name || func.name,
+          version: updates.version || func.version,
+        },
+        timestamp: Date.now(),
+      });
+
+      return args.functionId;
     });
-
-    return args.functionId;
   },
 });
 
@@ -308,28 +307,30 @@ export const remove = mutation({
     functionId: v.id("customScoringFunctions"),
   },
   handler: async (ctx, args) => {
-    const func = await ctx.db.get(args.functionId);
-    if (!func) {
-      throw new Error("Function not found");
-    }
+    return await ctx.db.atomic(async (tx) => {
+      const func = await tx.get(args.functionId);
+      if (!func) {
+        throw new Error("Function not found");
+      }
 
-    // Delete function
-    await ctx.db.delete(args.functionId);
+      // Delete function
+      await tx.delete(args.functionId);
 
-    // Write change record
-    await ctx.db.insert("changeRecords", {
-      tenantId: func.tenantId,
-      type: "CUSTOM_FUNCTION_DELETED",
-      targetEntity: "customScoringFunction",
-      targetId: args.functionId,
-      payload: {
-        name: func.name,
-        version: func.version,
-      },
-      timestamp: Date.now(),
+      // Write change record
+      await tx.insert("changeRecords", {
+        tenantId: func.tenantId,
+        type: "CUSTOM_FUNCTION_DELETED",
+        targetEntity: "customScoringFunction",
+        targetId: args.functionId,
+        payload: {
+          name: func.name,
+          version: func.version,
+        },
+        timestamp: Date.now(),
+      });
+
+      return { success: true };
     });
-
-    return { success: true };
   },
 });
 

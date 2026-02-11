@@ -13,25 +13,23 @@ export const create = mutation({
     metadata: v.optional(v.any()),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.atomic(async (tx) => {
-      const instanceId = await tx.insert("agentInstances", {
-        ...args,
-        state: "PROVISIONING",
-        heartbeatAt: Date.now(),
-      });
-      
-      // Write ChangeRecord
-      await tx.insert("changeRecords", {
-        tenantId: args.tenantId,
-        type: "INSTANCE_CREATED",
-        targetEntity: "agentInstance",
-        targetId: instanceId,
-        payload: { versionId: args.versionId, environmentId: args.environmentId },
-        timestamp: Date.now(),
-      });
-      
-      return instanceId;
+    const instanceId = await ctx.db.insert("agentInstances", {
+      ...args,
+      state: "PROVISIONING",
+      heartbeatAt: Date.now(),
     });
+
+    // Write ChangeRecord
+    await ctx.db.insert("changeRecords", {
+      tenantId: args.tenantId,
+      type: "INSTANCE_CREATED",
+      targetEntity: "agentInstance",
+      targetId: instanceId,
+      payload: { versionId: args.versionId, environmentId: args.environmentId },
+      timestamp: Date.now(),
+    });
+
+    return instanceId;
   },
 });
 
@@ -76,29 +74,27 @@ export const transition = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.atomic(async (tx) => {
-      const instance = await tx.get(args.instanceId);
-      if (!instance) throw new Error("Instance not found");
-      
-      await tx.patch(args.instanceId, {
-        state: args.newState,
-      });
-      
-      // Write ChangeRecord
-      await tx.insert("changeRecords", {
-        tenantId: instance.tenantId,
-        type: "INSTANCE_TRANSITIONED",
-        targetEntity: "agentInstance",
-        targetId: args.instanceId,
-        payload: {
-          from: instance.state,
-          to: args.newState,
-        },
-        timestamp: Date.now(),
-      });
-      
-      return args.instanceId;
+    const instance = await ctx.db.get(args.instanceId);
+    if (!instance) throw new Error("Instance not found");
+
+    await ctx.db.patch(args.instanceId, {
+      state: args.newState,
     });
+
+    // Write ChangeRecord
+    await ctx.db.insert("changeRecords", {
+      tenantId: instance.tenantId,
+      type: "INSTANCE_TRANSITIONED",
+      targetEntity: "agentInstance",
+      targetId: args.instanceId,
+      payload: {
+        from: instance.state,
+        to: args.newState,
+      },
+      timestamp: Date.now(),
+    });
+
+    return args.instanceId;
   },
 });
 
